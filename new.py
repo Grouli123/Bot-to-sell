@@ -5,6 +5,8 @@ import sqlite3
 import requests
 import json
 from geopy.geocoders import Nominatim
+import time
+
 
 bot = telebot.TeleBot('6484701618:AAFcxH0T31Rl_XakKMfFm5PWsLwSIRzhcVE')
 
@@ -14,15 +16,21 @@ firstname = None
 middlename = None
 userbirthday = None
 
+citizenRF = None
+
+dataYesOrNo = None
+
 geolocator = None
 locationcity = None
+
+cityname = 'Арзамас'
 
 @bot.message_handler(commands=['start'])
 def registration(message):
     conn = sqlite3.connect('peoplebase.sql')
     cur = conn.cursor()
 
-    cur.execute('CREATE TABLE IF NOT EXISTS users (id int auto_increment primary key, datatime current_timestamp, phone varchar(50), city varchar(50), last_name varchar(50), firts_name varchar(50), middle_name varchar(50), birthday data)')
+    cur.execute('CREATE TABLE IF NOT EXISTS users (id int auto_increment primary key, datatime current_timestamp, phone varchar(50), city varchar(50), last_name varchar(50), firts_name varchar(50), middle_name varchar(50), birthday data, citizenRF varchar(50))')
     conn.commit() 
     cur.close()
     conn.close()
@@ -97,21 +105,65 @@ def middle_name(message):
 def user_birthday(message):
     global userbirthday
     userbirthday = message.text.strip()
-    user_pass(message)
+    get_photo(message)
+
+
+
+
+
+
+def get_photo(message):
+    markup = types.InlineKeyboardMarkup()
+    btn2 = types.InlineKeyboardButton('Да', callback_data='delete')
+    btn3 = types.InlineKeyboardButton('Нет', callback_data='edit')
+    markup.row(btn2, btn3)    
+    bot.send_message(message.chat.id, 'Являешься гражданином Российской Федерации🇷🇺?', reply_markup=markup)
+    
+
+
+@bot.callback_query_handler(func=lambda callback: True)
+def callback_message(callback):   
+    global dataYesOrNo
+    global citizenRF 
+    if callback.data == 'delete':
+        bot.send_message(callback.message.chat.id, f'📞 Телефон: {phone}\n👤 ФИО: {lastname} {firstname} {middlename}\n📅 Дата рождения: {userbirthday}\n🇷🇺 Гражданство РФ: Есть\n🏙 Город(а): {locationcity}')
+        dataYesOrNo = 'Да'
+        user_pass(callback.message)
+
+    elif callback.data == 'edit':
+        bot.send_message(callback.message.chat.id, f'📞 Телефон: {phone}\n👤 ФИО: {lastname} {firstname} {middlename}\n📅 Дата рождения: {userbirthday}\n🇷🇺 Гражданство РФ: Нет\n🏙 Город(а): {locationcity}')
+        dataYesOrNo = 'Нет'
+        user_pass(callback.message)
+    citizenRF = dataYesOrNo
+    print(citizenRF)
+    
+
+# def check_status(message):
+#     global citizenRF
+#     if citizenRF is not None:
+#         bot.register_next_step_handler(message, user_pass)
+
+#         print(citizenRF)
+
+#     else:
+#         print('Ошибка')
+
+
+
 
 def user_pass(message):
     conn = sqlite3.connect('peoplebase.sql')
     cur = conn.cursor()
 
-    cur.execute("INSERT INTO users (phone, city, last_name, firts_name, middle_name, birthday) VALUES ('%s', '%s', '%s', '%s', '%s', '%s')" % (phone, locationcity, lastname, firstname, middlename, userbirthday)) 
+    cur.execute("INSERT INTO users (phone, city, last_name, firts_name, middle_name, birthday, citizenRF) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s')" % (phone, locationcity, lastname, firstname, middlename, userbirthday, citizenRF)) 
    
     conn.commit()
     cur.close()
     conn.close()
 
     markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton('Список пользователей', callback_data='users'))
-    bot.send_message(message.chat.id, 'Пользователь зарегистрирован', reply_markup=markup)
+    markup.add(types.InlineKeyboardButton(f'👉Канал {cityname}', callback_data='users'))
+    bot.send_message(message.chat.id, f'Готово🖖\nПереходи на канал «Арзамас» (там будут заявки)\n\nКак перейдёшь - обязательно нажми кнопку «начать/старт/start» (без этого заявки не будут появляться ‼️ )\n\n👇👇👇👇👇', reply_markup=markup)
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback(call):
@@ -123,7 +175,7 @@ def callback(call):
 
     info = ''
     for el in users:
-        info += f'Номер телефона: {el[2]}, Город: {el[3]}, Фамилия: {el[4]}, Имя: {el[5]}, Отчество: {el[6]}, Дата рождения: {el[7]}\n'
+        info += f'Номер телефона: {el[2]}, Город: {el[3]}, Фамилия: {el[4]}, Имя: {el[5]}, Отчество: {el[6]}, Дата рождения: {el[7]}, Гражданство РФ: {el[8]}\n'
 
     cur.close()
     conn.close()
