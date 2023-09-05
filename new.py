@@ -100,8 +100,6 @@ def user_birthday(message):
     user_pass(message)
 
 def user_pass(message):
-    userbirthday = message.text.strip()
-
     conn = sqlite3.connect('peoplebase.sql')
     cur = conn.cursor()
 
