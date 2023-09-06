@@ -71,7 +71,6 @@ def location(message):
         city_name = city_state_country(a)
         locationcity = city_name
         found_city(message)
-        print('вот ',message)
 
 def found_city(message):
     bot.send_message(message.chat.id, f'✅Найден город {locationcity}', reply_markup=types.ReplyKeyboardRemove())
@@ -80,26 +79,21 @@ def found_city(message):
 
 def last_name(message):
     global lastname
-    print('fuf')
     lastname = message.text.strip()
     bot.send_message(message.chat.id, '🖌Введи <b>ТОЛЬКО</b> имя:', parse_mode='html')
     bot.register_next_step_handler(message, first_name)
-    print(lastname)
 
 def first_name(message):
     global firstname
     firstname = message.text.strip()    
     bot.send_message(message.chat.id, '🖌Введи <b>ТОЛЬКО</b> отчество:', parse_mode='html')
-
     bot.register_next_step_handler(message, middle_name)
-    print(firstname)
 
 def middle_name(message):
     global middlename
     middlename = message.text.strip()
     bot.send_message(message.chat.id, '🖌 Введи дату рождения в формате «день.месяц.год» пример: 01.01.1990', parse_mode='html')
     bot.register_next_step_handler(message, user_birthday)
-    print(middlename, firstname, lastname)
 
 def user_birthday(message):
     global userbirthday
@@ -111,9 +105,7 @@ def citizenRU(message):
     btn2 = types.InlineKeyboardButton('Да', callback_data='delete', one_time_keyboard=True)
     btn3 = types.InlineKeyboardButton('Нет', callback_data='edit', one_time_keyboard=True)
     markup.row(btn2, btn3)    
-    bot.send_message(message.chat.id, 'Являешься гражданином Российской Федерации🇷🇺?', reply_markup=markup)
-    
-
+    bot.send_message(message.chat.id, 'Являешься гражданином Российской Федерации🇷🇺?', reply_markup=markup)  
 
 @bot.callback_query_handler(func=lambda callback: callback.data == 'delete')
 @bot.callback_query_handler(func=lambda callback: callback.data == 'edit') 
@@ -127,17 +119,8 @@ def callback_messageYes(callback):
     bot.send_message(callback.message.chat.id, f'📞 Телефон: +{phone}\n👤 ФИО: {lastname} {firstname} {middlename}\n📅 Дата рождения: {userbirthday}\n🇷🇺 Гражданство РФ: {usercitizenRF}\n🏙 Город(а): {locationcity}')
     user_pass(callback.message)
 
-# @bot.callback_query_handler(func=lambda callback: callback.data == 'edit') 
-# def callback_messageNo(callback):   
-#     global usercitizenRF 
-#     if callback.data == 'edit':        
-#         usercitizenRF = 'Нет'
-#         bot.send_message(callback.message.chat.id, f'📞 Телефон: +{phone}\n👤 ФИО: {lastname} {firstname} {middlename}\n📅 Дата рождения: {userbirthday}\n🇷🇺 Гражданство РФ: Нет\n🏙 Город(а): {locationcity}')  
-#     user_pass(callback.message)
-
 def user_pass(message):
-    global usercitizenRF 
-    
+    global usercitizenRF     
     conn = sqlite3.connect('peoplebase.sql')
     cur = conn.cursor()
     cur.execute("INSERT INTO users (phone, city, last_name, firts_name, middle_name, birthday, citizenRF) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s')" % (phone, locationcity, lastname, firstname, middlename, userbirthday, usercitizenRF)) 
