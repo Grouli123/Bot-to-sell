@@ -12,52 +12,52 @@ bot = telebot.TeleBot('6484701618:AAFcxH0T31Rl_XakKMfFm5PWsLwSIRzhcVE')
 currency = CurrencyConverter()
 amount = 0
 
-@bot.message_handler(commands=['start'])
-def start(message):
-    bot.send_message(message.chat.id, 'Привет, введите сумму')
-    bot.register_next_step_handler(message, summa)
+# @bot.message_handler(commands=['start'])
+# def start(message):
+#     bot.send_message(message.chat.id, 'Привет, введите сумму')
+#     bot.register_next_step_handler(message, summa)
 
-def summa(message):
-    global amount
-    try:
-        amount = int(message.text.strip())
-    except ValueError:
-        bot.send_message(message.chat.id, "Неверный формат. Впишите сумму")
-        bot.register_next_step_handler(message, summa)
-        return
+# def summa(message):
+#     global amount
+#     try:
+#         amount = int(message.text.strip())
+#     except ValueError:
+#         bot.send_message(message.chat.id, "Неверный формат. Впишите сумму")
+#         bot.register_next_step_handler(message, summa)
+#         return
 
-    if amount > 0:
-        markup = types.InlineKeyboardMarkup(row_width=2)
-        btn1 = types.InlineKeyboardButton('USD/EUR', callback_data='usd/eur')
-        btn2 = types.InlineKeyboardButton('EUR/USD', callback_data='eur/usd')
-        btn3 = types.InlineKeyboardButton('USD/GBP', callback_data='usd/gbp')
-        btn4 = types.InlineKeyboardButton('Другое значение', callback_data='else')
-        markup.add(btn1, btn2, btn3, btn4)
-        bot.send_message(message.chat.id, "Введите пару валют", reply_markup=markup)
-    else:
-        bot.send_message(message.chat.id, "Число должно быть больше 0. Впишите сумму")
-        bot.register_next_step_handler(message, summa)
+#     if amount > 0:
+#         markup = types.InlineKeyboardMarkup(row_width=2)
+#         btn1 = types.InlineKeyboardButton('USD/EUR', callback_data='usd/eur')
+#         btn2 = types.InlineKeyboardButton('EUR/USD', callback_data='eur/usd')
+#         btn3 = types.InlineKeyboardButton('USD/GBP', callback_data='usd/gbp')
+#         btn4 = types.InlineKeyboardButton('Другое значение', callback_data='else')
+#         markup.add(btn1, btn2, btn3, btn4)
+#         bot.send_message(message.chat.id, "Введите пару валют", reply_markup=markup)
+#     else:
+#         bot.send_message(message.chat.id, "Число должно быть больше 0. Впишите сумму")
+#         bot.register_next_step_handler(message, summa)
 
-@bot.callback_query_handler(func=lambda call:True)
-def callback(call):
-    if call.data != 'else':
-        values = call.data.upper().split('/')
-        res = currency.convert(amount, values[0], values[1])
-        bot.send_message(call.message.chat.id, f'Получается: {round(res, 2)}. Можете заново вписать сумму')
-        bot.register_next_step_handler(call.message, summa)
-    else:
-        bot.send_message(call.message.chat.id, 'Введите пару значение через слэш')
-        bot.register_next_step_handler(call.message, my_currency)
+# @bot.callback_query_handler(func=lambda call:True)
+# def callback(call):
+#     if call.data != 'else':
+#         values = call.data.upper().split('/')
+#         res = currency.convert(amount, values[0], values[1])
+#         bot.send_message(call.message.chat.id, f'Получается: {round(res, 2)}. Можете заново вписать сумму')
+#         bot.register_next_step_handler(call.message, summa)
+#     else:
+#         bot.send_message(call.message.chat.id, 'Введите пару значение через слэш')
+#         bot.register_next_step_handler(call.message, my_currency)
 
-def my_currency(message):
-    try:
-        values = message.text.upper().split('/')
-        res = currency.convert(amount, values[0], values[1])
-        bot.send_message(message.chat.id, f'Получается: {round(res, 2)}. Можете заново вписать сумму')
-        bot.register_next_step_handler(message, summa)
-    except Exception:
-        bot.send_message(message.chat.id, 'Что-то не так. Впишите значение заново')
-        bot.register_next_step_handler(message, my_currency)
+# def my_currency(message):
+#     try:
+#         values = message.text.upper().split('/')
+#         res = currency.convert(amount, values[0], values[1])
+#         bot.send_message(message.chat.id, f'Получается: {round(res, 2)}. Можете заново вписать сумму')
+#         bot.register_next_step_handler(message, summa)
+#     except Exception:
+#         bot.send_message(message.chat.id, 'Что-то не так. Впишите значение заново')
+#         bot.register_next_step_handler(message, my_currency)
 
 
 
@@ -104,58 +104,58 @@ def my_currency(message):
 
 # SQL base
 
-name = None
+# name = None
 
-@bot.message_handler(commands=['start'])
-def start(message):
-    conn = sqlite3.connect('peoplebase.sql')
-    cur = conn.cursor()
+# @bot.message_handler(commands=['start'])
+# def start(message):
+#     conn = sqlite3.connect('peoplebase.sql')
+#     cur = conn.cursor()
 
-    cur.execute('CREATE TABLE IF NOT EXISTS users (id int auto_increment primary key, name varchar(50), pass varchar(50))')
-    conn.commit()
-    cur.close()
-    conn.close()
+#     cur.execute('CREATE TABLE IF NOT EXISTS users (id int auto_increment primary key, name varchar(50), pass varchar(50))')
+#     conn.commit()
+#     cur.close()
+#     conn.close()
 
-    bot.send_message(message.chat.id, 'Привет, сейчас тебя зарегистрируем! Введите ваше имя')
-    bot.register_next_step_handler(message, user_name)
+#     bot.send_message(message.chat.id, 'Привет, сейчас тебя зарегистрируем! Введите ваше имя')
+#     bot.register_next_step_handler(message, user_name)
 
-def user_name(message):
-    global name
-    name = message.text.strip()
-    bot.send_message(message.chat.id, 'Введите пароль')
-    bot.register_next_step_handler(message, user_pass)
+# def user_name(message):
+#     global name
+#     name = message.text.strip()
+#     bot.send_message(message.chat.id, 'Введите пароль')
+#     bot.register_next_step_handler(message, user_pass)
 
-def user_pass(message):
-    password = message.text.strip()
+# def user_pass(message):
+#     password = message.text.strip()
 
-    conn = sqlite3.connect('peoplebase.sql')
-    cur = conn.cursor()
+#     conn = sqlite3.connect('peoplebase.sql')
+#     cur = conn.cursor()
 
-    cur.execute("INSERT INTO users (name, pass) VALUES ('%s', '%s')" % (name, password))
-    conn.commit()
-    cur.close()
-    conn.close()
+#     cur.execute("INSERT INTO users (name, pass) VALUES ('%s', '%s')" % (name, password))
+#     conn.commit()
+#     cur.close()
+#     conn.close()
 
-    markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton('Список пользователей', callback_data='users'))
-    bot.send_message(message.chat.id, 'Пользователь зарегистрирован', reply_markup=markup)
+#     markup = types.InlineKeyboardMarkup()
+#     markup.add(types.InlineKeyboardButton('Список пользователей', callback_data='users'))
+#     bot.send_message(message.chat.id, 'Пользователь зарегистрирован', reply_markup=markup)
 
-@bot.callback_query_handler(func=lambda call: True)
-def callback(call):
-    conn = sqlite3.connect('peoplebase.sql')
-    cur = conn.cursor()
+# @bot.callback_query_handler(func=lambda call: True)
+# def callback(call):
+#     conn = sqlite3.connect('peoplebase.sql')
+#     cur = conn.cursor()
 
-    cur.execute('SELECT * FROM users')
-    users = cur.fetchall()
+#     cur.execute('SELECT * FROM users')
+#     users = cur.fetchall()
 
-    info = ''
-    for el in users:
-        info += f'Имя: {el[1]}, пароль: {el[2]}\n'
+#     info = ''
+#     for el in users:
+#         info += f'Имя: {el[1]}, пароль: {el[2]}\n'
 
-    cur.close()
-    conn.close()
+#     cur.close()
+#     conn.close()
 
-    bot.send_message(call.message.chat.id, info)
+#     bot.send_message(call.message.chat.id, info)
 
 
 

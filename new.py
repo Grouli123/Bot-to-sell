@@ -16,9 +16,8 @@ firstname = None
 middlename = None
 userbirthday = None
 
-citizenRF = None
+usercitizenRF = None
 
-dataYesOrNo = None
 
 geolocator = None
 locationcity = None
@@ -75,7 +74,7 @@ def location(message):
         print('вот ',message)
 
 def found_city(message):
-    bot.send_message(message.chat.id, f'✅Найден город {locationcity}')
+    bot.send_message(message.chat.id, f'✅Найден город {locationcity}', reply_markup=types.ReplyKeyboardRemove())
     bot.send_message(message.chat.id, 'Еще пару шагов и мы у цели!\n🖌Введи <b>ТОЛЬКО</b> фамилию:', parse_mode='html')
     bot.register_next_step_handler(message, last_name)
 
@@ -105,67 +104,55 @@ def middle_name(message):
 def user_birthday(message):
     global userbirthday
     userbirthday = message.text.strip()
-    get_photo(message)
+    citizenRU(message)
 
-
-
-
-
-
-def get_photo(message):
+def citizenRU(message):
     markup = types.InlineKeyboardMarkup()
-    btn2 = types.InlineKeyboardButton('Да', callback_data='delete')
-    btn3 = types.InlineKeyboardButton('Нет', callback_data='edit')
+    btn2 = types.InlineKeyboardButton('Да', callback_data='delete', one_time_keyboard=True)
+    btn3 = types.InlineKeyboardButton('Нет', callback_data='edit', one_time_keyboard=True)
     markup.row(btn2, btn3)    
     bot.send_message(message.chat.id, 'Являешься гражданином Российской Федерации🇷🇺?', reply_markup=markup)
     
 
 
-@bot.callback_query_handler(func=lambda callback: True)
-def callback_message(callback):   
-    global dataYesOrNo
-    global citizenRF 
+@bot.callback_query_handler(func=lambda callback: callback.data == 'delete')
+@bot.callback_query_handler(func=lambda callback: callback.data == 'edit') 
+def callback_messageYes(callback):   
+    global usercitizenRF 
     if callback.data == 'delete':
-        bot.send_message(callback.message.chat.id, f'📞 Телефон: {phone}\n👤 ФИО: {lastname} {firstname} {middlename}\n📅 Дата рождения: {userbirthday}\n🇷🇺 Гражданство РФ: Есть\n🏙 Город(а): {locationcity}')
-        dataYesOrNo = 'Да'
-        user_pass(callback.message)
-
-    elif callback.data == 'edit':
-        bot.send_message(callback.message.chat.id, f'📞 Телефон: {phone}\n👤 ФИО: {lastname} {firstname} {middlename}\n📅 Дата рождения: {userbirthday}\n🇷🇺 Гражданство РФ: Нет\n🏙 Город(а): {locationcity}')
-        dataYesOrNo = 'Нет'
-        user_pass(callback.message)
-    citizenRF = dataYesOrNo
-    print(citizenRF)
+        usercitizenRF = 'Да'
+    else:          
+        usercitizenRF = 'Нет'
     
+    bot.send_message(callback.message.chat.id, f'📞 Телефон: +{phone}\n👤 ФИО: {lastname} {firstname} {middlename}\n📅 Дата рождения: {userbirthday}\n🇷🇺 Гражданство РФ: {usercitizenRF}\n🏙 Город(а): {locationcity}')
+    user_pass(callback.message)
 
-# def check_status(message):
-#     global citizenRF
-#     if citizenRF is not None:
-#         bot.register_next_step_handler(message, user_pass)
-
-#         print(citizenRF)
-
-#     else:
-#         print('Ошибка')
-
-
-
+# @bot.callback_query_handler(func=lambda callback: callback.data == 'edit') 
+# def callback_messageNo(callback):   
+#     global usercitizenRF 
+#     if callback.data == 'edit':        
+#         usercitizenRF = 'Нет'
+#         bot.send_message(callback.message.chat.id, f'📞 Телефон: +{phone}\n👤 ФИО: {lastname} {firstname} {middlename}\n📅 Дата рождения: {userbirthday}\n🇷🇺 Гражданство РФ: Нет\n🏙 Город(а): {locationcity}')  
+#     user_pass(callback.message)
 
 def user_pass(message):
+    global usercitizenRF 
+    
     conn = sqlite3.connect('peoplebase.sql')
     cur = conn.cursor()
-
-    cur.execute("INSERT INTO users (phone, city, last_name, firts_name, middle_name, birthday, citizenRF) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s')" % (phone, locationcity, lastname, firstname, middlename, userbirthday, citizenRF)) 
+    cur.execute("INSERT INTO users (phone, city, last_name, firts_name, middle_name, birthday, citizenRF) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s')" % (phone, locationcity, lastname, firstname, middlename, userbirthday, usercitizenRF)) 
    
     conn.commit()
     cur.close()
     conn.close()
+    
+    bot.edit_message_text('Являешься гражданином Российской Федерации🇷🇺?', message.chat.id, message.message_id)
 
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton(f'👉Канал {cityname}', callback_data='users'))
     bot.send_message(message.chat.id, f'Готово🖖\nПереходи на канал «Арзамас» (там будут заявки)\n\nКак перейдёшь - обязательно нажми кнопку «начать/старт/start» (без этого заявки не будут появляться ‼️ )\n\n👇👇👇👇👇', reply_markup=markup)
-
-@bot.callback_query_handler(func=lambda call: True)
+    
+@bot.callback_query_handler(func=lambda call: call.data == 'users')
 def callback(call):
     conn = sqlite3.connect('peoplebase.sql')
     cur = conn.cursor()
@@ -175,18 +162,13 @@ def callback(call):
 
     info = ''
     for el in users:
-        info += f'Номер телефона: {el[2]}, Город: {el[3]}, Фамилия: {el[4]}, Имя: {el[5]}, Отчество: {el[6]}, Дата рождения: {el[7]}, Гражданство РФ: {el[8]}\n'
+        info += f'Номер телефона: +{el[2]}, Город: {el[3]}, Фамилия: {el[4]}, Имя: {el[5]}, Отчество: {el[6]}, Дата рождения: {el[7]}, Гражданство РФ: {el[8]}\n'
 
     cur.close()
     conn.close()
 
     bot.send_message(call.message.chat.id, info)
     print(info)
-
-@bot.message_handler(content_types=['contact'])
-def contact(message):
-    if message.contact is not None:
-        print(message.contact)
 
 print('Bot started')
 
