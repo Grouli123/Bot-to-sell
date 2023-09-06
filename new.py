@@ -7,6 +7,9 @@ import json
 from geopy.geocoders import Nominatim
 import time
 
+# import config
+from datetime import datetime
+from dateutil.parser import parse
 
 bot = telebot.TeleBot('6484701618:AAFcxH0T31Rl_XakKMfFm5PWsLwSIRzhcVE')
 
@@ -33,7 +36,7 @@ def registration(message):
     conn.commit() 
     cur.close()
     conn.close()
-
+    
     keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
     button_phone = types.KeyboardButton(text="Отправить номер телефона", request_contact=True)
     keyboard.add(button_phone)
@@ -42,14 +45,19 @@ def registration(message):
 
 def geolocation(message):
     global phone
-    phone = message.contact.phone_number
-    global geolocator
-    keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-    button_geo = types.KeyboardButton(text="Отправить местоположение", request_location=True)
-    keyboard.add(button_geo)
-    bot.send_message(message.chat.id, "⚠️Включи геолокацию на телефоне!⚠️\n\nОтправь свой город, чтобы получать заявки без ошибок👇👇👇\n\nℹ️Определение города может занять некоторое время🕰.", reply_markup=keyboard)
-    bot.register_next_step_handler(message, location)
-    geolocator = Nominatim(user_agent = "name_of_your_app")    
+    try:
+        phone = message.contact.phone_number
+        global geolocator
+        keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+        button_geo = types.KeyboardButton(text="Отправить местоположение", request_location=True)
+        keyboard.add(button_geo)
+        bot.send_message(message.chat.id, "⚠️Включи геолокацию на телефоне!⚠️\n\nОтправь свой город, чтобы получать заявки без ошибок👇👇👇\n\nℹ️Определение города может занять некоторое время🕰.", reply_markup=keyboard)
+        bot.register_next_step_handler(message, location)
+        geolocator = Nominatim(user_agent = "name_of_your_app")    
+    except Exception:        
+        bot.send_message(message.chat.id, '<b><em>Что-то пошло не так. Вам необходимо отправить контакт по КНОПКЕ внизу! \n\nЕсли вы её не видите, значит она скрыта и находится чуть правее от поля ввода сообщения</em></b>👇', parse_mode='html')
+        bot.register_next_step_handler(message, geolocation)   
+
 
 def city_state_country(coord):
     location = geolocator.reverse(coord, exactly_one=True)
@@ -66,11 +74,15 @@ def city_state_country(coord):
 def location(message):
     global geolocator
     global locationcity
-    if message.location is not None:
+    if message.location is not None:           
         a = [message.location.latitude, message.location.longitude]         
         city_name = city_state_country(a)
         locationcity = city_name
-        found_city(message)
+        found_city(message)   
+    else:        
+        bot.send_message(message.chat.id, '<b><em>Что-то пошло не так. Необходимо отправить геолокацию по КНОПКЕ внизу! \n\nЕсли вы её не видите, значит она скрыта и находится чуть правее от поля ввода сообщения</em></b>👇', parse_mode='html')
+        bot.register_next_step_handler(message, location)   
+        
 
 def found_city(message):
     bot.send_message(message.chat.id, f'✅Найден город {locationcity}', reply_markup=types.ReplyKeyboardRemove())
@@ -97,8 +109,13 @@ def middle_name(message):
 
 def user_birthday(message):
     global userbirthday
-    userbirthday = message.text.strip()
-    citizenRU(message)
+    try:
+        userbirthday = parse(message.text.strip())
+        citizenRU(message)
+    except ValueError:
+        bot.send_message(message.chat.id, 'Не верный формат даты, необходимо ДД-ММ-ГГГГ')
+        bot.register_next_step_handler(message, user_birthday)
+
 
 def citizenRU(message):
     markup = types.InlineKeyboardMarkup()
@@ -118,6 +135,8 @@ def callback_messageYes(callback):
     
     bot.send_message(callback.message.chat.id, f'📞 Телефон: +{phone}\n👤 ФИО: {lastname} {firstname} {middlename}\n📅 Дата рождения: {userbirthday}\n🇷🇺 Гражданство РФ: {usercitizenRF}\n🏙 Город(а): {locationcity}')
     user_pass(callback.message)
+
+
 
 def user_pass(message):
     global usercitizenRF     
@@ -152,6 +171,12 @@ def callback(call):
 
     bot.send_message(call.message.chat.id, info)
     print(info)
+
+@bot.message_handler(content_types=['text'])
+def get_photo(message):         
+        bot.edit_message_text('Являешься гражданином Российской Федерации🇷🇺?', message.chat.id, message.message_id-1)
+        bot.send_message(message.chat.id, 'Не верный формат')
+        citizenRU(message)
 
 print('Bot started')
 
