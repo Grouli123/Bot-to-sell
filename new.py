@@ -27,6 +27,11 @@ locationcity = None
 
 cityname = 'Арзамас'
 
+
+
+state = 'initial'  # Начальное состояние
+
+
 @bot.message_handler(commands=['start'])
 def registration(message):
     conn = sqlite3.connect('peoplebase.sql')
@@ -101,6 +106,13 @@ def first_name(message):
     bot.send_message(message.chat.id, '🖌Введи <b>ТОЛЬКО</b> отчество:', parse_mode='html')
     bot.register_next_step_handler(message, middle_name)
 
+def get_date(text):
+    try:
+        date = datetime.strptime(text, '%d.%m.%Y')
+        return date.strftime('%d.%m.%Y')
+    except ValueError:
+        return None
+
 def middle_name(message):
     global middlename
     middlename = message.text.strip()
@@ -110,11 +122,23 @@ def middle_name(message):
 def user_birthday(message):
     global userbirthday
     try:
-        userbirthday = parse(message.text.strip())
-        citizenRU(message)
+        userbirthday = get_date(message.text.strip())
+        if userbirthday:
+            citizenRU(message)
+        else:
+            bot.send_message(message.chat.id, 'Не верный формат даты, необходимо ДД.ММ.ГГГГ')
+            bot.register_next_step_handler(message, user_birthday)
     except ValueError:
-        bot.send_message(message.chat.id, 'Не верный формат даты, необходимо ДД-ММ-ГГГГ')
+        bot.send_message(message.chat.id, 'Не верный формат даты, необходимо ДД.ММ.ГГГГ')
         bot.register_next_step_handler(message, user_birthday)
+# def user_birthday(message):
+#     global userbirthday
+#     try:
+#         userbirthday = parse(message.text.strip())
+#         citizenRU(message)
+#     except ValueError:
+#         bot.send_message(message.chat.id, 'Не верный формат даты, необходимо ДД-ММ-ГГГГ')
+#         bot.register_next_step_handler(message, user_birthday)
 
 
 def citizenRU(message):
@@ -136,10 +160,25 @@ def callback_messageYes(callback):
     bot.send_message(callback.message.chat.id, f'📞 Телефон: +{phone}\n👤 ФИО: {lastname} {firstname} {middlename}\n📅 Дата рождения: {userbirthday}\n🇷🇺 Гражданство РФ: {usercitizenRF}\n🏙 Город(а): {locationcity}')
     user_pass(callback.message)
 
+@bot.message_handler(content_types=['text'])
+def get_photo(message):          
+        global state
+        if state == 'initial':         
+            bot.edit_message_text('Являешься гражданином Российской Федерации🇷🇺?', message.chat.id, message.message_id-1)
+            bot.send_message(message.chat.id, f'<b>Не верный формат.</b> \n\nНажмите на кнопку соответствующую вашему гражданству', parse_mode='html')
+            citizenRU(message)         
+        elif state == 'citizenRU':
+            # bot.edit_message_text('Являешься гражданином Российской Федерации🇷🇺?', message.chat.id, message.message_id-1)
+            bot.send_message(message.chat.id, f'<b>Регистрация прошла успешно!</b>', parse_mode='html')
+            user_pass(message)
+        else:
+            bot.edit_message_text('Являешься гражданином Российской Федерации🇷🇺?', message.chat.id, message.message_id)
+
 
 
 def user_pass(message):
-    global usercitizenRF     
+    global usercitizenRF   
+    global state  
     conn = sqlite3.connect('peoplebase.sql')
     cur = conn.cursor()
     cur.execute("INSERT INTO users (phone, city, last_name, firts_name, middle_name, birthday, citizenRF) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s')" % (phone, locationcity, lastname, firstname, middlename, userbirthday, usercitizenRF)) 
@@ -148,12 +187,19 @@ def user_pass(message):
     cur.close()
     conn.close()
     
-    bot.edit_message_text('Являешься гражданином Российской Федерации🇷🇺?', message.chat.id, message.message_id)
 
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton(f'👉Канал {cityname}', callback_data='users'))
+       
+    state = 'citizenRU'
     bot.send_message(message.chat.id, f'Готово🖖\nПереходи на канал «Арзамас» (там будут заявки)\n\nКак перейдёшь - обязательно нажми кнопку «начать/старт/start» (без этого заявки не будут появляться ‼️ )\n\n👇👇👇👇👇', reply_markup=markup)
-    
+
+# @bot.message_handler(content_types=['text'])
+# def get_photo(message):       
+#         bot.edit_message_text('Являешься гражданином Российской Федерации🇷🇺?', message.chat.id, message.message_id-1)
+#         bot.send_message(message.chat.id, 'Не то')
+#         user_pass(message)
+
 @bot.callback_query_handler(func=lambda call: call.data == 'users')
 def callback(call):
     conn = sqlite3.connect('peoplebase.sql')
@@ -172,11 +218,7 @@ def callback(call):
     bot.send_message(call.message.chat.id, info)
     print(info)
 
-@bot.message_handler(content_types=['text'])
-def get_photo(message):         
-        bot.edit_message_text('Являешься гражданином Российской Федерации🇷🇺?', message.chat.id, message.message_id-1)
-        bot.send_message(message.chat.id, 'Не верный формат')
-        citizenRU(message)
+
 
 print('Bot started')
 
