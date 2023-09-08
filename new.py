@@ -83,28 +83,85 @@ def location(message):
         a = [message.location.latitude, message.location.longitude]         
         city_name = city_state_country(a)
         locationcity = city_name
+        bot.send_message(message.chat.id, f'✅Найден город {locationcity}', reply_markup=types.ReplyKeyboardRemove())
+
         found_city(message)   
+        
     else:        
         bot.send_message(message.chat.id, '<b><em>Что-то пошло не так. Необходимо отправить геолокацию по КНОПКЕ внизу! \n\nЕсли вы её не видите, значит она скрыта и находится чуть правее от поля ввода сообщения</em></b>👇', parse_mode='html')
         bot.register_next_step_handler(message, location)   
         
 
 def found_city(message):
-    bot.send_message(message.chat.id, f'✅Найден город {locationcity}', reply_markup=types.ReplyKeyboardRemove())
     bot.send_message(message.chat.id, 'Еще пару шагов и мы у цели!\n🖌Введи <b>ТОЛЬКО</b> фамилию:', parse_mode='html')
-    bot.register_next_step_handler(message, last_name)
+    bot.register_next_step_handler(message, last_nameTrue)
 
-def last_name(message):
+
+# def last_name(message):
+#     if len(message.text.strip()) > 50:
+#         bot.send_message(message.chat.id, 'Слишком большое сообщение. Пожалуйста, введите корректную фамилию.')
+#         found_city(message)         
+#     else:
+#         if len(message.text.strip()) <= 50:
+#             last_nameTrue(message)
+   
+
+def last_nameTrue(message):
     global lastname
-    lastname = message.text.strip()
+    if len(message.text.strip()) > 50:
+        bot.send_message(message.chat.id, 'Слишком большое сообщение. Пожалуйста, введите корректную фамилию.')
+        message.text.strip(None)
+        found_city(message) 
+    else:
+        lastname = message.text.strip()
+        print(lastname)
+        testLastname(message)
+
+def testLastname(message):
     bot.send_message(message.chat.id, '🖌Введи <b>ТОЛЬКО</b> имя:', parse_mode='html')
     bot.register_next_step_handler(message, first_name)
 
-def first_name(message):
+def first_name(message):       
     global firstname
-    firstname = message.text.strip()    
+    if len(message.text.strip()) > 50:
+        bot.send_message(message.chat.id, 'Слишком большое сообщение. Пожалуйста, введите корректное имя.')
+        message.text.strip(None)
+        testLastname(message)        
+    else:                  
+        firstname = message.text.strip()    
+        print(first_name)
+        testFirstName(message)
+        
+def testFirstName(message):
     bot.send_message(message.chat.id, '🖌Введи <b>ТОЛЬКО</b> отчество:', parse_mode='html')
     bot.register_next_step_handler(message, middle_name)
+
+# def first_nameTrue(message):
+#     global firstname
+#     firstname = message.text.strip()    
+#     bot.send_message(message.chat.id, '🖌Введи <b>ТОЛЬКО</b> отчество:', parse_mode='html')
+#     bot.register_next_step_handler(message, middle_name)
+
+def middle_name(message):      
+    global middlename
+    if len(message.text.strip()) > 50:
+        bot.send_message(message.chat.id, 'Слишком большое сообщение. Пожалуйста, введите корректное отчество.')
+        message.text.strip(None)
+        testFirstName(message) 
+    else:     
+        middlename = message.text.strip()
+        print(middle_name)
+        testMiddleName(message)
+
+def testMiddleName(message):
+    bot.send_message(message.chat.id, '🖌 Введи дату рождения в формате «день.месяц.год» пример: 01.01.1990', parse_mode='html')
+    bot.register_next_step_handler(message, user_birthday)
+
+# def middle_nameTrue(message):    
+#     global middlename
+#     middlename = message.text.strip()
+#     bot.send_message(message.chat.id, '🖌 Введи дату рождения в формате «день.месяц.год» пример: 01.01.1990', parse_mode='html')
+#     bot.register_next_step_handler(message, user_birthday)
 
 def get_date(text):
     try:
@@ -112,12 +169,6 @@ def get_date(text):
         return date.strftime('%d.%m.%Y')
     except ValueError:
         return None
-
-def middle_name(message):
-    global middlename
-    middlename = message.text.strip()
-    bot.send_message(message.chat.id, '🖌 Введи дату рождения в формате «день.месяц.год» пример: 01.01.1990', parse_mode='html')
-    bot.register_next_step_handler(message, user_birthday)
 
 def user_birthday(message):
     global userbirthday
@@ -153,9 +204,13 @@ def citizenRU(message):
 def callback_messageYes(callback):   
     global usercitizenRF 
     if callback.data == 'delete':
-        usercitizenRF = 'Да'
+        usercitizenRF = 'Да'        
+        bot.edit_message_text('Являешься гражданином Российской Федерации🇷🇺?', callback.message.chat.id, callback.message.message_id)
+
     else:          
         usercitizenRF = 'Нет'
+        bot.edit_message_text('Являешься гражданином Российской Федерации🇷🇺?', callback.message.chat.id, callback.message.message_id)
+
     
     bot.send_message(callback.message.chat.id, f'📞 Телефон: +{phone}\n👤 ФИО: {lastname} {firstname} {middlename}\n📅 Дата рождения: {userbirthday}\n🇷🇺 Гражданство РФ: {usercitizenRF}\n🏙 Город(а): {locationcity}')
     user_pass(callback.message)
@@ -191,8 +246,9 @@ def user_pass(message):
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton(f'👉Канал {cityname}', callback_data='users'))
        
-    state = 'citizenRU'
     bot.send_message(message.chat.id, f'Готово🖖\nПереходи на канал «Арзамас» (там будут заявки)\n\nКак перейдёшь - обязательно нажми кнопку «начать/старт/start» (без этого заявки не будут появляться ‼️ )\n\n👇👇👇👇👇', reply_markup=markup)
+    
+    state = 'citizenRU'
 
 # @bot.message_handler(content_types=['text'])
 # def get_photo(message):       
