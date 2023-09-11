@@ -5,7 +5,7 @@ from geopy.geocoders import Nominatim
 from datetime import datetime
 
 import API_key
-import sqlBase
+import sqlBase as sqlBase
 import config_message
 
 botApiKey = API_key.botAPI
@@ -73,7 +73,7 @@ state = 'initial'
 
 @bot.message_handler(commands=['start'])
 def registration(message):
-    conn = sqlite3.connect('peoplebase.sql')
+    conn = sqlite3.connect('./peoplebase.sql')
     cur = conn.cursor()
 
     cur.execute(base)
@@ -225,7 +225,7 @@ def citizenRU(message):
 @bot.callback_query_handler(func=lambda callback: callback.data == citizenRuButtonNoTextCallbackData) 
 def callback_message_citizen(callback):   
     global usercitizenRF 
-    if callback.data == 'delete':
+    if callback.data == citizenRuButtonYesTextCallbackData:
         usercitizenRF = citizenRuButtonYesText        
         bot.edit_message_text(userCitizenRuText, callback.message.chat.id, callback.message.message_id)
     else:          
@@ -253,7 +253,7 @@ def check_callback_message_citizen(message):
 def import_into_database(message):
     global usercitizenRF   
     global state  
-    conn = sqlite3.connect('peoplebase.sql')
+    conn = sqlite3.connect('./peoplebase.sql')
     cur = conn.cursor()
     cur.execute(insertIntoBase % (phone, locationcity, lastname, firstname, middlename, userbirthday, usercitizenRF)) 
    
@@ -271,7 +271,7 @@ def import_into_database(message):
 
 @bot.callback_query_handler(func=lambda call: call.data == nameOfBase)
 def show_database(call):
-    conn = sqlite3.connect('peoplebase.sql')
+    conn = sqlite3.connect('./peoplebase.sql')
     cur = conn.cursor()
 
     cur.execute('SELECT * FROM users')
