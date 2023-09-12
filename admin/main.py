@@ -18,16 +18,6 @@ nameOfBase = sqlBase.name_of_base
 
 maxSymbol = config_message.max_symbol_for_message
 
-# phoneButtonText = config_message.phone_button_text
-# phoneMessageText = config_message.message_to_send_phonenumber
-# phoneError = config_message.phone_error
-
-# geolocationButtonText = config_message.geolocation_button_text
-# geolocationMessageText = config_message.message_to_send_geolocation
-# geolocationNameApp = config_message.geolocator_name_app
-# foundedCity = config_message.founded_city
-# geolocationError = config_message.geolocation_error
-
 lastnameText = config_message.input_lastname_text
 lastnameError = config_message.lastname_error
 
@@ -36,10 +26,6 @@ firstnameError = config_message.firstname_error
 
 middlenameText = config_message.input_middlename_text
 middlenameError = config_message.middlename_error
-
-# dataOfBirthday = config_message.input_bitrhday_data_text
-# dateType = config_message.date_type
-# dateError = config_message.date_error
 
 textOnly = config_message.message_should_be_text_type
 
@@ -90,7 +76,7 @@ def city_of_obj(message):
     elif message.text == 'Открыть базу данных':
         bot.send_message(message.chat.id, 'Вот база данных пользователей: ')
         show_database(message)
-        start(message)
+        # start(message)
 
 def city_of_obj_check(message):
     global cityname
@@ -115,10 +101,6 @@ def registration(message):
     conn.commit() 
     cur.close()
     conn.close()
-    
-    # keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-    # button_phone = types.KeyboardButton(text=phoneButtonText, request_contact=True)
-    # keyboard.add(button_phone)
     bot.send_message(message.chat.id, 'Напишите количество требуемых рабочих: ', parse_mode='html')
     bot.register_next_step_handler(message, registration_check)   
 
@@ -136,47 +118,6 @@ def registration_check(message):
             countPeople = message.text.strip()
             print(countPeople)
             input_lastname(message)
-# def geolocation(message):    
-#     global phone
-#     try:
-#         phone = message.contact.phone_number
-#         global geolocator
-#         keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-#         button_geo = types.KeyboardButton(text=geolocationButtonText, request_location=True)
-#         keyboard.add(button_geo)
-#         bot.send_message(message.chat.id, geolocationMessageText, reply_markup=keyboard)
-#         bot.register_next_step_handler(message, location)
-#         geolocator = Nominatim(user_agent = geolocationNameApp)    
-#     except Exception:        
-#         bot.send_message(message.chat.id, phoneError, parse_mode='html')
-#         bot.register_next_step_handler(message, geolocation)   
-
-
-# def city_check(coord):
-#     location = geolocator.reverse(coord, exactly_one=True)
-#     address = location.raw['address'] 
-#     town = address.get('town', '')
-#     city = address.get('city', '')
-#     if town == '':
-#         town = city
-#     if city == '':
-#         city = town  
-
-#     return city
-
-# def location(message):
-#     global locationcity
-#     if message.location is not None:           
-#         a = [message.location.latitude, message.location.longitude]         
-#         city_name = city_check(a)
-#         locationcity = city_name
-#         bot.send_message(message.chat.id, f'{foundedCity} {locationcity}', reply_markup=types.ReplyKeyboardRemove())
-
-#         input_lastname(message)   
-            
-#     else:        
-#         bot.send_message(message.chat.id, geolocationError, parse_mode='html')
-#         bot.register_next_step_handler(message, location)   
         
 def input_lastname(message):
     bot.send_message(message.chat.id, lastnameText, parse_mode='html')
@@ -254,41 +195,15 @@ def input_middlenam2_check(message):
             print(middlename_check)
             citizenRU(message)
 
-# def input_birtgday(message):
-#     bot.send_message(message.chat.id, dataOfBirthday, parse_mode='html')
-#     bot.register_next_step_handler(message, user_birthday_check)
-
-# def get_date(text):
-#     try:
-#         date = datetime.strptime(text, dateType)
-#         return date.strftime(dateType)
-#     except ValueError:
-#         return None
-
-# def user_birthday_check(message):
-#     global userbirthday    
-#     try:
-#         if message.text is None:
-#             bot.send_message(message.from_user.id, textOnly)
-#             input_birtgday(message)
-#         else:
-#             userbirthday = get_date(message.text.strip())
-#             if userbirthday:
-#                 citizenRU(message)
-#             else:
-#                 bot.send_message(message.chat.id, dateError)
-#                 bot.register_next_step_handler(message, user_birthday_check)
-#     except ValueError:
-#         bot.send_message(message.chat.id, dateError)
-#         bot.register_next_step_handler(message, user_birthday_check)
-
 def citizenRU(message):
     markup = types.InlineKeyboardMarkup()
     btn2 = types.InlineKeyboardButton(citizenRuButtonYesText, callback_data=citizenRuButtonYesTextCallbackData, one_time_keyboard=True)
     btn3 = types.InlineKeyboardButton(citizenRuButtonNoText, callback_data=citizenRuButtonNoTextCallbackData, one_time_keyboard=True)
     markup.row(btn2, btn3)    
     bot.send_message(message.chat.id, f'✅\n<b>·{cityname}: </b> {countPeople}\n<b>·Адрес:</b>👉{lastname}\n<b>·Что делать:</b> {firstname}\n<b>·Начало работ:</b> {middlename}\n<b>·Вам на руки:</b> {salary}\n<b>·Приоритет самозанятым</b>', parse_mode='html', reply_markup=markup)  
+    # bot.forward_message('6489313384', '6672528914', message.message_id-1)
     start(message)
+
 @bot.callback_query_handler(func=lambda callback: callback.data == citizenRuButtonYesTextCallbackData)
 @bot.callback_query_handler(func=lambda callback: callback.data == citizenRuButtonNoTextCallbackData) 
 def callback_message_citizen(callback):   
@@ -296,11 +211,12 @@ def callback_message_citizen(callback):
     if callback.data == citizenRuButtonYesTextCallbackData:
         usercitizenRF = citizenRuButtonYesText        
         bot.edit_message_text(f'{userCitizenRuText}\n\n✅\n<b>·{cityname}: </b> {countPeople}\n<b>·Адрес:</b>👉{lastname}\n<b>·Что делать:</b> {firstname}\n<b>·Начало работ:</b> {middlename}\n<b>·Вам на руки:</b> {salary}\n<b>·Приоритет самозанятым</b>', callback.message.chat.id, callback.message.message_id, parse_mode='html')
+        
+
     else:          
         usercitizenRF = citizenRuButtonNoText
         bot.delete_message(callback.message.chat.id, callback.message.message_id)
     
-    # bot.send_message(callback.message.chat.id, f'✅\n<b>·{cityname}: </b> {countPeople}\n<b>·Адрес:</b>👉{lastname}\n<b>·Что делать:</b> {firstname}\n<b>·Начало работ:</b> {middlename}\n<b>·Вам на руки:</b> {salary}\n<b>·Приоритет самозанятым</b>', parse_mode='html')
     import_into_database(callback.message)
 
 @bot.message_handler(content_types=['text'])
@@ -315,8 +231,6 @@ def check_callback_message_citizen(message):
             import_into_database(message)
         else:
             bot.edit_message_text(userCitizenRuText, message.chat.id, message.message_id)
-
-
 
 def import_into_database(message):
     global usercitizenRF   
@@ -337,12 +251,11 @@ def import_into_database(message):
     
     state = 'citizenRU'
 
-# @bot.callback_query_handler(func=lambda call: call.data == nameOfBase)
 def show_database(message):
     conn = sqlite3.connect('./peoplebase.sql')
     cur = conn.cursor()
 
-    cur.execute('SELECT * FROM users')
+    cur.execute('SELECT * FROM users ORDER BY id DESC LIMIT 1')
     users = cur.fetchall()
 
     info = ''
