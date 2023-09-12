@@ -84,11 +84,13 @@ def start(message):
 
 def city_of_obj(message):
     if message.text == 'Сформировать заявку':
-        bot.send_message(message.chat.id, "Напишите город объекта: ")
+        bot.send_message(message.chat.id, "Напишите город объекта: ", reply_markup=types.ReplyKeyboardRemove())
         bot.register_next_step_handler(message, city_of_obj_check)
 
     elif message.text == 'Открыть базу данных':
-        bot.send_message(message.chat.id, "Скоро разработаем")
+        bot.send_message(message.chat.id, 'Вот база данных пользователей: ')
+        show_database(message)
+        start(message)
 
 def city_of_obj_check(message):
     global cityname
@@ -285,20 +287,20 @@ def citizenRU(message):
     btn2 = types.InlineKeyboardButton(citizenRuButtonYesText, callback_data=citizenRuButtonYesTextCallbackData, one_time_keyboard=True)
     btn3 = types.InlineKeyboardButton(citizenRuButtonNoText, callback_data=citizenRuButtonNoTextCallbackData, one_time_keyboard=True)
     markup.row(btn2, btn3)    
-    bot.send_message(message.chat.id, userCitizenRuText, reply_markup=markup)  
-
+    bot.send_message(message.chat.id, f'✅\n<b>·{cityname}: </b> {countPeople}\n<b>·Адрес:</b>👉{lastname}\n<b>·Что делать:</b> {firstname}\n<b>·Начало работ:</b> {middlename}\n<b>·Вам на руки:</b> {salary}\n<b>·Приоритет самозанятым</b>', parse_mode='html', reply_markup=markup)  
+    start(message)
 @bot.callback_query_handler(func=lambda callback: callback.data == citizenRuButtonYesTextCallbackData)
 @bot.callback_query_handler(func=lambda callback: callback.data == citizenRuButtonNoTextCallbackData) 
 def callback_message_citizen(callback):   
     global usercitizenRF 
     if callback.data == citizenRuButtonYesTextCallbackData:
         usercitizenRF = citizenRuButtonYesText        
-        bot.edit_message_text(userCitizenRuText, callback.message.chat.id, callback.message.message_id)
+        bot.edit_message_text(f'{userCitizenRuText}\n\n✅\n<b>·{cityname}: </b> {countPeople}\n<b>·Адрес:</b>👉{lastname}\n<b>·Что делать:</b> {firstname}\n<b>·Начало работ:</b> {middlename}\n<b>·Вам на руки:</b> {salary}\n<b>·Приоритет самозанятым</b>', callback.message.chat.id, callback.message.message_id, parse_mode='html')
     else:          
         usercitizenRF = citizenRuButtonNoText
-        bot.edit_message_text(userCitizenRuText, callback.message.chat.id, callback.message.message_id)
+        bot.delete_message(callback.message.chat.id, callback.message.message_id)
     
-    bot.send_message(callback.message.chat.id, f'✅\n<b>·{cityname}: </b> {countPeople}\n<b>·Адрес:</b>👉{lastname}\n<b>·Что делать:</b> {firstname}\n<b>·Начало работ:</b> {middlename}\n<b>·Вам на руки:</b> {salary}\n<b>·Приоритет самозанятым</b>', parse_mode='html')
+    # bot.send_message(callback.message.chat.id, f'✅\n<b>·{cityname}: </b> {countPeople}\n<b>·Адрес:</b>👉{lastname}\n<b>·Что делать:</b> {firstname}\n<b>·Начало работ:</b> {middlename}\n<b>·Вам на руки:</b> {salary}\n<b>·Приоритет самозанятым</b>', parse_mode='html')
     import_into_database(callback.message)
 
 @bot.message_handler(content_types=['text'])
@@ -329,15 +331,15 @@ def import_into_database(message):
     
 
     markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton(f'{buttonResultName} {cityname}', callback_data=nameOfBase))
+    markup.add(types.InlineKeyboardButton(f'{buttonResultName} {cityname}', url='https://t.me/ArJobBot'))
        
     bot.send_message(message.chat.id, alreadyRegistered, reply_markup=markup)
     
     state = 'citizenRU'
 
-@bot.callback_query_handler(func=lambda call: call.data == nameOfBase)
-def show_database(call):
-    conn = sqlite3.connect('./applicationbase.sql')
+# @bot.callback_query_handler(func=lambda call: call.data == nameOfBase)
+def show_database(message):
+    conn = sqlite3.connect('./peoplebase.sql')
     cur = conn.cursor()
 
     cur.execute('SELECT * FROM users')
@@ -350,7 +352,7 @@ def show_database(call):
     cur.close()
     conn.close()
 
-    bot.send_message(call.message.chat.id, info)
+    bot.send_message(message.chat.id, info)
     print(info)
 
 print('Bot started')

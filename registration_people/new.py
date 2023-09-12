@@ -263,7 +263,7 @@ def import_into_database(message):
     
 
     markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton(f'{buttonResultName} {cityname}', callback_data=nameOfBase))
+    markup.add(types.InlineKeyboardButton(f'{buttonResultName} {cityname}', callback_data=nameOfBase, url='https://t.me/ArJobBot'))
        
     bot.send_message(message.chat.id, alreadyRegistered, reply_markup=markup)
     
