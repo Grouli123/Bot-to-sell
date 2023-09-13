@@ -1,6 +1,6 @@
 geolocator_name_app = 'name_of_your_app' 
 
-max_symbol_for_message = 50
+max_symbol_for_message = 250
 input_lastname_text = 'Напишите адрес объекта: '
 lastname_error = 'Слишком большое сообщение. Пожалуйста, введите корректный адрес объекта.'
 

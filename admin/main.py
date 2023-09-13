@@ -1,8 +1,6 @@
 import telebot
 from telebot import types
 import sqlite3
-from geopy.geocoders import Nominatim
-from datetime import datetime
 
 import API_key
 import sqlBase as sqlBase
@@ -43,28 +41,23 @@ buttonResultName = config_message.button_result_name
 
 alreadyRegistered = config_message.already_registered
 
-phone = None
-lastname = None
-firstname = None
-middlename = None
-userbirthday = None
-
-usercitizenRF = None
-
-locationcity = None
-
+adress = None
+whattodo = None
+timetostart = None
+feedback = None
 cityname = None
-
 countPeople = None
 
 state = 'initial'
 
 @bot.message_handler(commands=['start'])
 def start(message):
-    markup = types.ReplyKeyboardMarkup(row_width=2)
+    markup = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
     btn1 = types.KeyboardButton('Сформировать заявку')
-    btn2 = types.KeyboardButton('Открыть базу данных')
-    markup.row(btn1, btn2)    
+    btn2 = types.KeyboardButton('Открыть базу данных заявок')
+    btn3 = types.KeyboardButton('Открыть базу данных пользователей')
+    markup.row(btn1)
+    markup.row(btn2, btn3)    
     bot.send_message(message.chat.id, 'Рад помочь, выберите подходящий пункт',  reply_markup=markup)
     bot.register_next_step_handler(message, city_of_obj)
 
@@ -73,10 +66,14 @@ def city_of_obj(message):
         bot.send_message(message.chat.id, "Напишите город объекта: ", reply_markup=types.ReplyKeyboardRemove())
         bot.register_next_step_handler(message, city_of_obj_check)
 
-    elif message.text == 'Открыть базу данных':
+    elif message.text == 'Открыть базу данных заявок':
+        bot.send_message(message.chat.id, 'Вот база данных заявок: ')
+        show_database_orders(message)
+        start(message)
+    elif message.text == 'Открыть базу данных пользователей':
         bot.send_message(message.chat.id, 'Вот база данных пользователей: ')
-        show_database(message)
-        # start(message)
+        show_database_users(message)
+        start(message)
 
 def city_of_obj_check(message):
     global cityname
@@ -124,7 +121,7 @@ def input_lastname(message):
     bot.register_next_step_handler(message, lastneme_check)   
 
 def lastneme_check(message):
-    global lastname
+    global adress
     if message.text is None:
         bot.send_message(message.from_user.id, textOnly)
         input_lastname(message) 
@@ -134,8 +131,8 @@ def lastneme_check(message):
             message.text.strip(None)
             input_lastname(message) 
         else:
-            lastname = message.text.strip()
-            print(lastname)
+            adress = message.text.strip()
+            print(adress)
             input_firstname(message)
 
 def input_firstname(message):
@@ -143,7 +140,7 @@ def input_firstname(message):
     bot.register_next_step_handler(message, firstname_check)
 
 def firstname_check(message):       
-    global firstname
+    global whattodo
     if message.text is None:
         bot.send_message(message.from_user.id, textOnly)
         input_firstname(message)
@@ -153,7 +150,7 @@ def firstname_check(message):
             message.text.strip(None)
             input_firstname(message)        
         else:                  
-            firstname = message.text.strip()    
+            whattodo = message.text.strip()    
             print(firstname_check)
             input_middlename(message)
         
@@ -162,7 +159,7 @@ def input_middlename(message):
     bot.register_next_step_handler(message, middlename_check)
 
 def middlename_check(message):      
-    global middlename
+    global timetostart
     if message.text is None:
         bot.send_message(message.from_user.id, textOnly)
         input_middlename(message)
@@ -172,7 +169,7 @@ def middlename_check(message):
             message.text.strip(None)
             input_middlename(message) 
         else:     
-            middlename = message.text.strip()
+            timetostart = message.text.strip()
             print(middlename_check)
             input_middlenam2(message)
 
@@ -200,21 +197,20 @@ def citizenRU(message):
     btn2 = types.InlineKeyboardButton(citizenRuButtonYesText, callback_data=citizenRuButtonYesTextCallbackData, one_time_keyboard=True)
     btn3 = types.InlineKeyboardButton(citizenRuButtonNoText, callback_data=citizenRuButtonNoTextCallbackData, one_time_keyboard=True)
     markup.row(btn2, btn3)    
-    bot.send_message(message.chat.id, f'✅\n<b>·{cityname}: </b> {countPeople}\n<b>·Адрес:</b>👉{lastname}\n<b>·Что делать:</b> {firstname}\n<b>·Начало работ:</b> {middlename}\n<b>·Вам на руки:</b> {salary}\n<b>·Приоритет самозанятым</b>', parse_mode='html', reply_markup=markup)  
-    # bot.forward_message('6489313384', '6672528914', message.message_id-1)
+    bot.send_message(message.chat.id, f'✅\n<b>·{cityname}: </b> {countPeople}\n<b>·Адрес:</b>👉{adress}\n<b>·Что делать:</b> {whattodo}\n<b>·Начало работ:</b> {timetostart}\n<b>·Вам на руки:</b> {salary}\n<b>·Приоритет самозанятым</b>', parse_mode='html', reply_markup=markup)  
     start(message)
 
 @bot.callback_query_handler(func=lambda callback: callback.data == citizenRuButtonYesTextCallbackData)
 @bot.callback_query_handler(func=lambda callback: callback.data == citizenRuButtonNoTextCallbackData) 
 def callback_message_citizen(callback):   
-    global usercitizenRF 
+    global feedback 
     if callback.data == citizenRuButtonYesTextCallbackData:
-        usercitizenRF = citizenRuButtonYesText        
-        bot.edit_message_text(f'{userCitizenRuText}\n\n✅\n<b>·{cityname}: </b> {countPeople}\n<b>·Адрес:</b>👉{lastname}\n<b>·Что делать:</b> {firstname}\n<b>·Начало работ:</b> {middlename}\n<b>·Вам на руки:</b> {salary}\n<b>·Приоритет самозанятым</b>', callback.message.chat.id, callback.message.message_id, parse_mode='html')
+        feedback = citizenRuButtonYesText        
+        bot.edit_message_text(f'{userCitizenRuText}\n\n✅\n<b>·{cityname}: </b> {countPeople}\n<b>·Адрес:</b>👉{adress}\n<b>·Что делать:</b> {whattodo}\n<b>·Начало работ:</b> {timetostart}\n<b>·Вам на руки:</b> {salary}\n<b>·Приоритет самозанятым</b>', callback.message.chat.id, callback.message.message_id, parse_mode='html')
         
 
     else:          
-        usercitizenRF = citizenRuButtonNoText
+        feedback = citizenRuButtonNoText
         bot.delete_message(callback.message.chat.id, callback.message.message_id)
     
     import_into_database(callback.message)
@@ -233,11 +229,10 @@ def check_callback_message_citizen(message):
             bot.edit_message_text(userCitizenRuText, message.chat.id, message.message_id)
 
 def import_into_database(message):
-    global usercitizenRF   
     global state  
     conn = sqlite3.connect('./applicationbase.sql')
     cur = conn.cursor()
-    cur.execute(insertIntoBase % (phone, locationcity, lastname, firstname, middlename, userbirthday, usercitizenRF)) 
+    cur.execute(insertIntoBase % (cityname, countPeople, adress, whattodo, timetostart, salary)) 
    
     conn.commit()
     cur.close()
@@ -251,16 +246,33 @@ def import_into_database(message):
     
     state = 'citizenRU'
 
-def show_database(message):
-    conn = sqlite3.connect('./peoplebase.sql')
+def show_database_orders(message):
+    conn = sqlite3.connect('./applicationbase.sql')
     cur = conn.cursor()
-
-    cur.execute('SELECT * FROM users ORDER BY id DESC LIMIT 1')
+# SELECT * FROM users ORDER BY id DESC LIMIT для вывода последнего пользователя
+    cur.execute('SELECT * FROM orders')
     users = cur.fetchall()
 
     info = ''
     for el in users:
-        info += f'Номер телефона: +{el[2]}, Город: {el[3]}, Фамилия: {el[4]}, Имя: {el[5]}, Отчество: {el[6]}, Дата рождения: {el[7]}, Гражданство РФ: {el[8]}\n'
+        info += f'Заявка номер: {el[0]}, Дата создания: {el[1]}, Город: {el[2]}, Количество людей: {el[3]}, Адрес: {el[4]}, Что делать: {el[5]}, Начало работ: {el[6]}, Вам на руки: {el[7]}\n\n'
+
+    cur.close()
+    conn.close()
+
+    bot.send_message(message.chat.id, info)
+    print(info)
+
+def show_database_users(message):
+    conn = sqlite3.connect('./peoplebase.sql')
+    cur = conn.cursor()
+
+    cur.execute('SELECT * FROM users')
+    users = cur.fetchall()
+
+    info = ''
+    for el in users:
+        info += f'Пользователь номер: {el[0]}, Дата регистрации: {el[1]}, Номер телефона: +{el[2]}, Город: {el[3]}, Фамилия: {el[4]}, Имя: {el[5]}, Отчество: {el[6]}, Дата рождения: {el[7]}, Гражданство РФ: {el[8]}\n\n'
 
     cur.close()
     conn.close()

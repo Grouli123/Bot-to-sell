@@ -62,12 +62,8 @@ lastname = None
 firstname = None
 middlename = None
 userbirthday = None
-
 usercitizenRF = None
-
 locationcity = None
-
-cityname = 'Арзамас'
 
 state = 'initial'
 
@@ -101,7 +97,6 @@ def geolocation(message):
     except Exception:        
         bot.send_message(message.chat.id, phoneError, parse_mode='html')
         bot.register_next_step_handler(message, geolocation)   
-
 
 def city_check(coord):
     location = geolocator.reverse(coord, exactly_one=True)
@@ -248,8 +243,6 @@ def check_callback_message_citizen(message):
         else:
             bot.edit_message_text(userCitizenRuText, message.chat.id, message.message_id)
 
-
-
 def import_into_database(message):
     global usercitizenRF   
     global state  
@@ -263,29 +256,11 @@ def import_into_database(message):
     
 
     markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton(f'{buttonResultName} {cityname}', callback_data=nameOfBase, url='https://t.me/ArJobBot'))
+    markup.add(types.InlineKeyboardButton(f'{buttonResultName} {locationcity}', callback_data=nameOfBase, url='https://t.me/ArJobBot'))
        
     bot.send_message(message.chat.id, alreadyRegistered, reply_markup=markup)
     
     state = 'citizenRU'
-
-@bot.callback_query_handler(func=lambda call: call.data == nameOfBase)
-def show_database(call):
-    conn = sqlite3.connect('./peoplebase.sql')
-    cur = conn.cursor()
-
-    cur.execute('SELECT * FROM users')
-    users = cur.fetchall()
-
-    info = ''
-    for el in users:
-        info += f'Номер телефона: +{el[2]}, Город: {el[3]}, Фамилия: {el[4]}, Имя: {el[5]}, Отчество: {el[6]}, Дата рождения: {el[7]}, Гражданство РФ: {el[8]}\n'
-
-    cur.close()
-    conn.close()
-
-    bot.send_message(call.message.chat.id, info)
-    print(info)
 
 print('Bot started')
 
