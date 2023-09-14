@@ -87,7 +87,7 @@ def city_of_obj_check(message):
             city_of_obj(message) 
         else:
             cityname = message.text.strip()
-            print(cityname)
+            print(cityname)            
             registration(message)
 
 def registration(message):
@@ -202,12 +202,11 @@ def citizenRU(message):
 
 @bot.callback_query_handler(func=lambda callback: callback.data == citizenRuButtonYesTextCallbackData)
 @bot.callback_query_handler(func=lambda callback: callback.data == citizenRuButtonNoTextCallbackData) 
-def callback_message_citizen(callback):   
+def callback_message_citizen(callback):  
     global feedback 
     if callback.data == citizenRuButtonYesTextCallbackData:
         feedback = citizenRuButtonYesText        
         bot.edit_message_text(f'{userCitizenRuText}\n\n✅\n<b>·{cityname}: </b> {countPeople}\n<b>·Адрес:</b>👉{adress}\n<b>·Что делать:</b> {whattodo}\n<b>·Начало работ:</b> {timetostart}\n<b>·Вам на руки:</b> {salary}\n<b>·Приоритет самозанятым</b>', callback.message.chat.id, callback.message.message_id, parse_mode='html')
-        
 
     else:          
         feedback = citizenRuButtonNoText
@@ -233,11 +232,10 @@ def import_into_database(message):
     conn = sqlite3.connect('./applicationbase.sql')
     cur = conn.cursor()
     cur.execute(insertIntoBase % (cityname, countPeople, adress, whattodo, timetostart, salary)) 
-   
+
     conn.commit()
     cur.close()
-    conn.close()
-    
+    conn.close()    
 
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton(f'{buttonResultName} {cityname}', url='https://t.me/ArJobBot'))
@@ -256,7 +254,7 @@ def show_database_orders(message):
     info = ''
     for el in users:
         info += f'Заявка номер: {el[0]}, Дата создания: {el[1]}, Город: {el[2]}, Количество людей: {el[3]}, Адрес: {el[4]}, Что делать: {el[5]}, Начало работ: {el[6]}, Вам на руки: {el[7]}\n\n'
-
+        print("вот: ",type(el[0]))
     cur.close()
     conn.close()
 
