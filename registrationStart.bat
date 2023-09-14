@@ -1,1 +1,1 @@
-python get_orders/main.py
+python registration_people/main.py

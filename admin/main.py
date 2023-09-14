@@ -47,8 +47,12 @@ timetostart = None
 feedback = None
 cityname = None
 countPeople = None
-
+salary = None
 state = 'initial'
+
+
+humanCount = None
+needText = None
 
 @bot.message_handler(commands=['start'])
 def start(message):
@@ -61,19 +65,28 @@ def start(message):
     bot.send_message(message.chat.id, 'Рад помочь, выберите подходящий пункт',  reply_markup=markup)
     bot.register_next_step_handler(message, city_of_obj)
 
-def city_of_obj(message):
-    if message.text == 'Сформировать заявку':
-        bot.send_message(message.chat.id, "Напишите город объекта: ", reply_markup=types.ReplyKeyboardRemove())
-        bot.register_next_step_handler(message, city_of_obj_check)
 
-    elif message.text == 'Открыть базу данных заявок':
-        bot.send_message(message.chat.id, 'Вот база данных заявок: ')
-        show_database_orders(message)
-        start(message)
-    elif message.text == 'Открыть базу данных пользователей':
-        bot.send_message(message.chat.id, 'Вот база данных пользователей: ')
-        show_database_users(message)
-        start(message)
+def city_of_obj(message):
+    if message.text is None:
+        bot.send_message(message.from_user.id, textOnly)
+        start(message) 
+    else:
+        if message.text == 'Сформировать заявку':
+            bot.send_message(message.chat.id, "Напишите город объекта: ", reply_markup=types.ReplyKeyboardRemove())
+            bot.register_next_step_handler(message, city_of_obj_check)
+
+        elif message.text == 'Открыть базу данных заявок':
+            bot.send_message(message.chat.id, 'Вот база данных заявок: ')
+            show_database_orders(message)
+            start(message)
+        elif message.text == 'Открыть базу данных пользователей':
+            bot.send_message(message.chat.id, 'Вот база данных пользователей: ')
+            show_database_users(message)
+            start(message)
+        else:
+            bot.send_message(message.chat.id, 'Выберите подходящий пункт меню')            
+            start(message)
+  
 
 def city_of_obj_check(message):
     global cityname
@@ -112,9 +125,14 @@ def registration_check(message):
             message.text.strip(None)
             registration(message) 
         else:
-            countPeople = message.text.strip()
-            print(countPeople)
-            input_lastname(message)
+            try:
+                countPeople = message.text.strip()
+                int(countPeople)
+                input_lastname(message)
+            except ValueError:
+                bot.send_message(message.from_user.id, 'Введите цифру')
+                registration(message)
+            
         
 def input_lastname(message):
     bot.send_message(message.chat.id, lastnameText, parse_mode='html')
@@ -174,7 +192,7 @@ def middlename_check(message):
             input_middlenam2(message)
 
 def input_middlenam2(message):
-    bot.send_message(message.chat.id, 'Напишите зарплату и минимальное время: ', parse_mode='html')
+    bot.send_message(message.chat.id, 'Напишите сумму в час:', parse_mode='html')
     bot.register_next_step_handler(message, input_middlenam2_check)
 
 def input_middlenam2_check(message):      
@@ -188,16 +206,34 @@ def input_middlenam2_check(message):
             message.text.strip(None)
             input_middlenam2(message) 
         else:     
-            salary = message.text.strip()
-            print(middlename_check)
-            citizenRU(message)
-
+            try:
+                salary = message.text.strip()                
+                int(salary)
+                print(middlename_check)
+                citizenRU(message)
+            except ValueError:
+                bot.send_message(message.from_user.id, 'Введите число')
+                input_middlenam2(message)
+            
 def citizenRU(message):
+    global countPeople
+    global humanCount
+    global needText
+    if (int(countPeople) <= 1) or (int(countPeople) >= 5):
+        humanCount = 'человек'
+    else:
+        humanCount = 'человека'
+    
+    if int(countPeople) > 1:
+        needText = 'Нужно'
+    else:
+        needText = 'Нужен'
+
     markup = types.InlineKeyboardMarkup()
     btn2 = types.InlineKeyboardButton(citizenRuButtonYesText, callback_data=citizenRuButtonYesTextCallbackData, one_time_keyboard=True)
     btn3 = types.InlineKeyboardButton(citizenRuButtonNoText, callback_data=citizenRuButtonNoTextCallbackData, one_time_keyboard=True)
     markup.row(btn2, btn3)    
-    bot.send_message(message.chat.id, f'✅\n<b>·{cityname}: </b> {countPeople}\n<b>·Адрес:</b>👉{adress}\n<b>·Что делать:</b> {whattodo}\n<b>·Начало работ:</b> {timetostart}\n<b>·Вам на руки:</b> {salary}\n<b>·Приоритет самозанятым</b>', parse_mode='html', reply_markup=markup)  
+    bot.send_message(message.chat.id, f'✅\n<b>·{cityname}: </b> {needText} {countPeople} {humanCount}\n<b>·Адрес:</b>👉{adress}\n<b>·Что делать:</b> {whattodo}\n<b>·Начало работ:</b> {timetostart}\n<b>·Вам на руки:</b> <u>{salary}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>', parse_mode='html', reply_markup=markup)  
     start(message)
 
 @bot.callback_query_handler(func=lambda callback: callback.data == citizenRuButtonYesTextCallbackData)
@@ -206,7 +242,7 @@ def callback_message_citizen(callback):
     global feedback 
     if callback.data == citizenRuButtonYesTextCallbackData:
         feedback = citizenRuButtonYesText        
-        bot.edit_message_text(f'{userCitizenRuText}\n\n✅\n<b>·{cityname}: </b> {countPeople}\n<b>·Адрес:</b>👉{adress}\n<b>·Что делать:</b> {whattodo}\n<b>·Начало работ:</b> {timetostart}\n<b>·Вам на руки:</b> {salary}\n<b>·Приоритет самозанятым</b>', callback.message.chat.id, callback.message.message_id, parse_mode='html')
+        bot.edit_message_text(f'{userCitizenRuText}\n\n✅\n<b>·{cityname}: </b> {countPeople}\n<b>·Адрес:</b>👉{adress}\n<b>·Что делать:</b> {whattodo}\n<b>·Начало работ:</b> {timetostart}\n<b>·Вам на руки:</b> <u>{salary}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>', callback.message.chat.id, callback.message.message_id, parse_mode='html')
 
     else:          
         feedback = citizenRuButtonNoText
@@ -254,7 +290,6 @@ def show_database_orders(message):
     info = ''
     for el in users:
         info += f'Заявка номер: {el[0]}, Дата создания: {el[1]}, Город: {el[2]}, Количество людей: {el[3]}, Адрес: {el[4]}, Что делать: {el[5]}, Начало работ: {el[6]}, Вам на руки: {el[7]}\n\n'
-        print("вот: ",type(el[0]))
     cur.close()
     conn.close()
 

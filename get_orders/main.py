@@ -128,12 +128,26 @@ def registration(message):
             cur.close()
             conn.close()
 
-            bot.send_message(message.chat.id, info, parse_mode='html')
+
+            markup2 = types.InlineKeyboardMarkup()
+            btn12 = types.InlineKeyboardButton('Еду 1', callback_data=citizenRuButtonYesTextCallbackData, one_time_keyboard=True)
+            btn22 = types.InlineKeyboardButton('Едем в 2', callback_data=citizenRuButtonNoTextCallbackData, one_time_keyboard=True)
+            btn32 = types.InlineKeyboardButton('Едем в 3', callback_data=citizenRuButtonNoTextCallbackData, one_time_keyboard=True)
+            btn42 = types.InlineKeyboardButton('Едем в 4', callback_data=citizenRuButtonNoTextCallbackData, one_time_keyboard=True)
+            btn52 = types.InlineKeyboardButton('❓ Задать вопрос', callback_data=citizenRuButtonNoTextCallbackData, one_time_keyboard=True)
+            markup2.row(btn12)  
+            markup2.row(btn22)  
+            markup2.row(btn32)  
+            markup2.row(btn42)  
+            markup2.row(btn52)  
+            bot.send_message(message.chat.id, info, parse_mode='html',reply_markup=markup2)  
             # bot.send_message(message.chat.id, f'✅\n<b>·{cityname}: </b> {countPeople}\n<b>·Адрес:</b>👉{adress}\n<b>·Что делать:</b> {whattodo}\n<b>·Начало работ:</b> {timetostart}\n<b>·Вам на руки:</b> {salary}\n<b>·Приоритет самозанятым</b>', parse_mode='html')  
 
             print(info)
 
             previosMaxValue = max_id
+        elif previosMaxValue == 0:
+            print('значение базы равно 0')
 
         else:
             print('Значение не изменилось')
@@ -155,9 +169,9 @@ def registration(message):
     #         registration(self._my_var)
 
 
-    conn.commit()
-    cur.close()
-    conn.close()
+    # conn.commit()
+    # cur.close()
+    # conn.close()
             # Проверка наличия новых записей в базе данных
             
     
