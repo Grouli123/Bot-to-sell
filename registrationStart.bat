@@ -1,1 +1,1 @@
-python registration_people/main.py
+python registration_main.py

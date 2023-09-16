@@ -1,1 +1,1 @@
-python admin/main.py
+python admin_main.py

@@ -8,9 +8,9 @@ import time
 # import main
 
 
-import  API_key
-import sqlBase as sqlBase
-import config_message
+import  get_orders_config.get_orders_API_key as API_key
+import get_orders_config.get_orders_sqlBase as sqlBase
+import  get_orders_config.get_orders_config_message as config_message
 
 botApiKey = API_key.botAPI
 

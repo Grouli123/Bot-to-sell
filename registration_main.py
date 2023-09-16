@@ -4,9 +4,9 @@ import sqlite3
 from geopy.geocoders import Nominatim
 from datetime import datetime
 
-import API_key
-import sqlBase as sqlBase
-import config_message
+import registration_people_config.registration_API_key as API_key
+import registration_people_config.registration_sqlBase as sqlBase
+import registration_people_config.registration_config_message as config_message
 
 botApiKey = API_key.botAPI
 

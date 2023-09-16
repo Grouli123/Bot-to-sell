@@ -2,11 +2,13 @@ import telebot
 from telebot import types
 import sqlite3
 
-import config.API_key
-import sqlBase as sqlBase
-import config_message
 
-botApiKey = config.API_key.botAPI
+
+import admin_config.admin_API_key as API_key
+import admin_config.admin_sqlBase as sqlBase
+import admin_config.admin_config_message as config_message
+
+botApiKey = API_key.botAPI
 
 bot = telebot.TeleBot(botApiKey)
 
