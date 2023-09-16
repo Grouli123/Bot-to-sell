@@ -2,11 +2,11 @@ import telebot
 from telebot import types
 import sqlite3
 
-import API_key
+import config.API_key
 import sqlBase as sqlBase
 import config_message
 
-botApiKey = API_key.botAPI
+botApiKey = config.API_key.botAPI
 
 bot = telebot.TeleBot(botApiKey)
 
@@ -16,30 +16,48 @@ nameOfBase = sqlBase.name_of_base
 
 maxSymbol = config_message.max_symbol_for_message
 
-lastnameText = config_message.input_lastname_text
-lastnameError = config_message.lastname_error
+adressText = config_message.input_adress_text
+adressError = config_message.adress_error
 
-firstnameText = config_message.input_firstname_text
-firstnameError = config_message.firstname_error
+whatToDoText = config_message.input_whattodo_text
+whatToDoError = config_message.whattodo_error
 
-middlenameText = config_message.input_middlename_text
-middlenameError = config_message.middlename_error
+startWorkText = config_message.input_startwork_text
+startWorkError = config_message.startwork_error
 
 textOnly = config_message.message_should_be_text_type
 
-citizenRuButtonYesText = config_message.citizen_ru_button_yes
-citizenRuButtonYesTextCallbackData = config_message.citizen_ru_button_yes_callback_data
+orderSendText = config_message.order_send
+orderSendTextCallbackData = config_message.order_send_callback_data
 
-citizenRuButtonNoText = config_message.citizen_ru_button_no
-citizenRuButtonNoTextCallbackData = config_message.citizen_ru_button_no_callback_data
+orderDeleteText = config_message.order_delete
+orderDeleteCallbackData = config_message.order_delete_callback_data
 
-userCitizenRuText = config_message.user_citizen_ru_text
-userCitizenRuError = config_message.user_citizen_ru_error
+userCitizenRuText = config_message.ready_order_text
+userCitizenRuError = config_message.ready_order_error
 
-registrationSucsess = config_message.registration_sucsess
+orderSucsess = config_message.order_sucsess
 buttonResultName = config_message.button_result_name
 
 alreadyRegistered = config_message.already_registered
+
+makeOrderButton = config_message.make_order_button
+openBaseOrders = config_message.open_base_orders
+openBasePeople = config_message.open_base_people
+startBotMessage = config_message.start_bot_message
+
+inputCityObject = config_message.input_city_object
+
+openBseOrdersMessage = config_message.open_base_orders_message
+openBasePeopleMessage = config_message.open_base_people_message
+chooseTruePointOfMenu = config_message.choose_true_point_of_menu
+
+inputCountOfNeedPeople = config_message.input_count_of_need_people
+inputNumber = config_message.input_number
+
+inputSumInHour = config_message.input_sum_in_hour
+
+inputNumbers = config_message.input_numbers
 
 adress = None
 whattodo = None
@@ -50,19 +68,18 @@ countPeople = None
 salary = None
 state = 'initial'
 
-
 humanCount = None
 needText = None
 
 @bot.message_handler(commands=['start'])
 def start(message):
     markup = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-    btn1 = types.KeyboardButton('Сформировать заявку')
-    btn2 = types.KeyboardButton('Открыть базу данных заявок')
-    btn3 = types.KeyboardButton('Открыть базу данных пользователей')
+    btn1 = types.KeyboardButton(makeOrderButton)
+    btn2 = types.KeyboardButton(openBaseOrders)
+    btn3 = types.KeyboardButton(openBasePeople)
     markup.row(btn1)
     markup.row(btn2, btn3)    
-    bot.send_message(message.chat.id, 'Рад помочь, выберите подходящий пункт',  reply_markup=markup)
+    bot.send_message(message.chat.id, startBotMessage,  reply_markup=markup)
     bot.register_next_step_handler(message, city_of_obj)
 
 
@@ -71,20 +88,20 @@ def city_of_obj(message):
         bot.send_message(message.from_user.id, textOnly)
         start(message) 
     else:
-        if message.text == 'Сформировать заявку':
-            bot.send_message(message.chat.id, "Напишите город объекта: ", reply_markup=types.ReplyKeyboardRemove())
+        if message.text == makeOrderButton:
+            bot.send_message(message.chat.id, inputCityObject, reply_markup=types.ReplyKeyboardRemove())
             bot.register_next_step_handler(message, city_of_obj_check)
 
-        elif message.text == 'Открыть базу данных заявок':
-            bot.send_message(message.chat.id, 'Вот база данных заявок: ')
+        elif message.text == openBaseOrders:
+            bot.send_message(message.chat.id, openBseOrdersMessage)
             show_database_orders(message)
             start(message)
-        elif message.text == 'Открыть базу данных пользователей':
-            bot.send_message(message.chat.id, 'Вот база данных пользователей: ')
+        elif message.text == openBasePeople:
+            bot.send_message(message.chat.id, openBasePeopleMessage)
             show_database_users(message)
             start(message)
         else:
-            bot.send_message(message.chat.id, 'Выберите подходящий пункт меню')            
+            bot.send_message(message.chat.id, chooseTruePointOfMenu)            
             start(message)
   
 
@@ -95,15 +112,15 @@ def city_of_obj_check(message):
         city_of_obj(message) 
     else:
         if len(message.text.strip()) > maxSymbol:
-            bot.send_message(message.chat.id, lastnameError)
+            bot.send_message(message.chat.id, adressError)
             message.text.strip(None)
             city_of_obj(message) 
         else:
             cityname = message.text.strip()
             print(cityname)            
-            registration(message)
+            people_need_count(message)
 
-def registration(message):
+def people_need_count(message):
     conn = sqlite3.connect('./applicationbase.sql')
     cur = conn.cursor()
 
@@ -111,111 +128,111 @@ def registration(message):
     conn.commit() 
     cur.close()
     conn.close()
-    bot.send_message(message.chat.id, 'Напишите количество требуемых рабочих: ', parse_mode='html')
-    bot.register_next_step_handler(message, registration_check)   
+    bot.send_message(message.chat.id, inputCountOfNeedPeople, parse_mode='html')
+    bot.register_next_step_handler(message, people_need_count_check)   
 
-def registration_check(message):
+def people_need_count_check(message):
     global countPeople
     if message.text is None:
         bot.send_message(message.from_user.id, textOnly)
-        registration(message) 
+        people_need_count(message) 
     else:
         if len(message.text.strip()) > maxSymbol:
-            bot.send_message(message.chat.id, lastnameError)
+            bot.send_message(message.chat.id, adressError)
             message.text.strip(None)
-            registration(message) 
+            people_need_count(message) 
         else:
             try:
                 countPeople = message.text.strip()
                 int(countPeople)
-                input_lastname(message)
+                input_adress(message)
             except ValueError:
-                bot.send_message(message.from_user.id, 'Введите цифру')
-                registration(message)
+                bot.send_message(message.from_user.id, inputNumber)
+                people_need_count(message)
             
         
-def input_lastname(message):
-    bot.send_message(message.chat.id, lastnameText, parse_mode='html')
-    bot.register_next_step_handler(message, lastneme_check)   
+def input_adress(message):
+    bot.send_message(message.chat.id, adressText, parse_mode='html')
+    bot.register_next_step_handler(message, adress_check)   
 
-def lastneme_check(message):
+def adress_check(message):
     global adress
     if message.text is None:
         bot.send_message(message.from_user.id, textOnly)
-        input_lastname(message) 
+        input_adress(message) 
     else:
         if len(message.text.strip()) > maxSymbol:
-            bot.send_message(message.chat.id, lastnameError)
+            bot.send_message(message.chat.id, adressError)
             message.text.strip(None)
-            input_lastname(message) 
+            input_adress(message) 
         else:
             adress = message.text.strip()
             print(adress)
-            input_firstname(message)
+            input_whattodo(message)
 
-def input_firstname(message):
-    bot.send_message(message.chat.id, firstnameText, parse_mode='html')
-    bot.register_next_step_handler(message, firstname_check)
+def input_whattodo(message):
+    bot.send_message(message.chat.id, whatToDoText, parse_mode='html')
+    bot.register_next_step_handler(message, whattodo_check)
 
-def firstname_check(message):       
+def whattodo_check(message):       
     global whattodo
     if message.text is None:
         bot.send_message(message.from_user.id, textOnly)
-        input_firstname(message)
+        input_whattodo(message)
     else:
         if len(message.text.strip()) > maxSymbol:
-            bot.send_message(message.chat.id, firstnameError)
+            bot.send_message(message.chat.id, whatToDoError)
             message.text.strip(None)
-            input_firstname(message)        
+            input_whattodo(message)        
         else:                  
             whattodo = message.text.strip()    
-            print(firstname_check)
-            input_middlename(message)
+            print(whattodo_check)
+            input_startwork(message)
         
-def input_middlename(message):
-    bot.send_message(message.chat.id, middlenameText, parse_mode='html')
-    bot.register_next_step_handler(message, middlename_check)
+def input_startwork(message):
+    bot.send_message(message.chat.id, startWorkText, parse_mode='html')
+    bot.register_next_step_handler(message, startwork_check)
 
-def middlename_check(message):      
+def startwork_check(message):      
     global timetostart
     if message.text is None:
         bot.send_message(message.from_user.id, textOnly)
-        input_middlename(message)
+        input_startwork(message)
     else:
         if len(message.text.strip()) > maxSymbol:
-            bot.send_message(message.chat.id, middlenameError)
+            bot.send_message(message.chat.id, startWorkError)
             message.text.strip(None)
-            input_middlename(message) 
+            input_startwork(message) 
         else:     
             timetostart = message.text.strip()
-            print(middlename_check)
-            input_middlenam2(message)
+            print(startwork_check)
+            input_salary(message)
 
-def input_middlenam2(message):
-    bot.send_message(message.chat.id, 'Напишите сумму в час:', parse_mode='html')
-    bot.register_next_step_handler(message, input_middlenam2_check)
+def input_salary(message):
+    bot.send_message(message.chat.id, inputSumInHour, parse_mode='html')
+    bot.register_next_step_handler(message, salary_check)
 
-def input_middlenam2_check(message):      
+def salary_check(message):      
     global salary
     if message.text is None:
         bot.send_message(message.from_user.id, textOnly)
-        input_middlenam2(message)
+        input_salary(message)
     else:
         if len(message.text.strip()) > maxSymbol:
-            bot.send_message(message.chat.id, middlenameError)
+            bot.send_message(message.chat.id, startWorkError)
             message.text.strip(None)
-            input_middlenam2(message) 
+            input_salary(message) 
         else:     
             try:
                 salary = message.text.strip()                
                 int(salary)
-                print(middlename_check)
-                citizenRU(message)
+                print(startwork_check)
+                created_order(message)
             except ValueError:
-                bot.send_message(message.from_user.id, 'Введите число')
-                input_middlenam2(message)
+                bot.send_message(message.from_user.id, inputNumbers)
+                input_salary(message)
             
-def citizenRU(message):
+def created_order(message):
     global countPeople
     global humanCount
     global needText
@@ -230,35 +247,35 @@ def citizenRU(message):
         needText = 'Нужен'
 
     markup = types.InlineKeyboardMarkup()
-    btn2 = types.InlineKeyboardButton(citizenRuButtonYesText, callback_data=citizenRuButtonYesTextCallbackData, one_time_keyboard=True)
-    btn3 = types.InlineKeyboardButton(citizenRuButtonNoText, callback_data=citizenRuButtonNoTextCallbackData, one_time_keyboard=True)
+    btn2 = types.InlineKeyboardButton(orderSendText, callback_data=orderSendTextCallbackData, one_time_keyboard=True)
+    btn3 = types.InlineKeyboardButton(orderDeleteText, callback_data=orderDeleteCallbackData, one_time_keyboard=True)
     markup.row(btn2, btn3)    
-    bot.send_message(message.chat.id, f'✅\n<b>·{cityname}: </b> {needText} {countPeople} {humanCount}\n<b>·Адрес:</b>👉{adress}\n<b>·Что делать:</b> {whattodo}\n<b>·Начало работ:</b> {timetostart}\n<b>·Вам на руки:</b> <u>{salary}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>', parse_mode='html', reply_markup=markup)  
-    start(message)
+    bot.send_message(message.chat.id, f'✅\n<b>·{cityname}: </b>{needText} {countPeople} {humanCount}\n<b>·Адрес:</b>👉 {adress}\n<b>·Что делать:</b> {whattodo}\n<b>·Начало работ:</b> {timetostart}\n<b>·Вам на руки:</b> <u>{salary}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>', parse_mode='html', reply_markup=markup)  
+    # start(message)
 
-@bot.callback_query_handler(func=lambda callback: callback.data == citizenRuButtonYesTextCallbackData)
-@bot.callback_query_handler(func=lambda callback: callback.data == citizenRuButtonNoTextCallbackData) 
-def callback_message_citizen(callback):  
+@bot.callback_query_handler(func=lambda callback: callback.data == orderSendTextCallbackData)
+@bot.callback_query_handler(func=lambda callback: callback.data == orderDeleteCallbackData) 
+def callback_message_created_order(callback):  
     global feedback 
-    if callback.data == citizenRuButtonYesTextCallbackData:
-        feedback = citizenRuButtonYesText        
-        bot.edit_message_text(f'{userCitizenRuText}\n\n✅\n<b>·{cityname}: </b> {countPeople}\n<b>·Адрес:</b>👉{adress}\n<b>·Что делать:</b> {whattodo}\n<b>·Начало работ:</b> {timetostart}\n<b>·Вам на руки:</b> <u>{salary}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>', callback.message.chat.id, callback.message.message_id, parse_mode='html')
+    if callback.data == orderSendTextCallbackData:
+        feedback = orderSendText        
+        bot.edit_message_text(f'{userCitizenRuText}\n\n✅\n<b>·{cityname}: </b>{needText} {countPeople} {humanCount}\n<b>·Адрес:</b>👉 {adress}\n<b>·Что делать:</b> {whattodo}\n<b>·Начало работ:</b> {timetostart}\n<b>·Вам на руки:</b> <u>{salary}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>', callback.message.chat.id, callback.message.message_id, parse_mode='html')
 
     else:          
-        feedback = citizenRuButtonNoText
+        feedback = orderDeleteText
         bot.delete_message(callback.message.chat.id, callback.message.message_id)
     
     import_into_database(callback.message)
 
 @bot.message_handler(content_types=['text'])
-def check_callback_message_citizen(message):          
+def check_callback_message_ready_order(message):          
         global state      
         if state == 'initial':         
             bot.edit_message_text(userCitizenRuText, message.chat.id, message.message_id-1)
             bot.send_message(message.chat.id, userCitizenRuError, parse_mode='html')
-            citizenRU(message)         
+            created_order(message)         
         elif state == 'citizenRU':
-            bot.send_message(message.chat.id, registrationSucsess, parse_mode='html')
+            bot.send_message(message.chat.id, orderSucsess, parse_mode='html')
             import_into_database(message)
         else:
             bot.edit_message_text(userCitizenRuText, message.chat.id, message.message_id)
@@ -279,6 +296,7 @@ def import_into_database(message):
     bot.send_message(message.chat.id, alreadyRegistered, reply_markup=markup)
     
     state = 'citizenRU'
+    start(message)
 
 def show_database_orders(message):
     conn = sqlite3.connect('./applicationbase.sql')
