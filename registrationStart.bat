@@ -1,0 +1,1 @@
+python registration_main.py

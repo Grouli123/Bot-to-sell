@@ -67,15 +67,19 @@ locationcity = None
 
 state = 'initial'
 
+user_id = None
+
 @bot.message_handler(commands=['start'])
 def registration(message):
-    conn = sqlite3.connect('./peoplebase.sql')
+    global user_id
+    conn = sqlite3.connect('peoplebase.sql')
     cur = conn.cursor()
-
+    user_id = message.from_user.id
     cur.execute(base)
     conn.commit() 
     cur.close()
     conn.close()
+    print(user_id)
     
     keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
     button_phone = types.KeyboardButton(text=phoneButtonText, request_contact=True)
@@ -246,9 +250,9 @@ def check_callback_message_citizen(message):
 def import_into_database(message):
     global usercitizenRF   
     global state  
-    conn = sqlite3.connect('./peoplebase.sql')
+    conn = sqlite3.connect('peoplebase.sql')
     cur = conn.cursor()
-    cur.execute(insertIntoBase % (phone, locationcity, lastname, firstname, middlename, userbirthday, usercitizenRF)) 
+    cur.execute(insertIntoBase % (phone, locationcity, lastname, firstname, middlename, userbirthday, usercitizenRF, user_id)) 
    
     conn.commit()
     cur.close()

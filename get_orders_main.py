@@ -5,12 +5,10 @@ from geopy.geocoders import Nominatim
 from datetime import datetime
 import time
 
-# import main
-
-
 import  get_orders_config.get_orders_API_key as API_key
 import get_orders_config.get_orders_sqlBase as sqlBase
 import  get_orders_config.get_orders_config_message as config_message
+
 
 botApiKey = API_key.botAPI
 
@@ -75,12 +73,13 @@ previosMaxValue = 0
 
 max_id = 0
 
+
+
 @bot.message_handler(commands=['start'])
 def registration(message):
-    global previosMaxValue
-    
+    global previosMaxValue    
     global max_id
-
+    # global my_variable
     bot.send_message(message.chat.id, f'Поздравляем с успешной регистрацией✅\nОжидай появления новых заявок!\nПринять заявку можно, нажам на активные кнопки под заявкой.\n\nℹ️Если хочешь видеть все заявки и иметь преимущество в назначении на заявку - подтверди свой аккаунт (это можно сделать в любой момент). Для этого нажми на кнопку "👤Мои данные" на твоей клавиатуре внизу, затем нажми "✅Подтвердить аккаунт"👇👇👇', parse_mode='html')
     userCitizenRuText = f'👉Пока можешь почитать отзывы о нашей организации'
     markup = types.InlineKeyboardMarkup()
@@ -89,68 +88,89 @@ def registration(message):
     markup.row(btn2)  
     markup.row(btn3)  
     bot.send_message(message.chat.id, userCitizenRuText, reply_markup=markup)  
-    conn = sqlite3.connect('./peoplebase.sql')
-    cur = conn.cursor()
     
-    cur.execute(base)
-    conn.commit() 
-    cur.close()
+    conn = sqlite3.connect('user_data.sql')
+    cursor = conn.cursor()
+
+    cursor.execute('''CREATE TABLE IF NOT EXISTS users
+    (user_id INTEGER PRIMARY KEY, username TEXT)''')
+    conn.commit()
+
+    # Проверяем, есть ли пользователь в базе данных
+    
+    user_id = message.from_user.id
+    username = message.from_user.username
+    
+    cursor.execute("INSERT OR IGNORE INTO users (user_id, username) VALUES ('%s', '%s')" % (user_id, username))
+    conn.commit()
     conn.close()
 
-    while True:
+
+    # conn = sqlite3.connect('./peoplebase.sql')
+    # cur = conn.cursor()
+    
+    # cur.execute(base)
+    # conn.commit() 
+    # cur.close()
+    # conn.close()
+
+    
+
+    # if test == True:
+    # while True:
         # Ожидание определенного интервала времени
-        time.sleep(20)
+        # time.sleep(20)
 
         # Проверка наличия новых записей в базе данных
         
-        conn = sqlite3.connect('./applicationbase.sql')
-        cur = conn.cursor()
+        # conn = sqlite3.connect('./applicationbase.sql')
+        # cur = conn.cursor()
     
-        cur.execute('SELECT max(id) FROM orders')
+        # cur.execute('SELECT max(id) FROM orders')
 
-        max_id = cur.fetchone()[0]
-        conn.commit()
-        cur.close()
-        conn.close()
-        if max_id != previosMaxValue:
-            print("вот: ",max_id)
+        # max_id = cur.fetchone()[0]
+        # conn.commit()
+        # cur.close()
+        # conn.close()
+        # if max_id != previosMaxValue:
+        #     print("вот: ",max_id)
 
-            conn = sqlite3.connect('./applicationbase.sql')
-            cur = conn.cursor()
-            # SELECT * FROM users ORDER BY id DESC LIMIT для вывода последнего пользователя
-            cur.execute('SELECT * FROM orders ORDER BY id DESC LIMIT 1')
-            users = cur.fetchall()
+        #     conn = sqlite3.connect('./applicationbase.sql')
+        #     cur = conn.cursor()
+        #     # SELECT * FROM users ORDER BY id DESC LIMIT для вывода последнего пользователя
+        #     cur.execute('SELECT * FROM orders ORDER BY id DESC LIMIT 1')
+        #     users = cur.fetchall()
 
-            info = ''
-            for el in users:
-                info += f'✅\n<b>·{el[2]}:</b> {el[3]}\n<b>·Адрес:</b>👉{el[4]}\n<b>·Что делать:</b> {el[5]}\n<b>·Начало работ:</b> {el[6]}\n<b>·Вам на руки: </b>{el[7]}\n<b>·Приоритет самозанятым</b>'
-                # print("вот: ",type(el[0]))
-            cur.close()
-            conn.close()
+        #     info = ''
+        #     for el in users:
+        #         info += f'✅\n<b>·{el[2]}:</b> {el[3]}\n<b>·Адрес:</b>👉{el[4]}\n<b>·Что делать:</b> {el[5]}\n<b>·Начало работ:</b> {el[6]}\n<b>·Вам на руки: </b>{el[7]}\n<b>·Приоритет самозанятым</b>'
+        #         # print("вот: ",type(el[0]))
+        #     cur.close()
+        #     conn.close()
 
 
-            markup2 = types.InlineKeyboardMarkup()
-            btn12 = types.InlineKeyboardButton('Еду 1', callback_data=citizenRuButtonYesTextCallbackData, one_time_keyboard=True)
-            btn22 = types.InlineKeyboardButton('Едем в 2', callback_data=citizenRuButtonNoTextCallbackData, one_time_keyboard=True)
-            btn32 = types.InlineKeyboardButton('Едем в 3', callback_data=citizenRuButtonNoTextCallbackData, one_time_keyboard=True)
-            btn42 = types.InlineKeyboardButton('Едем в 4', callback_data=citizenRuButtonNoTextCallbackData, one_time_keyboard=True)
-            btn52 = types.InlineKeyboardButton('❓ Задать вопрос', callback_data=citizenRuButtonNoTextCallbackData, one_time_keyboard=True)
-            markup2.row(btn12)  
-            markup2.row(btn22)  
-            markup2.row(btn32)  
-            markup2.row(btn42)  
-            markup2.row(btn52)  
-            bot.send_message(message.chat.id, info, parse_mode='html',reply_markup=markup2)  
-            # bot.send_message(message.chat.id, f'✅\n<b>·{cityname}: </b> {countPeople}\n<b>·Адрес:</b>👉{adress}\n<b>·Что делать:</b> {whattodo}\n<b>·Начало работ:</b> {timetostart}\n<b>·Вам на руки:</b> {salary}\n<b>·Приоритет самозанятым</b>', parse_mode='html')  
+        #     markup2 = types.InlineKeyboardMarkup()
+        #     btn12 = types.InlineKeyboardButton('Еду 1', callback_data=citizenRuButtonYesTextCallbackData, one_time_keyboard=True)
+        #     btn22 = types.InlineKeyboardButton('Едем в 2', callback_data=citizenRuButtonNoTextCallbackData, one_time_keyboard=True)
+        #     btn32 = types.InlineKeyboardButton('Едем в 3', callback_data=citizenRuButtonNoTextCallbackData, one_time_keyboard=True)
+        #     btn42 = types.InlineKeyboardButton('Едем в 4', callback_data=citizenRuButtonNoTextCallbackData, one_time_keyboard=True)
+        #     btn52 = types.InlineKeyboardButton('❓ Задать вопрос', callback_data=citizenRuButtonNoTextCallbackData, one_time_keyboard=True)
+        #     markup2.row(btn12)  
+        #     markup2.row(btn22)  
+        #     markup2.row(btn32)  
+        #     markup2.row(btn42)  
+        #     markup2.row(btn52)  
+        #     bot.send_message(message.chat.id, info, parse_mode='html',reply_markup=markup2)  
+        #     # bot.send_message(message.chat.id, f'✅\n<b>·{cityname}: </b> {countPeople}\n<b>·Адрес:</b>👉{adress}\n<b>·Что делать:</b> {whattodo}\n<b>·Начало работ:</b> {timetostart}\n<b>·Вам на руки:</b> {salary}\n<b>·Приоритет самозанятым</b>', parse_mode='html')  
 
-            print(info)
+        #     print(info)
 
-            previosMaxValue = max_id
-        elif previosMaxValue == 0:
-            print('значение базы равно 0')
+        #     previosMaxValue = max_id
+        # elif previosMaxValue == 0:
+        #     print('значение базы равно 0')
 
-        else:
-            print('Значение не изменилось')
+        # else:
+        #     print('Значение не изменилось')
     # def __init__(self):
     #     global max_id
     #     self._my_var = max_id
