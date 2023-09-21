@@ -5,6 +5,8 @@ from geopy.geocoders import Nominatim
 from datetime import datetime
 import time
 
+import re
+
 import  get_orders_config.get_orders_API_key as API_key
 import get_orders_config.get_orders_sqlBase as sqlBase
 import  get_orders_config.get_orders_config_message as config_message
@@ -59,19 +61,7 @@ buttonResultName = config_message.button_result_name
 
 alreadyRegistered = config_message.already_registered
 
-# phone = None
-# lastname = None
-# firstname = None
-# middlename = None
-# userbirthday = None
-# usercitizenRF = None
-# locationcity = None
-
-# state = 'initial'
-
-# previosMaxValue = 0
-
-# max_id = 0
+geolocator = None
 
 nuberPhone = None
 city = None
@@ -81,21 +71,88 @@ middlename = None
 dataOfBirth = None       
 citizenRF = None
 
+passport = None
+
 user_id = None
+
+
+
+cityTrue = False
+
+check_user_id = None
 
 @bot.message_handler(commands=['start'])
 def registration(message):
     global user_id
-    # global my_variable
-    bot.send_message(message.chat.id, f'Поздравляем с успешной регистрацией✅\nОжидай появления новых заявок!\nПринять заявку можно, нажам на активные кнопки под заявкой.\n\nℹ️Если хочешь видеть все заявки и иметь преимущество в назначении на заявку - подтверди свой аккаунт (это можно сделать в любой момент). Для этого нажми на кнопку "👤Мои данные" на твоей клавиатуре внизу, затем нажми "✅Подтвердить аккаунт"👇👇👇', parse_mode='html')
-    userCitizenRuText = f'👉Пока можешь почитать отзывы о нашей организации'
-    markup = types.InlineKeyboardMarkup()
-    btn2 = types.InlineKeyboardButton(citizenRuButtonYesText, callback_data=citizenRuButtonYesTextCallbackData, one_time_keyboard=True)
-    btn3 = types.InlineKeyboardButton(citizenRuButtonNoText, callback_data=citizenRuButtonNoTextCallbackData, one_time_keyboard=True)
-    markup.row(btn2)  
-    markup.row(btn3)  
-    bot.send_message(message.chat.id, userCitizenRuText, reply_markup=markup)  
+    conn = sqlite3.connect('user_data.sql')
+    cursor = conn.cursor()
+
+    cursor.execute('''CREATE TABLE IF NOT EXISTS users
+    (user_id INTEGER PRIMARY KEY, username TEXT)''')
+    conn.commit()
     
+    user_id = message.from_user.id
+    username = message.from_user.username
+
+    
+
+  
+    
+    cursor.execute("INSERT OR IGNORE INTO users (user_id, username) VALUES ('%s', '%s')" % (user_id, username))
+    conn.commit()
+    conn.close()
+
+    conn = sqlite3.connect('peoplebase.sql')
+    cursor = conn.cursor()
+          # Запрос к базе данных для поиска строки по значению переменной
+    cursor.execute("SELECT * FROM users WHERE user_id = ('%s')" % (user_id))
+    takeParam = cursor.fetchone() # Получение первой соответствующей строки
+    
+    if takeParam:
+        check_user_id = takeParam[9]
+    else:
+        check_user_id = None
+    conn.close()
+
+    if check_user_id is not None:
+        bot.send_message(message.chat.id, f'Поздравляем с успешной регистрацией✅\nОжидай появления новых заявок!\nПринять заявку можно, нажам на активные кнопки под заявкой.\n\nℹ️Если хочешь видеть все заявки и иметь преимущество в назначении на заявку - подтверди свой аккаунт (это можно сделать в любой момент). Для этого нажми на кнопку "👤Мои данные" на твоей клавиатуре внизу, затем нажми "✅Подтвердить аккаунт"👇👇👇', parse_mode='html')
+        userCitizenRuText = f'👉Пока можешь почитать отзывы о нашей организации'
+        markup = types.InlineKeyboardMarkup()
+        btn2 = types.InlineKeyboardButton(citizenRuButtonYesText, callback_data=citizenRuButtonYesTextCallbackData, one_time_keyboard=True)
+        btn3 = types.InlineKeyboardButton(citizenRuButtonNoText, callback_data=citizenRuButtonNoTextCallbackData, one_time_keyboard=True)
+        markup.row(btn2)  
+        markup.row(btn3)  
+        bot.send_message(message.chat.id, userCitizenRuText, reply_markup=markup)  
+    else:
+        markup = types.InlineKeyboardMarkup()
+        btn2 = types.InlineKeyboardButton('👉 Перейти к боту регистрации', url='https://t.me/GraeYeBot', one_time_keyboard=True)
+        markup.row(btn2)          
+        bot.send_message(message.chat.id, f'Для регистрации перейдите к боту по кнопке!\n\n👇👇👇👇👇', parse_mode='html', reply_markup=markup)
+
+
+
+    
+    
+
+@bot.message_handler(commands=['data'])
+def data(message):
+    global user_id
+
+    global city
+
+    
+    global cityTrue
+
+
+    global nuberPhone
+    global city
+    global lastname
+    global firstname
+    global middlename
+    global dataOfBirth       
+    global citizenRF 
+
+    global check_user_id
     conn = sqlite3.connect('user_data.sql')
     cursor = conn.cursor()
 
@@ -109,21 +166,21 @@ def registration(message):
     cursor.execute("INSERT OR IGNORE INTO users (user_id, username) VALUES ('%s', '%s')" % (user_id, username))
     conn.commit()
     conn.close()
-
-@bot.message_handler(commands=['data'])
-def data(message):
-    global user_id
-
-    global city
-
-    # Подключение к базе данных SQLite
+    
+        # Подключение к базе данных SQLite
     conn = sqlite3.connect('peoplebase.sql')
     cursor = conn.cursor()
 
-    # Запрос к базе данных для поиска строки по значению переменной
+        # Запрос к базе данных для поиска строки по значению переменной
     cursor.execute("SELECT * FROM users WHERE user_id = ('%s')" % (user_id))
     takeParam = cursor.fetchone() # Получение первой соответствующей строки
-
+    
+    if takeParam:
+        check_user_id = takeParam[9]
+    else:
+        check_user_id = None
+    conn.close()
+    
     if takeParam:
         nuberPhone = takeParam[2]
         city = takeParam[3]
@@ -133,44 +190,310 @@ def data(message):
         dataOfBirth = takeParam[7]        
         citizenRF = takeParam[8]   
 
-        markup = types.InlineKeyboardMarkup()
-        btn2 = types.InlineKeyboardButton('🖌Редактировать город', callback_data='🖌Редактировать город', one_time_keyboard=True)
-        btn3 = types.InlineKeyboardButton('✅Подтвердить', callback_data='✅Подтвердить', one_time_keyboard=True)
-        markup.row(btn2)  
-        markup.row(btn3)  
-        bot.send_message(message.chat.id, f'📞 Телефон: +{nuberPhone}\n👤 ФИО: {lastname} {firstname} {middlename}\n📅 Дата рождения: {dataOfBirth}\n🇷🇺 Гражданство РФ: {citizenRF}\n🤝 Самозанятый: Нет \n🏙 Город(а): {city}\n\nℹ️ Чтобы выйти из этого меню нажмите ✅Подтвердить', reply_markup=markup)
-
     else:
         print('Значение не найдено') # Сообщение, если значение не найдено
 
-    # Закрытие соединения с базой данных
+        # Закрытие соединения с базой данных
     conn.close()
+    if check_user_id is not None:
+        if cityTrue is False:
+            markup = types.InlineKeyboardMarkup()
+            btn2 = types.InlineKeyboardButton('🖌Редактировать город', callback_data='🖌Редактировать город', one_time_keyboard=True)
+            btn3 = types.InlineKeyboardButton('✅Подтвердить', callback_data='✅Подтвердить', one_time_keyboard=True)
+            markup.row(btn2)  
+            markup.row(btn3)  
+            bot.send_message(message.chat.id, f'📞 Телефон: +{nuberPhone}\n👤 ФИО: {lastname} {firstname} {middlename}\n📅 Дата рождения: {dataOfBirth}\n🇷🇺 Гражданство РФ: {citizenRF}\n🤝 Самозанятый: Нет \n🏙 Город(а): {city}\n\nℹ️ Чтобы выйти из этого меню нажмите ✅Подтвердить', reply_markup=markup)
+
+        else:
+            markup = types.InlineKeyboardMarkup()
+            btn1 = types.InlineKeyboardButton('📝Редактировать данные', callback_data='📝Редактировать данные', one_time_keyboard=True)
+            btn2 = types.InlineKeyboardButton('📊 Статистика заказов', callback_data='📊 Статистика заказов', one_time_keyboard=True)
+            btn3 = types.InlineKeyboardButton('✅Подтвердить аккаунт', callback_data='✅Подтвердить аккаунт', one_time_keyboard=True)
+            btn4 = types.InlineKeyboardButton('✅Самозанятость', callback_data='✅Самозанятость', one_time_keyboard=True)
+            markup.row(btn1)  
+            markup.row(btn2)  
+            markup.row(btn3)  
+            markup.row(btn4)  
+            bot.send_message(message.chat.id, f'📞 Телефон: +{nuberPhone}\n👤 ФИО: {lastname} {firstname} {middlename}\n📅 Дата рождения: {dataOfBirth}\n🇷🇺 Гражданство РФ: {citizenRF}\n🤝 Самозанятый: Нет \n🏙 Город(а): {city}\n\nℹ️ Чтобы выйти из этого меню нажмите ✅Подтвердить', reply_markup=markup)
+    else:
+        markup = types.InlineKeyboardMarkup()
+        btn2 = types.InlineKeyboardButton('👉 Перейти к боту регистрации', url='https://t.me/GraeYeBot', one_time_keyboard=True)
+        markup.row(btn2)          
+        bot.send_message(message.chat.id, f'Для регистрации перейдите к боту по кнопке!\n\n👇👇👇👇👇', parse_mode='html', reply_markup=markup)
 
 
-# @bot.message_handler(commands=['orders'])
-# def orders(message):
-#     bot.send_message(message.chat.id, f'Тут будут ваши заявки', parse_mode='html')
+
+@bot.message_handler(commands=['orders'])
+def orders(message):
+
+    global check_user_id
+    conn = sqlite3.connect('user_data.sql')
+    cursor = conn.cursor()
+
+    cursor.execute('''CREATE TABLE IF NOT EXISTS users
+    (user_id INTEGER PRIMARY KEY, username TEXT)''')
+    conn.commit()
+    
+    user_id = message.from_user.id
+    username = message.from_user.username
+    
+    cursor.execute("INSERT OR IGNORE INTO users (user_id, username) VALUES ('%s', '%s')" % (user_id, username))
+    conn.commit()
+    conn.close()
+    
+        # Подключение к базе данных SQLite
+    conn = sqlite3.connect('peoplebase.sql')
+    cursor = conn.cursor()
+
+        # Запрос к базе данных для поиска строки по значению переменной
+    cursor.execute("SELECT * FROM users WHERE user_id = ('%s')" % (user_id))
+    takeParam = cursor.fetchone() # Получение первой соответствующей строки
+    
+    if takeParam:
+        check_user_id = takeParam[9]
+    else:
+        check_user_id = None
+    conn.close()
+    if check_user_id is not None:
+        usercitizenRF = 'На данный момент у Вас нет активных заявок. Следите за новыми заявками и берите те, по которым хотите работать.'   
+        bot.send_message(message.chat.id, usercitizenRF)
+    else:
+        markup = types.InlineKeyboardMarkup()
+        btn2 = types.InlineKeyboardButton('👉 Перейти к боту регистрации', url='https://t.me/GraeYeBot', one_time_keyboard=True)
+        markup.row(btn2)          
+        bot.send_message(message.chat.id, f'Для регистрации перейдите к боту по кнопке!\n\n👇👇👇👇👇', parse_mode='html', reply_markup=markup)
+
+
+
+
+
+
+
+@bot.callback_query_handler(func=lambda callback: callback.data == '📝Редактировать данные')
+@bot.callback_query_handler(func=lambda callback: callback.data == '📊 Статистика заказов') 
+@bot.callback_query_handler(func=lambda callback: callback.data == '✅Подтвердить аккаунт')
+def callback_message_citizen(callback): 
+    global cityTrue
+    if callback.data == '📝Редактировать данные':
+        bot.delete_message(callback.message.chat.id, callback.message.message_id)
+        cityTrue = False
+        data(callback.message)
+
+    elif callback.data == '📊 Статистика заказов':        
+        markup = types.InlineKeyboardMarkup()
+        btn2 = types.InlineKeyboardButton(citizenRuButtonYesText, callback_data=citizenRuButtonYesTextCallbackData, one_time_keyboard=True)
+        btn3 = types.InlineKeyboardButton(citizenRuButtonNoText, callback_data=citizenRuButtonNoTextCallbackData, one_time_keyboard=True)
+        markup.row(btn2)  
+        markup.row(btn3)  
+        bot.send_message(callback.message.chat.id, f'📊 Статистика заказов:\n• Взял 0\n• Выполнил 0 (0%)\n• Брак 0 (0%)', reply_markup=markup)
+
+    elif callback.data == '✅Подтвердить аккаунт': 
+        print(nuberPhone , lastname)
+        bot.edit_message_text(f'📞 Телефон: +{nuberPhone}\n👤 ФИО: {lastname} {firstname} {middlename}\n📅 Дата рождения: {dataOfBirth}\n🇷🇺 Гражданство РФ: {citizenRF}\n🤝 Самозанятый: Нет \n🏙 Город(а): {city}', callback.message.chat.id, callback.message.message_id)
+        markup = types.InlineKeyboardMarkup()
+        btn2 = types.InlineKeyboardButton('❌ Отменить подтверждение', callback_data='❌ Отменить подтверждение', one_time_keyboard=True)
+        markup.row(btn2)  
+        input_lastname(callback.message)   
+
+@bot.callback_query_handler(func=lambda callback: callback.data == '❌ Отменить подтверждение')
+def callback_message_citizen(callback): 
+    if callback.data == '❌ Отменить подтверждение':
+        bot.delete_message(callback.message.chat.id, callback.message.message_id)
+        data(callback.message)
+
+
+def input_lastname(message):
+    markup = types.InlineKeyboardMarkup()
+    btn2 = types.InlineKeyboardButton('❌ Отменить подтверждение', callback_data='❌ Отменить подтверждение', one_time_keyboard=True)
+    markup.row(btn2)  
+    bot.send_message(message.chat.id, 'Для подтверждения - отправь твои настоящие данные. Они не будут переданы третьим лицам.\n🖌Введи ТОЛЬКО фамилию как в паспорте:', parse_mode='html', reply_markup=markup)
+    bot.register_next_step_handler(message, lastneme_check)   
+
+def lastneme_check(message):
+    global lastname
+    if message.text is None:
+        bot.send_message(message.from_user.id, textOnly)
+        input_lastname(message) 
+    else:
+        if len(message.text.strip()) > maxSymbol:
+            bot.send_message(message.chat.id, lastnameError)
+            message.text.strip(None)
+            input_lastname(message) 
+        else:
+            lastname = message.text.strip()
+            print(lastname)
+            input_firstname(message)
+
+def input_firstname(message):
+    markup = types.InlineKeyboardMarkup()
+    btn2 = types.InlineKeyboardButton('❌ Отменить подтверждение', callback_data='❌ Отменить подтверждение', one_time_keyboard=True)
+    markup.row(btn2)  
+    bot.send_message(message.chat.id, '🖌Введи ТОЛЬКО имя как в паспорте:', parse_mode='html', reply_markup=markup)
+    bot.register_next_step_handler(message, firstname_check)
+
+def firstname_check(message):       
+    global firstname
+    if message.text is None:
+        bot.send_message(message.from_user.id, textOnly)
+        input_firstname(message)
+    else:
+        if len(message.text.strip()) > maxSymbol:
+            bot.send_message(message.chat.id, firstnameError)
+            message.text.strip(None)
+            input_firstname(message)        
+        else:                  
+            firstname = message.text.strip()    
+            print(firstname_check)
+            input_middlename(message)
+        
+def input_middlename(message):
+    markup = types.InlineKeyboardMarkup()
+    btn2 = types.InlineKeyboardButton('❌ Отменить подтверждение', callback_data='❌ Отменить подтверждение', one_time_keyboard=True)
+    markup.row(btn2)  
+    bot.send_message(message.chat.id, '🖌Введи ТОЛЬКО отчество как в паспорте:', parse_mode='html', reply_markup=markup)
+    bot.register_next_step_handler(message, middlename_check)
+
+def middlename_check(message):      
+    global middlename
+    if message.text is None:
+        bot.send_message(message.from_user.id, textOnly)
+        input_middlename(message)
+    else:
+        if len(message.text.strip()) > maxSymbol:
+            bot.send_message(message.chat.id, middlenameError)
+            message.text.strip(None)
+            input_middlename(message) 
+        else:     
+            middlename = message.text.strip()
+            print(middlename_check)
+            input_passport(message)
+
+
+def input_passport(message):
+    markup = types.InlineKeyboardMarkup()
+    btn2 = types.InlineKeyboardButton('❌ Отменить подтверждение', callback_data='❌ Отменить подтверждение', one_time_keyboard=True)
+    markup.row(btn2)  
+    bot.send_message(message.chat.id, 'ℹ️ Пользователи, полностью заполнившие данные, имеют приоритет при получении заявок.\n\nВведите Ваши серию и номер паспорта в формате XXXX YYYYYY, где XXXX - серия, YYYYYY - номер.', parse_mode='html', reply_markup=markup)
+    # bot.register_next_step_handler(message, passport_check)
+
+@bot.message_handler(func=lambda message: bool(re.match(r'^\d{4} \d{6}$', message.text))) 
+def passport_check(message):      
+    global passport    
+    passport = message.text.strip()
+    print(passport)
+    readyPassportInfo(message)
+
+@bot.message_handler(func=lambda message: True) 
+def passport_check(message):      
+    bot.send_message(message.chat.id, 'Введите цифры', parse_mode='html')
+    input_passport(message)
+
+
+def readyPassportInfo(message):
+    bot.send_message(message.chat.id, f'Введите верные данные паспорта (фио/дата рождения/серия+номер)\n\nФИО:{lastname} {firstname} {middlename}\n\nДата рождения: {dataOfBirth}\n\nСерия и номер паспорта: {passport}', parse_mode='html')
+
+
+
+
+
+
+
+
+
 
 @bot.callback_query_handler(func=lambda callback: callback.data == '🖌Редактировать город')
 @bot.callback_query_handler(func=lambda callback: callback.data == '✅Подтвердить') 
-def callback_message_citizen(callback):   
+def callback_message_citizen(callback): 
+    global cityTrue
+  
     if callback.data == '🖌Редактировать город':
         usercitizenRF = f'Выбрано: 🟢{city}'        
         markup = types.InlineKeyboardMarkup()
-        btn2 = types.InlineKeyboardButton(f'❌Удалить "{city}"', callback_data=citizenRuButtonYesTextCallbackData, one_time_keyboard=True)
-        btn3 = types.InlineKeyboardButton('✅Продолжить', callback_data=citizenRuButtonNoTextCallbackData, one_time_keyboard=True)
+        btn2 = types.InlineKeyboardButton(f'❌Удалить "{city}"', callback_data=f'❌Удалить "{city}"', one_time_keyboard=True)
+        btn3 = types.InlineKeyboardButton('✅Продолжить', callback_data='✅Продолжить', one_time_keyboard=True)
         markup.row(btn2)  
         markup.row(btn3)  
         bot.edit_message_text(usercitizenRF, callback.message.chat.id, callback.message.message_id, reply_markup=markup)
 
+    else:
+        cityTrue = True
+        bot.edit_message_text('Данные успешно обновлены!', callback.message.chat.id, callback.message.message_id)
+        data(callback.message)
+
+
+@bot.callback_query_handler(func=lambda callback: callback.data == f'❌Удалить "{city}"')
+@bot.callback_query_handler(func=lambda callback: callback.data == '✅Продолжить') 
+def callback_message_citizen(callback):   
+    if callback.data == f'❌Удалить "{city}"':
+        markup = types.InlineKeyboardMarkup()
+        btn3 = types.InlineKeyboardButton('✅Добавить город', callback_data='✅Добавить город', one_time_keyboard=True) 
+        markup.row(btn3)  
+        bot.edit_message_text('Укажи город, где хочешь работать.', callback.message.chat.id, callback.message.message_id, reply_markup=markup)
+
     else:          
-        usercitizenRF = 'Пока не робит'
-        # bot.edit_message_text(userCitizenRuText, callback.message.chat.id, callback.message.message_id)
-    
-        # bot.send_message(callback.message.chat.id, f'📞 Телефон: +{nuberPhone}\n👤 ФИО: {lastname} {firstname} {middlename}\n📅 Дата рождения: {dataOfBirth}\n🇷🇺 Гражданство РФ: {citizenRF}\n🤝 Самозанятый: Нет \n🏙 Город(а): {city}\n\nℹ️ Чтобы выйти из этого меню нажмите ✅Подтвердить')
-    # import_into_database(callback.message)
+        bot.edit_message_text(f'Выбрано: 🟢{city}', callback.message.chat.id, callback.message.message_id)
+
+@bot.callback_query_handler(func=lambda callback: callback.data == '✅Добавить город') 
+def callback_message_citizen(callback):   
+    if callback.data == '✅Добавить город':
+        locationCityCitizen(callback.message)        
+
+    else:          
+        bot.edit_message_text(f'Выбрано: 🟢{city}', callback.message.chat.id, callback.message.message_id)
 
 
-print('Bot started')
+def locationCityCitizen(message):
+    try:
+        global geolocator
+        keyboard = types.ReplyKeyboardMarkup()
+        button_geo = types.KeyboardButton(text=geolocationButtonText, request_location=True)
+        keyboard.add(button_geo)
+        bot.send_message(message.chat.id, '⚠️Включи геолокацию на телефоне!⚠️\n\nОтправь свой город👇👇👇\n\nℹ️ Определение города может занять некоторое время🕰.', reply_markup=keyboard)  
 
-bot.polling(non_stop=True)
+        bot.register_next_step_handler(message, location)
+        geolocator = Nominatim(user_agent = geolocationNameApp)    
+    except Exception:        
+        bot.send_message(message.chat.id, phoneError, parse_mode='html')
+        bot.register_next_step_handler(message, locationCityCitizen)   
+
+def city_check(coord):
+    location = geolocator.reverse(coord, exactly_one=True)
+    address = location.raw['address'] 
+    town = address.get('town', '')
+    city = address.get('city', '')
+    if town == '':
+        town = city
+    if city == '':
+        city = town  
+
+    return city
+
+def location(message):
+    global locationcity
+    if message.location is not None:           
+        a = [message.location.latitude, message.location.longitude]         
+        city_name = city_check(a)
+        locationcity = city_name
+        bot.send_message(message.chat.id, f'{foundedCity} {locationcity}', reply_markup=types.ReplyKeyboardRemove())
+        
+        markup = types.InlineKeyboardMarkup()
+        btn3 = types.InlineKeyboardButton('✅Продолжить', callback_data='✅Продолжить2', one_time_keyboard=True) 
+        markup.row(btn3)  
+        bot.send_message(message.chat.id, f'На данный момент нельзя изменить город. Такая возможность будет через 13 дней.\nВыбрано: 🟢{city}', reply_markup=markup)            
+    else:        
+        bot.send_message(message.chat.id, geolocationError, parse_mode='html')
+        bot.register_next_step_handler(message, location)   
+
+
+@bot.callback_query_handler(func=lambda callback: callback.data == '✅Продолжить2') 
+def callback_message_citizen(callback):   
+    if callback.data == '✅Продолжить2':
+        bot.answer_callback_query(callback_query_id=callback.id, text='Сначала нужно завершить редактирование данных. Чтобы завершить нажмите ✅Подтвердить',show_alert=True)
+        data(callback.message)
+    else:          
+        bot.edit_message_text(f'Выбрано: 🟢{city}', callback.message.chat.id, callback.message.message_id)
+
+
+if __name__ == '__main__':
+    print('Bot started')
+    bot.polling(non_stop=True)

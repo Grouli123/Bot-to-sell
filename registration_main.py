@@ -69,23 +69,31 @@ state = 'initial'
 
 user_id = None
 
+registered = False
+
 @bot.message_handler(commands=['start'])
 def registration(message):
     global user_id
-    conn = sqlite3.connect('peoplebase.sql')
-    cur = conn.cursor()
-    user_id = message.from_user.id
-    cur.execute(base)
-    conn.commit() 
-    cur.close()
-    conn.close()
-    print(user_id)
-    
-    keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-    button_phone = types.KeyboardButton(text=phoneButtonText, request_contact=True)
-    keyboard.add(button_phone)
-    bot.send_message(message.chat.id, phoneMessageText, reply_markup=keyboard, parse_mode='html')
-    bot.register_next_step_handler(message, geolocation)   
+    if registered is False:
+        conn = sqlite3.connect('peoplebase.sql')
+        cur = conn.cursor()
+        user_id = message.from_user.id
+        cur.execute(base)
+        conn.commit() 
+        cur.close()
+        conn.close()
+        print(user_id)
+        
+        keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+        button_phone = types.KeyboardButton(text=phoneButtonText, request_contact=True)
+        keyboard.add(button_phone)
+        bot.send_message(message.chat.id, phoneMessageText, reply_markup=keyboard, parse_mode='html')
+        bot.register_next_step_handler(message, geolocation)   
+    else:
+        markup = types.InlineKeyboardMarkup()
+        markup.add(types.InlineKeyboardButton(f'{buttonResultName} {locationcity}', callback_data=nameOfBase, url='https://t.me/ArJobBot'))
+        
+        bot.send_message(message.chat.id, alreadyRegistered, reply_markup=markup)
 
 def geolocation(message):    
     global phone
@@ -224,13 +232,14 @@ def citizenRU(message):
 @bot.callback_query_handler(func=lambda callback: callback.data == citizenRuButtonNoTextCallbackData) 
 def callback_message_citizen(callback):   
     global usercitizenRF 
+    global registered
     if callback.data == citizenRuButtonYesTextCallbackData:
         usercitizenRF = citizenRuButtonYesText        
         bot.edit_message_text(userCitizenRuText, callback.message.chat.id, callback.message.message_id)
     else:          
         usercitizenRF = citizenRuButtonNoText
         bot.edit_message_text(userCitizenRuText, callback.message.chat.id, callback.message.message_id)
-    
+    registered = True
     bot.send_message(callback.message.chat.id, f'📞 Телефон: {phone}\n👤 ФИО: {lastname} {firstname} {middlename}\n📅 Дата рождения: {userbirthday}\n🇷🇺 Гражданство РФ: {usercitizenRF}\n🏙 Город(а): {locationcity}')
     import_into_database(callback.message)
 
