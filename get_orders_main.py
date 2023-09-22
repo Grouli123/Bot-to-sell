@@ -81,9 +81,23 @@ cityTrue = False
 
 check_user_id = None
 
+
+
+
+nalogacc = None
+
+
+
+
+
+editButtonText1 = 'Сбербанк'
+editButtonText2 = 'Тинькофф'
+editButtonText3 = 'Другой банк'
+
 @bot.message_handler(commands=['start'])
 def registration(message):
     global user_id
+    global check_user_id
     conn = sqlite3.connect('user_data.sql')
     cursor = conn.cursor()
 
@@ -114,7 +128,7 @@ def registration(message):
         check_user_id = None
     conn.close()
 
-    if check_user_id is not None:
+    if check_user_id is not None or user_id is not None:
         bot.send_message(message.chat.id, f'Поздравляем с успешной регистрацией✅\nОжидай появления новых заявок!\nПринять заявку можно, нажам на активные кнопки под заявкой.\n\nℹ️Если хочешь видеть все заявки и иметь преимущество в назначении на заявку - подтверди свой аккаунт (это можно сделать в любой момент). Для этого нажми на кнопку "👤Мои данные" на твоей клавиатуре внизу, затем нажми "✅Подтвердить аккаунт"👇👇👇', parse_mode='html')
         userCitizenRuText = f'👉Пока можешь почитать отзывы о нашей организации'
         markup = types.InlineKeyboardMarkup()
@@ -195,7 +209,7 @@ def data(message):
 
         # Закрытие соединения с базой данных
     conn.close()
-    if check_user_id is not None:
+    if check_user_id is not None or user_id is not None:
         if cityTrue is False:
             markup = types.InlineKeyboardMarkup()
             btn2 = types.InlineKeyboardButton('🖌Редактировать город', callback_data='🖌Редактировать город', one_time_keyboard=True)
@@ -203,7 +217,7 @@ def data(message):
             markup.row(btn2)  
             markup.row(btn3)  
             bot.send_message(message.chat.id, f'📞 Телефон: +{nuberPhone}\n👤 ФИО: {lastname} {firstname} {middlename}\n📅 Дата рождения: {dataOfBirth}\n🇷🇺 Гражданство РФ: {citizenRF}\n🤝 Самозанятый: Нет \n🏙 Город(а): {city}\n\nℹ️ Чтобы выйти из этого меню нажмите ✅Подтвердить', reply_markup=markup)
-
+            print('первый иф',check_user_id, 'продолжение', user_id)
         else:
             markup = types.InlineKeyboardMarkup()
             btn1 = types.InlineKeyboardButton('📝Редактировать данные', callback_data='📝Редактировать данные', one_time_keyboard=True)
@@ -215,7 +229,9 @@ def data(message):
             markup.row(btn3)  
             markup.row(btn4)  
             bot.send_message(message.chat.id, f'📞 Телефон: +{nuberPhone}\n👤 ФИО: {lastname} {firstname} {middlename}\n📅 Дата рождения: {dataOfBirth}\n🇷🇺 Гражданство РФ: {citizenRF}\n🤝 Самозанятый: Нет \n🏙 Город(а): {city}\n\nℹ️ Чтобы выйти из этого меню нажмите ✅Подтвердить', reply_markup=markup)
+            print('первый элс',check_user_id, 'продолжение', user_id)
     else:
+        print('второй иф',check_user_id, 'продолжение', user_id)
         markup = types.InlineKeyboardMarkup()
         btn2 = types.InlineKeyboardButton('👉 Перейти к боту регистрации', url='https://t.me/GraeYeBot', one_time_keyboard=True)
         markup.row(btn2)          
@@ -254,7 +270,7 @@ def orders(message):
     else:
         check_user_id = None
     conn.close()
-    if check_user_id is not None:
+    if check_user_id is not None or user_id is not None:
         usercitizenRF = 'На данный момент у Вас нет активных заявок. Следите за новыми заявками и берите те, по которым хотите работать.'   
         bot.send_message(message.chat.id, usercitizenRF)
     else:
@@ -265,14 +281,71 @@ def orders(message):
 
 
 
+def input_birtgday(message):
+    bot.send_message(message.chat.id, dataOfBirthday, parse_mode='html')
+    bot.register_next_step_handler(message, user_birthday_check)
 
+def get_date(text):
+    try:
+        date = datetime.strptime(text, dateType)
+        return date.strftime(dateType)
+    except ValueError:
+        return None
+
+def user_birthday_check(message):
+    global dataOfBirth    
+    try:
+        if message.text is None:
+            bot.send_message(message.from_user.id, textOnly)
+            input_birtgday(message)
+        else:
+            dataOfBirth = get_date(message.text.strip())
+            if dataOfBirth:
+                print('OP')
+            else:
+                bot.send_message(message.chat.id, dateError)
+                bot.register_next_step_handler(message, user_birthday_check)
+    except ValueError:
+        bot.send_message(message.chat.id, dateError)
+        bot.register_next_step_handler(message, user_birthday_check)
+
+
+
+def input_birtgday2(message):
+    bot.send_message(message.chat.id, dataOfBirthday, parse_mode='html')
+    bot.register_next_step_handler(message, user_birthday_check2)
+
+def get_date2(text):
+    try:
+        date = datetime.strptime(text, dateType)
+        return date.strftime(dateType)
+    except ValueError:
+        return None
+
+def user_birthday_check2(message):
+    global dataOfBirth    
+    try:
+        if message.text is None:
+            bot.send_message(message.from_user.id, textOnly)
+            input_birtgday2(message)
+        else:
+            dataOfBirth = get_date2(message.text.strip())
+            if dataOfBirth:
+                print('OP')
+            else:
+                bot.send_message(message.chat.id, dateError)
+                bot.register_next_step_handler(message, user_birthday_check2)
+    except ValueError:
+        bot.send_message(message.chat.id, dateError)
+        bot.register_next_step_handler(message, user_birthday_check2)
 
 
 
 @bot.callback_query_handler(func=lambda callback: callback.data == '📝Редактировать данные')
 @bot.callback_query_handler(func=lambda callback: callback.data == '📊 Статистика заказов') 
 @bot.callback_query_handler(func=lambda callback: callback.data == '✅Подтвердить аккаунт')
-def callback_message_citizen(callback): 
+@bot.callback_query_handler(func=lambda callback: callback.data == '✅Самозанятость')
+def callback_data_of_data(callback): 
     global cityTrue
     if callback.data == '📝Редактировать данные':
         bot.delete_message(callback.message.chat.id, callback.message.message_id)
@@ -294,9 +367,242 @@ def callback_message_citizen(callback):
         btn2 = types.InlineKeyboardButton('❌ Отменить подтверждение', callback_data='❌ Отменить подтверждение', one_time_keyboard=True)
         markup.row(btn2)  
         input_lastname(callback.message)   
+    elif callback.data == '✅Самозанятость': 
+        bot.edit_message_text(f'📞 Телефон: +{nuberPhone}\n👤 ФИО: {lastname} {firstname} {middlename}\n📅 Дата рождения: {dataOfBirth}\n🇷🇺 Гражданство РФ: {citizenRF}\n🤝 Самозанятый: Нет \n🏙 Город(а): {city}', callback.message.chat.id, callback.message.message_id)
+        markup = types.InlineKeyboardMarkup()
+        btn1 = types.InlineKeyboardButton('Кто такой самозанятый❓', callback_data='Кто такой самозанятый❓', one_time_keyboard=True, url='https://npd.nalog.ru/')
+        btn2 = types.InlineKeyboardButton('✅Да, официально зарегистрирован', callback_data='✅Да, официально зареган', one_time_keyboard=True)
+        btn3 = types.InlineKeyboardButton('☑️ Нет, хочу зарегистрироваться', callback_data='☑️ Нет, хочу зарегистрироваться', one_time_keyboard=True)
+        btn4 = types.InlineKeyboardButton('➡️ Нет, пропустить', callback_data='➡️ Нет, пропустить', one_time_keyboard=True)
+
+        markup.row(btn1)
+        markup.row(btn2)
+        markup.row(btn3)
+        markup.row(btn4)  
+                
+                
+        bot.send_message(callback.message.chat.id, f'1. Самозанятые грузчики имеют самый большой приоритет при назначении на заявку.\n2. Получают выплаты с минимальной задержкой.\n3. У вас будет официальный доход, налоги мы берём на себя.\n\n✅ Официально зарегистрирован как самозанятый🤝?', reply_markup=markup)
+
+@bot.callback_query_handler(func=lambda callback: callback.data == '✅Да, официально зареган')
+@bot.callback_query_handler(func=lambda callback: callback.data == '☑️ Нет, хочу зарегистрироваться')
+@bot.callback_query_handler(func=lambda callback: callback.data == '➡️ Нет, пропустить')
+def callback_individual(callback): 
+    global editButtonText1
+    global editButtonText2
+    global editButtonText3
+    
+
+    editButtonText1 = 'Сбербанк'
+    editButtonText2 = 'Тинькофф'
+    editButtonText3 = 'Другой банк'
+
+    if callback.data == '☑️ Нет, хочу зарегистрироваться':
+        markup = types.InlineKeyboardMarkup()
+        btn1 = types.InlineKeyboardButton(editButtonText1, callback_data=editButtonText1, one_time_keyboard=True)
+        btn2 = types.InlineKeyboardButton(editButtonText2, callback_data=editButtonText2, one_time_keyboard=True)
+        btn3 = types.InlineKeyboardButton(editButtonText3, callback_data=editButtonText3, one_time_keyboard=True)        
+
+        markup.row(btn1, btn2, btn3)
+
+        bot.send_message(callback.message.chat.id, f'🏦 Каким банком пользуешься?', reply_markup=markup)
+
+    elif callback.data == '➡️ Нет, пропустить':
+        bot.edit_message_text(f'1. Самозанятые грузчики имеют самый большой приоритет при назначении на заявку.\n2. Получают выплаты с минимальной задержкой.\n3. У вас будет официальный доход, налоги мы берём на себя.\n\n✅ Официально зарегистрирован как самозанятый🤝?', callback.message.chat.id, callback.message.message_id)
+    elif callback.data == '✅Да, официально зареган':
+        input_my_nalog_accaunt(callback.message)
+
+
+def input_my_nalog_accaunt(message):
+    markup = types.InlineKeyboardMarkup()
+    btn2 = types.InlineKeyboardButton('➡️ Пропустить', callback_data='➡️ Пропустить2', one_time_keyboard=True)
+    markup.row(btn2)  
+    bot.send_message(message.chat.id, 'Введите Ваш номер счёта (20 цифр, не номер карты, смотреть в реквизитах)', parse_mode='html', reply_markup=markup)
+    bot.register_next_step_handler(message, my_nalog_accaunt_check)   
+
+def my_nalog_accaunt_check(message):
+    global nalogacc
+    if message.text is None:
+        bot.send_message(message.from_user.id, textOnly)
+        input_my_nalog_accaunt(message) 
+    else:
+        if len(message.text.strip()) > maxSymbol:
+            bot.send_message(message.chat.id, lastnameError)
+            message.text.strip(None)
+            input_my_nalog_accaunt(message) 
+        else:
+            nalogacc = message.text.strip()
+            print(nalogacc)
+
+
+@bot.callback_query_handler(func=lambda callback: callback.data == '➡️ Пропустить2')
+def callback_bank(callback):
+    if callback.data == '➡️ Пропустить2': 
+        bot.edit_message_text(f'Введите Ваш номер счёта (20 цифр, не номер карты, смотреть в реквизитах)', callback.message.chat.id, callback.message.message_id)
+        data(callback.message)
+
+
+@bot.callback_query_handler(func=lambda callback: callback.data == editButtonText1)
+@bot.callback_query_handler(func=lambda callback: callback.data == editButtonText2)
+@bot.callback_query_handler(func=lambda callback: callback.data == editButtonText3)
+def callback_bank(callback): 
+    
+    global editButtonText1
+    global editButtonText2
+    global editButtonText3
+    if callback.data == editButtonText1:
+        editButtonText1 = '✅ Сбербанк'
+        editButtonText2 = 'Тинькофф'
+        editButtonText3 = 'Другой банк'
+        markup = types.InlineKeyboardMarkup()
+        btn1 = types.InlineKeyboardButton(editButtonText1, callback_data=editButtonText1, one_time_keyboard=True)
+        btn2 = types.InlineKeyboardButton(editButtonText2, callback_data=editButtonText2, one_time_keyboard=True)
+        btn3 = types.InlineKeyboardButton(editButtonText3, callback_data=editButtonText3, one_time_keyboard=True)  
+        btn4 = types.InlineKeyboardButton('➡️ Продолжить', callback_data='➡️ Продолжить', one_time_keyboard=True)        
+
+        markup.row(btn1, btn2, btn3)
+        markup.row(btn4)
+        bot.edit_message_text(f'В приложении СберБанк Онлайн\n1. Откройте СберБанк Онлайн на телефоне\n2. Откройте «Настройки» или «Каталог», затем найдите раздел «Сервисы и услуги»\n3. Нажмите на пункт «Своё дело», далее «Подключить сервис»\n4. Выберите Дебетовую карту и введите данные (Номер телефона, Регион деятельности, Вид деятельности «ООО»\n5. Далее «Условия подключения» поставьте галочку и нажмите продолжить\n6. Затем дождитесь СМС о подключении сервиса «Своё дело» от СберБанка, затем СМС от налоговой.\n\nДля более подробной инструкции, переходи по ссылке https://www.sberbank.ru/ru/svoedelo#freeservices\n\nПрошел процедуру регистрации? Жми кнопку "Продолжить"', callback.message.chat.id, callback.message.message_id, reply_markup=markup)   
+    elif callback.data == editButtonText2:
+        editButtonText2 = '✅Тинькофф'        
+        editButtonText1 = 'Сбербанк'
+        editButtonText3 = 'Другой банк'
+        markup = types.InlineKeyboardMarkup()
+        btn1 = types.InlineKeyboardButton(editButtonText1, callback_data=editButtonText1, one_time_keyboard=True)
+        btn2 = types.InlineKeyboardButton(editButtonText2, callback_data=editButtonText2, one_time_keyboard=True)
+        btn3 = types.InlineKeyboardButton(editButtonText3, callback_data=editButtonText3, one_time_keyboard=True)        
+        btn4 = types.InlineKeyboardButton('➡️ Продолжить', callback_data='➡️ Продолжить', one_time_keyboard=True)     
+
+        markup.row(btn1, btn2, btn3)
+        markup.row(btn4)
+        bot.edit_message_text(f'В приложении Тинькофф Онлайн\n1. Откройте СберБанк Онлайн на телефоне\n2. Откройте «Настройки» или «Каталог», затем найдите раздел «Сервисы и услуги»\n3. Нажмите на пункт «Своё дело», далее «Подключить сервис»\n4. Выберите Дебетовую карту и введите данные (Номер телефона, Регион деятельности, Вид деятельности «ООО»\n5. Далее «Условия подключения» поставьте галочку и нажмите продолжить\n6. Затем дождитесь СМС о подключении сервиса «Своё дело» от СберБанка, затем СМС от налоговой.\n\nДля более подробной инструкции, переходи по ссылке https://www.sberbank.ru/ru/svoedelo#freeservices\n\nПрошел процедуру регистрации? Жми кнопку "Продолжить"', callback.message.chat.id, callback.message.message_id, reply_markup=markup)
+    elif callback.data == editButtonText3:
+        editButtonText3 = '✅Другой банк'
+        editButtonText1 = 'Сбербанк'
+        editButtonText2 = 'Тинькофф'
+        markup = types.InlineKeyboardMarkup()
+        btn1 = types.InlineKeyboardButton(editButtonText1, callback_data=editButtonText1, one_time_keyboard=True)
+        btn2 = types.InlineKeyboardButton(editButtonText2, callback_data=editButtonText2, one_time_keyboard=True)
+        btn3 = types.InlineKeyboardButton(editButtonText3, callback_data=editButtonText3, one_time_keyboard=True) 
+        btn4 = types.InlineKeyboardButton('➡️ Продолжить', callback_data='➡️ Продолжить', one_time_keyboard=True)            
+
+        markup.row(btn1, btn2, btn3)
+        markup.row(btn4)
+        bot.edit_message_text(f'В приложении Другой банк Онлайн\n1. Откройте СберБанк Онлайн на телефоне\n2. Откройте «Настройки» или «Каталог», затем найдите раздел «Сервисы и услуги»\n3. Нажмите на пункт «Своё дело», далее «Подключить сервис»\n4. Выберите Дебетовую карту и введите данные (Номер телефона, Регион деятельности, Вид деятельности «ООО»\n5. Далее «Условия подключения» поставьте галочку и нажмите продолжить\n6. Затем дождитесь СМС о подключении сервиса «Своё дело» от СберБанка, затем СМС от налоговой.\n\nДля более подробной инструкции, переходи по ссылке https://www.sberbank.ru/ru/svoedelo#freeservices\n\nПрошел процедуру регистрации? Жми кнопку "Продолжить"', callback.message.chat.id, callback.message.message_id, reply_markup=markup)
+   
+
+
+@bot.callback_query_handler(func=lambda callback: callback.data == '➡️ Продолжить')
+def callback_edit_data_person(callback): 
+    if callback.data == '➡️ Продолжить':
+        bot.send_message(callback.message.chat.id, f'Сначала необходимо подтвердить паспортные данные!', parse_mode='html')
+
+        markup = types.InlineKeyboardMarkup()
+        btn1 = types.InlineKeyboardButton('🖌Редактировать ФИО', callback_data='🖌Редактировать ФИО', one_time_keyboard=True)
+        btn2 = types.InlineKeyboardButton('🖌Редактировать дату рождения',callback_data='🖌Редактировать ДР', one_time_keyboard=True)
+        btn3 = types.InlineKeyboardButton('🖌Редактировать паспорт', callback_data='🖌Редактировать ПС', one_time_keyboard=True)        
+        btn4 = types.InlineKeyboardButton('✅ Подтвердить(Осталось попыток:2)', callback_data='✅ Подтвердить', one_time_keyboard=True)
+        btn5 = types.InlineKeyboardButton('➡️ Пропустить, остаться с низким приоритетом', callback_data='➡️ Пропустить', one_time_keyboard=True)
+
+        markup.row(btn1)
+        markup.row(btn2)
+        markup.row(btn3)
+        markup.row(btn4)
+        markup.row(btn5)
+        bot.send_message(callback.message.chat.id, f'ФИО: <u>{lastname} {firstname} {middlename}</u>\nДата рождения: {dataOfBirth}\nСерия и номер паспорта: {passport}', parse_mode='html', reply_markup=markup)
+
+
+@bot.callback_query_handler(func=lambda callback: callback.data == '🖌Редактировать ФИО')
+@bot.callback_query_handler(func=lambda callback: callback.data == '🖌Редактировать ДР')
+@bot.callback_query_handler(func=lambda callback: callback.data == '🖌Редактировать ПС')
+@bot.callback_query_handler(func=lambda callback: callback.data == '✅ Подтвердить')
+@bot.callback_query_handler(func=lambda callback: callback.data == '➡️ Пропустить')
+def callback_edit_person_data_alone(callback): 
+    if callback.data == '🖌Редактировать ФИО':
+        input_lastname2(callback.message)
+    elif callback.data == '🖌Редактировать ДР':
+        user_birthday_check2(callback.message)
+    elif callback.data == '🖌Редактировать ПС':
+        input_passport(callback.message)
+    elif callback.data == '✅ Подтвердить':
+        bot.answer_callback_query(callback_query_id=callback.id, text='Аккаунт подтвержден')        
+        bot.edit_message_text(f'ФИО: <u>{lastname} {firstname} {middlename}</u>\nДата рождения: {dataOfBirth}\nСерия и номер паспорта: {passport}', callback.message.chat.id, callback.message.message_id)
+
+    elif callback.data == '➡️ Пропустить':
+        bot.edit_message_text(f'ФИО: <u>{lastname} {firstname} {middlename}</u>\nДата рождения: {dataOfBirth}\nСерия и номер паспорта: {passport}', callback.message.chat.id, callback.message.message_id)
+
+
+def input_lastname2(message):
+    markup = types.InlineKeyboardMarkup()
+    btn2 = types.InlineKeyboardButton('❌ Отменить подтверждение', callback_data='❌ Отменить подтверждение', one_time_keyboard=True)
+    markup.row(btn2)  
+    bot.send_message(message.chat.id, 'Для подтверждения - отправь твои настоящие данные. Они не будут переданы третьим лицам.\n🖌Введи ТОЛЬКО фамилию как в паспорте:', parse_mode='html', reply_markup=markup)
+    bot.register_next_step_handler(message, lastneme_check2)   
+
+def lastneme_check2(message):
+    global lastname
+    if message.text is None:
+        bot.send_message(message.from_user.id, textOnly)
+        input_lastname2(message) 
+    else:
+        if len(message.text.strip()) > maxSymbol:
+            bot.send_message(message.chat.id, lastnameError)
+            message.text.strip(None)
+            input_lastname2(message) 
+        else:
+            lastname = message.text.strip()
+            print(lastname)
+            input_firstname2(message)
+
+
+def input_firstname2(message):
+    markup = types.InlineKeyboardMarkup()
+    btn2 = types.InlineKeyboardButton('❌ Отменить подтверждение', callback_data='❌ Отменить подтверждение', one_time_keyboard=True)
+    markup.row(btn2)  
+    bot.send_message(message.chat.id, '🖌Введи ТОЛЬКО имя как в паспорте:', parse_mode='html', reply_markup=markup)
+    bot.register_next_step_handler(message, firstname_check2)
+
+def firstname_check2(message):       
+    global firstname
+    if message.text is None:
+        bot.send_message(message.from_user.id, textOnly)
+        input_firstname2(message)
+    else:
+        if len(message.text.strip()) > maxSymbol:
+            bot.send_message(message.chat.id, firstnameError)
+            message.text.strip(None)
+            input_firstname2(message)        
+        else:                  
+            firstname = message.text.strip()    
+            print(firstname_check)
+            input_middlename2(message)
+        
+def input_middlename2(message):
+    markup = types.InlineKeyboardMarkup()
+    btn2 = types.InlineKeyboardButton('❌ Отменить подтверждение', callback_data='❌ Отменить подтверждение', one_time_keyboard=True)
+    markup.row(btn2)  
+    bot.send_message(message.chat.id, '🖌Введи ТОЛЬКО отчество как в паспорте:', parse_mode='html', reply_markup=markup)
+    bot.register_next_step_handler(message, middlename_check2)
+
+def middlename_check2(message):      
+    global middlename
+    if message.text is None:
+        bot.send_message(message.from_user.id, textOnly)
+        input_middlename2(message)
+    else:
+        if len(message.text.strip()) > maxSymbol:
+            bot.send_message(message.chat.id, middlenameError)
+            message.text.strip(None)
+            input_middlename2(message) 
+        else:     
+            middlename = message.text.strip()
+            print(middlename_check)
+
+
+
+
 
 @bot.callback_query_handler(func=lambda callback: callback.data == '❌ Отменить подтверждение')
-def callback_message_citizen(callback): 
+def callback_delete_previos_message(callback): 
     if callback.data == '❌ Отменить подтверждение':
         bot.delete_message(callback.message.chat.id, callback.message.message_id)
         data(callback.message)
@@ -323,6 +629,7 @@ def lastneme_check(message):
             lastname = message.text.strip()
             print(lastname)
             input_firstname(message)
+
 
 def input_firstname(message):
     markup = types.InlineKeyboardMarkup()
@@ -374,7 +681,6 @@ def input_passport(message):
     btn2 = types.InlineKeyboardButton('❌ Отменить подтверждение', callback_data='❌ Отменить подтверждение', one_time_keyboard=True)
     markup.row(btn2)  
     bot.send_message(message.chat.id, 'ℹ️ Пользователи, полностью заполнившие данные, имеют приоритет при получении заявок.\n\nВведите Ваши серию и номер паспорта в формате XXXX YYYYYY, где XXXX - серия, YYYYYY - номер.', parse_mode='html', reply_markup=markup)
-    # bot.register_next_step_handler(message, passport_check)
 
 @bot.message_handler(func=lambda message: bool(re.match(r'^\d{4} \d{6}$', message.text))) 
 def passport_check(message):      
@@ -390,20 +696,25 @@ def passport_check(message):
 
 
 def readyPassportInfo(message):
-    bot.send_message(message.chat.id, f'Введите верные данные паспорта (фио/дата рождения/серия+номер)\n\nФИО:{lastname} {firstname} {middlename}\n\nДата рождения: {dataOfBirth}\n\nСерия и номер паспорта: {passport}', parse_mode='html')
+    markup = types.InlineKeyboardMarkup()
+    btn1 = types.InlineKeyboardButton('🖌Редактировать ФИО', callback_data='🖌Редактировать ФИО', one_time_keyboard=True)
+    btn2 = types.InlineKeyboardButton('🖌Редактировать дату рождения',callback_data='🖌Редактировать ДР', one_time_keyboard=True)
+    btn3 = types.InlineKeyboardButton('🖌Редактировать паспорт', callback_data='🖌Редактировать ПС', one_time_keyboard=True)        
+    btn4 = types.InlineKeyboardButton('✅ Подтвердить(Осталось попыток:2)', callback_data='✅ Подтвердить', one_time_keyboard=True)
+    btn5 = types.InlineKeyboardButton('➡️ Пропустить, остаться с низким приоритетом', callback_data='➡️ Пропустить', one_time_keyboard=True)
 
-
-
-
-
-
-
+    markup.row(btn1)
+    markup.row(btn2)
+    markup.row(btn3)
+    markup.row(btn4)
+    markup.row(btn5)
+    bot.send_message(message.chat.id, f'Введите верные данные паспорта (фио/дата рождения/серия+номер)\n\nФИО: {lastname} {firstname} {middlename}\n\nДата рождения: {dataOfBirth}\n\nСерия и номер паспорта: {passport}', parse_mode='html', reply_markup=markup)
 
 
 
 @bot.callback_query_handler(func=lambda callback: callback.data == '🖌Редактировать город')
 @bot.callback_query_handler(func=lambda callback: callback.data == '✅Подтвердить') 
-def callback_message_citizen(callback): 
+def callback_rename_city(callback): 
     global cityTrue
   
     if callback.data == '🖌Редактировать город':
@@ -415,7 +726,7 @@ def callback_message_citizen(callback):
         markup.row(btn3)  
         bot.edit_message_text(usercitizenRF, callback.message.chat.id, callback.message.message_id, reply_markup=markup)
 
-    else:
+    elif callback.data == '✅Подтвердить':
         cityTrue = True
         bot.edit_message_text('Данные успешно обновлены!', callback.message.chat.id, callback.message.message_id)
         data(callback.message)
@@ -423,7 +734,7 @@ def callback_message_citizen(callback):
 
 @bot.callback_query_handler(func=lambda callback: callback.data == f'❌Удалить "{city}"')
 @bot.callback_query_handler(func=lambda callback: callback.data == '✅Продолжить') 
-def callback_message_citizen(callback):   
+def callback_delete_city(callback):   
     if callback.data == f'❌Удалить "{city}"':
         markup = types.InlineKeyboardMarkup()
         btn3 = types.InlineKeyboardButton('✅Добавить город', callback_data='✅Добавить город', one_time_keyboard=True) 
@@ -434,7 +745,7 @@ def callback_message_citizen(callback):
         bot.edit_message_text(f'Выбрано: 🟢{city}', callback.message.chat.id, callback.message.message_id)
 
 @bot.callback_query_handler(func=lambda callback: callback.data == '✅Добавить город') 
-def callback_message_citizen(callback):   
+def callback_add_city(callback):   
     if callback.data == '✅Добавить город':
         locationCityCitizen(callback.message)        
 
