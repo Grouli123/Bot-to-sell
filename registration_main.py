@@ -71,6 +71,12 @@ user_id = None
 
 registered = False
 
+arzCity = 'ArJobBot'
+ekaCity = 'EKA_job_bot'
+sanCity = 'SAN_job_bot'
+
+chatcity = None
+
 @bot.message_handler(commands=['start'])
 def registration(message):
     global user_id
@@ -91,7 +97,7 @@ def registration(message):
         bot.register_next_step_handler(message, geolocation)   
     else:
         markup = types.InlineKeyboardMarkup()
-        markup.add(types.InlineKeyboardButton(f'{buttonResultName} {locationcity}', callback_data=nameOfBase, url='https://t.me/ArJobBot'))
+        markup.add(types.InlineKeyboardButton(f'{buttonResultName} {locationcity}', callback_data=nameOfBase, url=f'https://t.me/{chatcity}'))
         
         bot.send_message(message.chat.id, alreadyRegistered, reply_markup=markup)
 
@@ -249,7 +255,7 @@ def callback_message_citizen(callback):
         bot.edit_message_text(userCitizenRuText, callback.message.chat.id, callback.message.message_id)
     registered = True
     bot.send_message(callback.message.chat.id, f'📞 Телефон: {phone}\n👤 ФИО: {lastname} {firstname} {middlename}\n📅 Дата рождения: {userbirthday}\n🇷🇺 Гражданство РФ: {usercitizenRF}\n🏙 Город(а): {locationcity}')
-    import_into_database(callback.message)
+    city_check_for_chat(callback.message)
 
 @bot.message_handler(content_types=['text'])
 def check_callback_message_citizen(message):          
@@ -260,13 +266,28 @@ def check_callback_message_citizen(message):
             citizenRU(message)         
         elif state == 'citizenRU':
             bot.send_message(message.chat.id, registrationSucsess, parse_mode='html')
-            import_into_database(message)
+            city_check_for_chat(message)
         else:
             bot.edit_message_text(userCitizenRuText, message.chat.id, message.message_id)
+
+def city_check_for_chat(message):
+    global chatcity
+    if locationcity == 'Арзамас':
+        chatcity = arzCity        
+        import_into_database(message)
+    elif locationcity == 'Екатеринбург':
+        chatcity = ekaCity
+        import_into_database(message)
+    elif locationcity == 'Санкт-Петербург':
+        chatcity = sanCity
+        import_into_database(message)
+    else:
+        bot.send_message(message.chat.id, 'К сожалению мы не работаем по вашему городу')
 
 def import_into_database(message):
     global usercitizenRF   
     global state  
+    
     conn = sqlite3.connect('peoplebase.sql')
     cur = conn.cursor()
     cur.execute(insertIntoBase % (phone, locationcity, lastname, firstname, middlename, userbirthday, usercitizenRF, user_id)) 
@@ -275,9 +296,9 @@ def import_into_database(message):
     cur.close()
     conn.close()
     
-
+    print (chatcity)
     markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton(f'{buttonResultName} {locationcity}', callback_data=nameOfBase, url='https://t.me/ArJobBot'))
+    markup.add(types.InlineKeyboardButton(f'{buttonResultName} {locationcity}', callback_data=nameOfBase, url=f'https://t.me/{chatcity}'))
        
     bot.send_message(message.chat.id, alreadyRegistered, reply_markup=markup)
     
