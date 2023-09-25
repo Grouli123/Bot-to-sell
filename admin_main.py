@@ -12,11 +12,24 @@ import get_orders_config.get_orders_API_key as API_key_Test
 
 import get_orders_config.get_orders_config_message as config_message_bot_order
 
+
+import citys.city_list as citys
+
+
+
 botApiKey = API_key_one.botAPI
-botApiKeyTwo = API_key_Test.botAPI
+
+arzamasBot = API_key_Test.botAPIArz
+ekaterinburgBot = API_key_Test.botAPIEka
+sankt_peterburgBot = API_key_Test.botAPISan
+
+
+bot_to_send = None
 
 bot1 = telebot.TeleBot(botApiKey)
-bot2 = telebot.TeleBot(botApiKeyTwo)
+bot2 = telebot.TeleBot(arzamasBot)
+bot3 = telebot.TeleBot(ekaterinburgBot)
+bot4 = telebot.TeleBot(sankt_peterburgBot)
 
 base1 = sqlBase_one.createDatabase
 insertIntoBase1 = sqlBase_one.insertIntoDatabase
@@ -91,6 +104,12 @@ humanCount = None
 needText = None
 
 
+arzCity = citys.arzamas
+ekaCity = citys.ekaterenburg
+sanCity = citys.sankt_peterburg
+
+chatcity = None
+
 
 login = 'admin'
 password = 'admin123'
@@ -129,9 +148,6 @@ def admin_check(message):
                 bot1.send_message(message.from_user.id, 'Логин не найден')
                 input_admin(message)
 
-
-
-
 def input_password(message):
     bot1.send_message(message.chat.id, 'Введите пароль', parse_mode='html')
     bot1.register_next_step_handler(message, password_check)   
@@ -153,7 +169,30 @@ def password_check(message):
                 input_password(message)
 
 
+# def city_check_for_chat(message):
+#     global chatcity
+    
+#     global arzamasBot 
+#     global ekaterinburgBot
+#     global sankt_peterburgBot
+    
+#     global bot_to_send
 
+#     if cityname == 'Арзамас':
+#         chatcity = arzCity    
+#         bot_to_send = arzamasBot
+#         import_into_database(message)
+#     elif cityname == 'Екатеринбург':
+#         chatcity = ekaCity
+#         bot_to_send = ekaterinburgBot
+#         import_into_database(message)
+#     elif cityname == 'Санкт-Петербург':
+#         chatcity = sanCity
+#         bot_to_send = sankt_peterburgBot
+#         import_into_database(message)
+#     else:
+#         bot1.send_message(message.chat.id, 'К сожалению, мы не работаем по вашему городу')
+#         city_of_obj(message)
 
 
 def city_of_obj(message):
@@ -179,6 +218,9 @@ def city_of_obj(message):
 
 def city_of_obj_check(message):
     global cityname
+
+    
+
     if message.text is None:
         bot1.send_message(message.from_user.id, textOnly)
         city_of_obj(message) 
@@ -188,8 +230,7 @@ def city_of_obj_check(message):
             message.text.strip(None)
             city_of_obj(message) 
         else:
-            cityname = message.text.strip()
-            print(cityname)            
+            cityname = message.text.strip()            
             people_need_count(message)
 
 def people_need_count(message):
@@ -325,6 +366,10 @@ def created_order(message):
     bot1.send_message(message.chat.id, f'✅\n<b>·{cityname}: </b>{needText} {countPeople} {humanCount}\n<b>·Адрес:</b>👉 {adress}\n<b>·Что делать:</b> {whattodo}\n<b>·Начало работ:</b> {timetostart}\n<b>·Вам на руки:</b> <u>{salary}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>', parse_mode='html', reply_markup=markup)  
     # start(message)
 
+
+
+
+
 @bot1.callback_query_handler(func=lambda callback: callback.data == orderSendTextCallbackData)
 @bot1.callback_query_handler(func=lambda callback: callback.data == orderDeleteCallbackData) 
 def callback_message_created_order(callback):  
@@ -347,7 +392,6 @@ def callback_message_created_order(callback):
         for user_id_test in user_ids:
 
             try:
-                # bot2.send_message(user_id[0], "Привет от первого бота!")
                 markup2 = types.InlineKeyboardMarkup()
                 btn12 = types.InlineKeyboardButton('Еду 1', callback_data=citizenRuButtonYesTextCallbackDataOne, one_time_keyboard=True)
                 btn22 = types.InlineKeyboardButton('Едем в 2', callback_data=citizenRuButtonNoTextCallbackDataOne, one_time_keyboard=True)
@@ -359,7 +403,12 @@ def callback_message_created_order(callback):
                 markup2.row(btn32)  
                 markup2.row(btn42)  
                 markup2.row(btn52) 
-                bot2.send_message(user_id_test[0], f'{application}', reply_markup=markup2, parse_mode='html') # Замените 'CHAT_ID_BOT2' на ID чата второго бота
+                if cityname == 'Арзамас':
+                    bot2.send_message(user_id_test[0], f'{application}', reply_markup=markup2, parse_mode='html') # Замените 'CHAT_ID_BOT2' на ID чата второго бота
+                elif cityname == 'Екатеринбург':                    
+                    bot3.send_message(user_id_test[0], f'{application}', reply_markup=markup2, parse_mode='html') # Замените 'CHAT_ID_BOT2' на ID чата второго бота
+                elif cityname == 'Санкт-Петербург':                    
+                    bot4.send_message(user_id_test[0], f'{application}', reply_markup=markup2, parse_mode='html') # Замените 'CHAT_ID_BOT2' на ID чата второго бота
 
             except Exception as e:
                 print(f"Ошибка при отправке сообщения пользователю {user_id_test[0]}: {str(e)}")
@@ -370,6 +419,11 @@ def callback_message_created_order(callback):
         bot1.delete_message(callback.message.chat.id, callback.message.message_id)
     
     import_into_database(callback.message)
+
+
+
+
+
 
 @bot1.message_handler(content_types=['text'])
 def check_callback_message_ready_order(message):          
@@ -395,7 +449,7 @@ def import_into_database(message):
     conn.close()    
 
     markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton(f'{buttonResultName} {cityname}', url='https://t.me/ArJobBot'))
+    markup.add(types.InlineKeyboardButton(f'{buttonResultName} {cityname}', url=f'https://t.me/{chatcity}'))
        
     bot1.send_message(message.chat.id, alreadyRegistered, reply_markup=markup)
     

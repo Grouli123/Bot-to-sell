@@ -1,1 +1,3 @@
-botAPI = '6672528914:AAFlubj31aZHfVfQGpouapIIsb35Vikfpq4'
+botAPIArz = '6672528914:AAFlubj31aZHfVfQGpouapIIsb35Vikfpq4'
+botAPIEka = '6532295591:AAFWxPjoszrcW9jFHv4bFg6viYkPomD39z0'
+botAPISan = '6460559746:AAGgVKkjuNDjbe3SPjbxyaKQMX847D6FOnQ' 

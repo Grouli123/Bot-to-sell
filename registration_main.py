@@ -8,6 +8,8 @@ import registration_people_config.registration_API_key as API_key
 import registration_people_config.registration_sqlBase as sqlBase
 import registration_people_config.registration_config_message as config_message
 
+import citys.city_list as citys
+
 botApiKey = API_key.botAPI
 
 bot = telebot.TeleBot(botApiKey)
@@ -71,9 +73,9 @@ user_id = None
 
 registered = False
 
-arzCity = 'ArJobBot'
-ekaCity = 'EKA_job_bot'
-sanCity = 'SAN_job_bot'
+arzCity = citys.arzamas
+ekaCity = citys.ekaterenburg
+sanCity = citys.sankt_peterburg
 
 chatcity = None
 
@@ -282,7 +284,7 @@ def city_check_for_chat(message):
         chatcity = sanCity
         import_into_database(message)
     else:
-        bot.send_message(message.chat.id, 'К сожалению мы не работаем по вашему городу')
+        bot.send_message(message.chat.id, 'К сожалению, мы не работаем по вашему городу')
 
 def import_into_database(message):
     global usercitizenRF   
