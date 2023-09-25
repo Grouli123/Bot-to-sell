@@ -99,13 +99,21 @@ def geolocation(message):
     global phone
     try:
         phone = message.contact.phone_number
-        global geolocator
-        keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-        button_geo = types.KeyboardButton(text=geolocationButtonText, request_location=True)
-        keyboard.add(button_geo)
-        bot.send_message(message.chat.id, geolocationMessageText, reply_markup=keyboard)
-        bot.register_next_step_handler(message, location)
-        geolocator = Nominatim(user_agent = geolocationNameApp)    
+        if phone.startswith('+7') or phone.startswith('7'):
+            global geolocator
+            keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+            button_geo = types.KeyboardButton(text=geolocationButtonText, request_location=True)
+            keyboard.add(button_geo)
+            bot.send_message(message.chat.id, geolocationMessageText, reply_markup=keyboard)
+            bot.register_next_step_handler(message, location)
+            geolocator = Nominatim(user_agent = geolocationNameApp)    
+        else:
+            keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+            button_phone = types.KeyboardButton(text=phoneButtonText, request_contact=True)
+            keyboard.add(button_phone)
+            bot.send_message(message.chat.id, f"Недопустимый номер {phone}.\n\nПривет!\n\nДавай пройдём короткую регистрацию🤝Для начала - поделись номером телефона!👇👇👇👇👇", reply_markup=keyboard, parse_mode='html')
+            bot.register_next_step_handler(message, geolocation)   
+        
     except Exception:        
         bot.send_message(message.chat.id, phoneError, parse_mode='html')
         bot.register_next_step_handler(message, geolocation)   
