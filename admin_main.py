@@ -92,11 +92,12 @@ needText = None
 
 
 
+login = 'admin'
+password = 'admin123'
 
 
 
 
-@bot1.message_handler(commands=['start'])
 def start(message):
     markup = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
     btn1 = types.KeyboardButton(makeOrderButton)
@@ -106,6 +107,54 @@ def start(message):
     markup.row(btn2, btn3)    
     bot1.send_message(message.chat.id, startBotMessage,  reply_markup=markup)
     bot1.register_next_step_handler(message, city_of_obj)
+
+@bot1.message_handler(commands=['start'])
+def input_admin(message):
+    bot1.send_message(message.chat.id, 'Введите логин', parse_mode='html')
+    bot1.register_next_step_handler(message, admin_check)   
+
+def admin_check(message):
+    if message.text is None:
+        bot1.send_message(message.from_user.id, textOnly)
+        input_admin(message) 
+    else:
+        if len(message.text.strip()) > maxSymbol1:
+            bot1.send_message(message.chat.id, adressError)
+            message.text.strip(None)
+            input_admin(message) 
+        else:
+            if login == message.text.strip():
+                input_password(message)
+            else:
+                bot1.send_message(message.from_user.id, 'Логин не найден')
+                input_admin(message)
+
+
+
+
+def input_password(message):
+    bot1.send_message(message.chat.id, 'Введите пароль', parse_mode='html')
+    bot1.register_next_step_handler(message, password_check)   
+
+def password_check(message):
+    if message.text is None:
+        bot1.send_message(message.from_user.id, textOnly)
+        input_password(message) 
+    else:
+        if len(message.text.strip()) > maxSymbol1:
+            bot1.send_message(message.chat.id, adressError)
+            message.text.strip(None)
+            input_password(message) 
+        else:
+            if password == message.text.strip():
+                start(message)
+            else:
+                bot1.send_message(message.from_user.id, 'Пароль не подходит')
+                input_password(message)
+
+
+
+
 
 def city_of_obj(message):
     if message.text is None:

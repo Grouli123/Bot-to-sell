@@ -525,10 +525,10 @@ def callback_edit_person_data_alone(callback):
         input_passport(callback.message)
     elif callback.data == '✅ Подтвердить':
         bot.answer_callback_query(callback_query_id=callback.id, text='Аккаунт подтвержден')        
-        bot.edit_message_text(f'ФИО: <u>{lastname} {firstname} {middlename}</u>\nДата рождения: {dataOfBirth}\nСерия и номер паспорта: {passport}', callback.message.chat.id, callback.message.message_id)
+        bot.edit_message_text(f'ФИО: <u>{lastname} {firstname} {middlename}</u>\nДата рождения: {dataOfBirth}\nСерия и номер паспорта: {passport}', callback.message.chat.id, callback.message.message_id, parse_mode='html')
 
     elif callback.data == '➡️ Пропустить':
-        bot.edit_message_text(f'ФИО: <u>{lastname} {firstname} {middlename}</u>\nДата рождения: {dataOfBirth}\nСерия и номер паспорта: {passport}', callback.message.chat.id, callback.message.message_id)
+        bot.edit_message_text(f'ФИО: <u>{lastname} {firstname} {middlename}</u>\nДата рождения: {dataOfBirth}\nСерия и номер паспорта: {passport}', callback.message.chat.id, callback.message.message_id, parse_mode='html')
 
 
 def input_lastname2(message):
