@@ -1,1 +1,0 @@
-python admin_main.py

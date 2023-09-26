@@ -67,6 +67,10 @@ userbirthday = None
 usercitizenRF = None
 locationcity = None
 
+samozanatost = 'Нет'
+agreeaccaunt = 'Нет'
+passport = '0000000000'
+
 state = 'initial'
 
 user_id = None
@@ -292,7 +296,7 @@ def import_into_database(message):
     
     conn = sqlite3.connect('peoplebase.sql')
     cur = conn.cursor()
-    cur.execute(insertIntoBase % (phone, locationcity, lastname, firstname, middlename, userbirthday, usercitizenRF, user_id)) 
+    cur.execute(insertIntoBase % (phone, locationcity, lastname, firstname, middlename, userbirthday, usercitizenRF, user_id, samozanatost, agreeaccaunt, passport)) 
    
     conn.commit()
     cur.close()

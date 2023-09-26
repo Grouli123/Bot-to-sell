@@ -374,7 +374,8 @@ def created_order(message):
 @bot1.callback_query_handler(func=lambda callback: callback.data == orderDeleteCallbackData) 
 def callback_message_created_order(callback):  
     global feedback 
-    global my_variable
+    global chatcity
+
     if callback.data == orderSendTextCallbackData:
 
         conn = sqlite3.connect('user_data.sql')
@@ -384,32 +385,86 @@ def callback_message_created_order(callback):
         user_ids = cursor.fetchall()
 
         
+
         feedback = orderSendText     
-        bot1.send_message(callback.message.chat.id, userCitizenRuText,parse_mode='html')
-        application = f'✅\n<b>·{cityname}: </b>{needText} {countPeople} {humanCount}\n<b>·Адрес:</b>👉 {adress}\n<b>·Что делать:</b> {whattodo}\n<b>·Начало работ:</b> {timetostart}\n<b>·Вам на руки:</b> <u>{salary}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
-        bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html')
+        sent_message  = bot1.send_message(callback.message.chat.id, userCitizenRuText,parse_mode='html')
         
+        sent_message_id = sent_message.message_id
+
+
+        application = f'✅\n<b>·{cityname}: </b>{needText} {countPeople} {humanCount}\n<b>·Адрес:</b>👉 {adress}\n<b>·Что делать:</b> {whattodo}\n<b>·Начало работ:</b> {timetostart}\n<b>·Вам на руки:</b> <u>{salary}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
+        
+        markup1 = types.InlineKeyboardMarkup()
+        btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='❌ Закрыть заявку', one_time_keyboard=True)
+        markup1.row(btn01)
+        bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, reply_markup=markup1, parse_mode='html')
+        print('Админка сообщение: ', sent_message_id)
+        if (int(countPeople) <= 1):
+            markup2 = types.InlineKeyboardMarkup()
+            btn12 = types.InlineKeyboardButton('Еду 1', callback_data=citizenRuButtonYesTextCallbackDataOne, one_time_keyboard=True)
+            btn52 = types.InlineKeyboardButton('❓ Задать вопрос', callback_data=citizenRuButtonNoTextCallbackDataOne, one_time_keyboard=True)
+            markup2.row(btn12)  
+            markup2.row(btn52)            
+        elif (int(countPeople) == 2):
+            markup2 = types.InlineKeyboardMarkup()
+            btn12 = types.InlineKeyboardButton('Еду 1', callback_data=citizenRuButtonYesTextCallbackDataOne, one_time_keyboard=True)
+            btn22 = types.InlineKeyboardButton('Едем в 2', callback_data=citizenRuButtonNoTextCallbackDataOne, one_time_keyboard=True)
+            btn52 = types.InlineKeyboardButton('❓ Задать вопрос', callback_data=citizenRuButtonNoTextCallbackDataOne, one_time_keyboard=True)
+            markup2.row(btn12)  
+            markup2.row(btn22)  
+            markup2.row(btn52) 
+        elif (int(countPeople) == 3):
+            markup2 = types.InlineKeyboardMarkup()
+            btn12 = types.InlineKeyboardButton('Еду 1', callback_data=citizenRuButtonYesTextCallbackDataOne, one_time_keyboard=True)
+            btn22 = types.InlineKeyboardButton('Едем в 2', callback_data=citizenRuButtonNoTextCallbackDataOne, one_time_keyboard=True)
+            btn32 = types.InlineKeyboardButton('Едем в 3', callback_data=citizenRuButtonNoTextCallbackDataOne, one_time_keyboard=True)
+            btn52 = types.InlineKeyboardButton('❓ Задать вопрос', callback_data=citizenRuButtonNoTextCallbackDataOne, one_time_keyboard=True)
+            markup2.row(btn12)  
+            markup2.row(btn22)  
+            markup2.row(btn32)  
+            markup2.row(btn52) 
+        elif (int(countPeople) >= 4):
+            markup2 = types.InlineKeyboardMarkup()
+            btn12 = types.InlineKeyboardButton('Еду 1', callback_data=citizenRuButtonYesTextCallbackDataOne, one_time_keyboard=True)
+            btn22 = types.InlineKeyboardButton('Едем в 2', callback_data=citizenRuButtonNoTextCallbackDataOne, one_time_keyboard=True)
+            btn32 = types.InlineKeyboardButton('Едем в 3', callback_data=citizenRuButtonNoTextCallbackDataOne, one_time_keyboard=True)
+            btn42 = types.InlineKeyboardButton('Едем в 4', callback_data=citizenRuButtonNoTextCallbackDataOne, one_time_keyboard=True)
+            btn52 = types.InlineKeyboardButton('❓ Задать вопрос', callback_data=citizenRuButtonNoTextCallbackDataOne, one_time_keyboard=True)
+            markup2.row(btn12)  
+            markup2.row(btn22)  
+            markup2.row(btn32)  
+            markup2.row(btn42)  
+            markup2.row(btn52) 
+
         for user_id_test in user_ids:
+            try:                
+                
+                
 
-            try:
-                markup2 = types.InlineKeyboardMarkup()
-                btn12 = types.InlineKeyboardButton('Еду 1', callback_data=citizenRuButtonYesTextCallbackDataOne, one_time_keyboard=True)
-                btn22 = types.InlineKeyboardButton('Едем в 2', callback_data=citizenRuButtonNoTextCallbackDataOne, one_time_keyboard=True)
-                btn32 = types.InlineKeyboardButton('Едем в 3', callback_data=citizenRuButtonNoTextCallbackDataOne, one_time_keyboard=True)
-                btn42 = types.InlineKeyboardButton('Едем в 4', callback_data=citizenRuButtonNoTextCallbackDataOne, one_time_keyboard=True)
-                btn52 = types.InlineKeyboardButton('❓ Задать вопрос', callback_data=citizenRuButtonNoTextCallbackDataOne, one_time_keyboard=True)
-                markup2.row(btn12)  
-                markup2.row(btn22)  
-                markup2.row(btn32)  
-                markup2.row(btn42)  
-                markup2.row(btn52) 
+
+                # conn = sqlite3.connect('user_data.sql')
+                # cursor = conn.cursor()
+                # cursor.execute("INSERT INTO users (username) VALUES ('%s')" % (user_id_test[0]))
+                # conn.commit()
+                # conn.close()
+
+
+
+
                 if cityname == 'Арзамас':
-                    bot2.send_message(user_id_test[0], f'{application}', reply_markup=markup2, parse_mode='html') # Замените 'CHAT_ID_BOT2' на ID чата второго бота
-                elif cityname == 'Екатеринбург':                    
-                    bot3.send_message(user_id_test[0], f'{application}', reply_markup=markup2, parse_mode='html') # Замените 'CHAT_ID_BOT2' на ID чата второго бота
-                elif cityname == 'Санкт-Петербург':                    
-                    bot4.send_message(user_id_test[0], f'{application}', reply_markup=markup2, parse_mode='html') # Замените 'CHAT_ID_BOT2' на ID чата второго бота
+                    test2 = bot2.send_message(user_id_test[0], f'{application}', reply_markup=markup2, parse_mode='html')
+                    sent_message_id2 = test2.message_id
 
+                    print('Бот ордера: ',sent_message_id2)
+                    chatcity = arzCity
+                elif cityname == 'Екатеринбург':                    
+                    bot3.send_message(user_id_test[0], f'{application}', reply_markup=markup2, parse_mode='html')
+                    chatcity = ekaCity
+                elif cityname == 'Санкт-Петербург':                    
+                    bot4.send_message(user_id_test[0], f'{application}', reply_markup=markup2, parse_mode='html')                    
+                    chatcity = sanCity
+
+            
             except Exception as e:
                 print(f"Ошибка при отправке сообщения пользователю {user_id_test[0]}: {str(e)}")
 
@@ -420,6 +475,51 @@ def callback_message_created_order(callback):
     
     import_into_database(callback.message)
 
+# def get_user_ids():
+#     conn = sqlite3.connect('user_data.sql')
+#     cursor = conn.cursor()
+#     cursor.execute("SELECT username FROM users")
+#     user_ids = cursor.fetchall()
+#     conn.close()
+#     return user_ids
+
+# @bot1.callback_query_handler(func=lambda callback: callback.data == '❌ Закрыть заявку')
+# def callback_message_created_order(callback):  
+#     if callback.data == '❌ Закрыть заявку':
+        # user_ids = get_user_ids()
+        # get_user_ids()
+        # application = f'❌ Заявка закрыта\n<b>·{cityname}: </b>{needText} {countPeople} {humanCount}\n<b>·Адрес:</b>👉 {adress}\n<b>·Что делать:</b> {whattodo}\n<b>·Начало работ:</b> {timetostart}\n<b>·Вам на руки:</b> <u>{salary}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
+
+        # bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html')
+        # bot2.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html')
+        # bot3.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html')
+        # bot4.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html')
+
+        
+        # for user_id_test in user_ids:
+        #     try:                
+        #         if cityname == 'Арзамас':
+        #             bot2.edit_message_text(application, user_id_test[0], callback.message.message_id, parse_mode='html')
+
+        #             # bot2.send_message(user_id_test[0], f'{application}', reply_markup=markup2, parse_mode='html')
+        #             # print(type(user_id_test))
+        #             # chatcity = arzCity
+        #         elif cityname == 'Екатеринбург':                    
+        #             # bot3.send_message(user_id_test[0], f'{application}', reply_markup=markup2, parse_mode='html')
+        #             bot3.edit_message_text(application, user_id_test[0], callback.message.message_id, parse_mode='html')
+
+        #             # chatcity = ekaCity
+        #         elif cityname == 'Санкт-Петербург':                    
+        #             # bot4.send_message(user_id_test[0], f'{application}', reply_markup=markup2, parse_mode='html') 
+        #             bot4.edit_message_text(application, user_id_test[0], callback.message.message_id, parse_mode='html')
+                   
+        #             # chatcity = sanCity
+
+            
+        #     except Exception as e:
+        #         print(f"Ошибка при отправке сообщения пользователю {user_id_test[0]}: {str(e)}")
+
+        # conn.close()
 
 
 
@@ -459,7 +559,6 @@ def import_into_database(message):
 def show_database_orders(message):
     conn = sqlite3.connect('applicationbase.sql')
     cur = conn.cursor()
-# SELECT * FROM users ORDER BY id DESC LIMIT для вывода последнего пользователя
     cur.execute('SELECT * FROM orders')
     users = cur.fetchall()
 

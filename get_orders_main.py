@@ -12,7 +12,7 @@ import get_orders_config.get_orders_sqlBase as sqlBase
 import  get_orders_config.get_orders_config_message as config_message
 
 
-botApiKey = API_key.botAPI
+botApiKey = API_key.botAPIArz
 
 bot = telebot.TeleBot(botApiKey)
 
@@ -71,7 +71,9 @@ middlename = None
 dataOfBirth = None       
 citizenRF = None
 
-passport = None
+
+
+
 
 user_id = None
 
@@ -85,7 +87,11 @@ check_user_id = None
 
 
 nalogacc = None
+agreeaccaunt = None
+passport = None
 
+
+id_nubmer_list = None
 
 
 
@@ -165,6 +171,7 @@ def data(message):
     global middlename
     global dataOfBirth       
     global citizenRF 
+    global id_nubmer_list
 
     global check_user_id
     conn = sqlite3.connect('user_data.sql')
@@ -196,6 +203,7 @@ def data(message):
     conn.close()
     
     if takeParam:
+        id_nubmer_list = takeParam[0]
         nuberPhone = takeParam[2]
         city = takeParam[3]
         lastname = takeParam[4]
@@ -432,6 +440,12 @@ def my_nalog_accaunt_check(message):
         else:
             nalogacc = message.text.strip()
             print(nalogacc)
+            conn = sqlite3.connect('peoplebase.sql')
+            cur = conn.cursor()
+            cur.execute("UPDATE users SET samozanatost = '%s' WHERE id = '%s'" % (nalogacc, id_nubmer_list))
+            conn.commit() 
+            cur.close()
+            conn.close()
 
 
 @bot.callback_query_handler(func=lambda callback: callback.data == '➡️ Пропустить2')
@@ -517,6 +531,7 @@ def callback_edit_data_person(callback):
 @bot.callback_query_handler(func=lambda callback: callback.data == '✅ Подтвердить')
 @bot.callback_query_handler(func=lambda callback: callback.data == '➡️ Пропустить')
 def callback_edit_person_data_alone(callback): 
+    global agreeaccaunt
     if callback.data == '🖌Редактировать ФИО':
         input_lastname2(callback.message)
     elif callback.data == '🖌Редактировать ДР':
@@ -524,9 +539,15 @@ def callback_edit_person_data_alone(callback):
     elif callback.data == '🖌Редактировать ПС':
         input_passport(callback.message)
     elif callback.data == '✅ Подтвердить':
+        agreeaccaunt = 'Подтвержден'
+        conn = sqlite3.connect('peoplebase.sql')
+        cur = conn.cursor()
+        cur.execute("UPDATE users SET last_name = '%s', firts_name = '%s', middle_name = '%s', birthday = '%s', agreeacc = '%s', passport = '%s' WHERE id = '%s'" % (lastname, firstname, middlename, dataOfBirth, agreeaccaunt, passport))
+        conn.commit() 
+        cur.close()
+        conn.close()
         bot.answer_callback_query(callback_query_id=callback.id, text='Аккаунт подтвержден')        
         bot.edit_message_text(f'ФИО: <u>{lastname} {firstname} {middlename}</u>\nДата рождения: {dataOfBirth}\nСерия и номер паспорта: {passport}', callback.message.chat.id, callback.message.message_id, parse_mode='html')
-
     elif callback.data == '➡️ Пропустить':
         bot.edit_message_text(f'ФИО: <u>{lastname} {firstname} {middlename}</u>\nДата рождения: {dataOfBirth}\nСерия и номер паспорта: {passport}', callback.message.chat.id, callback.message.message_id, parse_mode='html')
 
