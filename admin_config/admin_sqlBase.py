@@ -1,3 +1,3 @@
 name_of_base = 'orders'
-createDatabase = 'CREATE TABLE IF NOT EXISTS orders (id INTEGER PRIMARY KEY, DATETIME DEFAULT CURRENT_TIMESTAMP, cityOfobj varchar(50), countpeople varchar(50), adress varchar(250), whattodo varchar(250), timetostart varchar(100), salary varchar(250))'
-insertIntoDatabase = "INSERT INTO orders (cityOfobj, countpeople, adress, whattodo, timetostart, salary) VALUES ('%s', '%s', '%s', '%s', '%s', '%s')"
+createDatabase = 'CREATE TABLE IF NOT EXISTS orders (id INTEGER PRIMARY KEY, DATETIME DEFAULT CURRENT_TIMESTAMP, cityOfobj varchar(50), countpeople varchar(50), adress varchar(250), whattodo varchar(250), timetostart varchar(100), salary varchar(250), adminMessageId varchar(250), orderMessageId varchar(250), actualMess varchar(50))'
+insertIntoDatabase = "INSERT INTO orders (cityOfobj, countpeople, adress, whattodo, timetostart, salary, adminMessageId, orderMessageId, actualMess) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')"
