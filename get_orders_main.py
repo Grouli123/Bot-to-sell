@@ -104,13 +104,22 @@ editButtonText1 = 'Сбербанк'
 editButtonText2 = 'Тинькофф'
 editButtonText3 = 'Другой банк'
 
+error_reported = False  # Флаг для отслеживания, была ли ошибка уже выведена
 
 
-test = False
+check_mess_already_send = False
+
+
+user_last_message_ids = {}
+
+user_message_ids = {}
+
+user_chat_ids = {}
+
 
 @bot.message_handler(commands=['start'])
 def registration(message):
-    global test
+    global check_mess_already_send
     global user_id
     global check_user_id
     global last_sent_message
@@ -118,8 +127,13 @@ def registration(message):
     global humanCount
     global needText
     global last_message_id
+    global error_reported
+    global user_last_message_ids
+    global user_message_ids
 
+    global user_chat_ids
     
+
     conn = sqlite3.connect('user_data.sql')
     cursor = conn.cursor()
 
@@ -168,99 +182,189 @@ def registration(message):
     while True:
         conn = sqlite3.connect('applicationbase.sql')
         cur = conn.cursor()
-        cur.execute('SELECT * FROM orders ORDER BY id DESC LIMIT 1')
-        users = cur.fetchone() 
-        
-        
-        if users is not None:
-            if (int(users[3]) <= 1) or (int(users[3]) >= 5):
-                humanCount = 'человек'
-            else:
-                humanCount = 'человека'
-                
-            if int(users[3]) > 1:
-                needText = 'Нужно'
-            else:
-                needText = 'Нужен'
+        try:
+            cur.execute('SELECT * FROM orders ORDER BY id DESC LIMIT 1')
+            users = cur.fetchone() 
 
-            if (int(users[3]) <= 1):
-                markup2 = types.InlineKeyboardMarkup()
-                btn12 = types.InlineKeyboardButton('Еду 1', callback_data='Еду 1', one_time_keyboard=True)
-                btn52 = types.InlineKeyboardButton('❓ Задать вопрос', url='https://t.me/Grouli123', one_time_keyboard=True)
-                markup2.row(btn12)  
-                markup2.row(btn52)            
-            elif (int(users[3]) == 2):
-                markup2 = types.InlineKeyboardMarkup()
-                btn12 = types.InlineKeyboardButton('Еду 1', callback_data='Еду 1', one_time_keyboard=True)
-                btn22 = types.InlineKeyboardButton('Едем в 2', callback_data='Едем в 2', one_time_keyboard=True)
-                btn52 = types.InlineKeyboardButton('❓ Задать вопрос', url='https://t.me/Grouli123', one_time_keyboard=True)
-                markup2.row(btn12)  
-                markup2.row(btn22)  
-                markup2.row(btn52) 
-            elif (int(users[3]) == 3):
-                markup2 = types.InlineKeyboardMarkup()
-                btn12 = types.InlineKeyboardButton('Еду 1', callback_data='Еду 1', one_time_keyboard=True)
-                btn22 = types.InlineKeyboardButton('Едем в 2', callback_data='Едем в 2', one_time_keyboard=True)
-                btn32 = types.InlineKeyboardButton('Едем в 3', callback_data='Едем в 3', one_time_keyboard=True)
-                btn52 = types.InlineKeyboardButton('❓ Задать вопрос', url='https://t.me/Grouli123', one_time_keyboard=True)
-                markup2.row(btn12)  
-                markup2.row(btn22)  
-                markup2.row(btn32)  
-                markup2.row(btn52) 
-            elif (int(users[3]) >= 4):
-                markup2 = types.InlineKeyboardMarkup()
-                btn12 = types.InlineKeyboardButton('Еду 1', callback_data='Еду 1', one_time_keyboard=True)
-                btn22 = types.InlineKeyboardButton('Едем в 2', callback_data='Едем в 2', one_time_keyboard=True)
-                btn32 = types.InlineKeyboardButton('Едем в 3', callback_data='Едем в 3', one_time_keyboard=True)
-                btn42 = types.InlineKeyboardButton('Едем в 4', callback_data='Едем в 4', one_time_keyboard=True)
-                btn52 = types.InlineKeyboardButton('❓ Задать вопрос', url='https://t.me/Grouli123', one_time_keyboard=True)
-                markup2.row(btn12)  
-                markup2.row(btn22)  
-                markup2.row(btn32)  
-                markup2.row(btn42)  
-                markup2.row(btn52) 
-        
             
-            print(users[10])
-            order_info = f'✅\n<b>•{users[2]}: </b>{needText} {users[3]} {humanCount}\n<b>•Адрес:</b>👉 {users[4]}\n<b>•Что делать:</b> {users[5]}\n<b>•Начало работ:</b> {users[6]}\n<b>•Вам на руки:</b> <u>{users[7]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
-            if str(users[10]) == "False" and test == False:    
-                print(users[10])      
-                order_info_close = f'❌ Заявка закрыта\n<b>•{users[2]}: </b>{needText} {users[3]} {humanCount}\n<b>•Адрес:</b>👉 {users[4]}\n<b>•Что делать:</b> {users[5]}\n<b>•Начало работ:</b> {users[6]}\n<b>•Вам на руки:</b> <u>{users[7]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
-                previos_mes = users[9]
-                print(previos_mes)
 
-                bot.edit_message_text(order_info_close, message.chat.id, previos_mes, parse_mode='html')
-                # last_message_id = None
-                # last_sent_message = None
-                print('работает иф')
-                test = True
             
-            if order_info != last_sent_message:
+            if users is not None:
+                if (int(users[3]) <= 1) or (int(users[3]) >= 5):
+                    humanCount = 'человек'
+                else:
+                    humanCount = 'человека'
+                    
+                if int(users[3]) > 1:
+                    needText = 'Нужно'
+                else:
+                    needText = 'Нужен'
+
+                if (int(users[3]) <= 1):
+                    markup2 = types.InlineKeyboardMarkup()
+                    btn12 = types.InlineKeyboardButton('Еду 1', callback_data='Еду 1', one_time_keyboard=True)
+                    btn52 = types.InlineKeyboardButton('❓ Задать вопрос', url='https://t.me/Grouli123', one_time_keyboard=True)
+                    markup2.row(btn12)  
+                    markup2.row(btn52)            
+                elif (int(users[3]) == 2):
+                    markup2 = types.InlineKeyboardMarkup()
+                    btn12 = types.InlineKeyboardButton('Еду 1', callback_data='Еду 1', one_time_keyboard=True)
+                    btn22 = types.InlineKeyboardButton('Едем в 2', callback_data='Едем в 2', one_time_keyboard=True)
+                    btn52 = types.InlineKeyboardButton('❓ Задать вопрос', url='https://t.me/Grouli123', one_time_keyboard=True)
+                    markup2.row(btn12)  
+                    markup2.row(btn22)  
+                    markup2.row(btn52) 
+                elif (int(users[3]) == 3):
+                    markup2 = types.InlineKeyboardMarkup()
+                    btn12 = types.InlineKeyboardButton('Еду 1', callback_data='Еду 1', one_time_keyboard=True)
+                    btn22 = types.InlineKeyboardButton('Едем в 2', callback_data='Едем в 2', one_time_keyboard=True)
+                    btn32 = types.InlineKeyboardButton('Едем в 3', callback_data='Едем в 3', one_time_keyboard=True)
+                    btn52 = types.InlineKeyboardButton('❓ Задать вопрос', url='https://t.me/Grouli123', one_time_keyboard=True)
+                    markup2.row(btn12)  
+                    markup2.row(btn22)  
+                    markup2.row(btn32)  
+                    markup2.row(btn52) 
+                elif (int(users[3]) >= 4):
+                    markup2 = types.InlineKeyboardMarkup()
+                    btn12 = types.InlineKeyboardButton('Еду 1', callback_data='Еду 1', one_time_keyboard=True)
+                    btn22 = types.InlineKeyboardButton('Едем в 2', callback_data='Едем в 2', one_time_keyboard=True)
+                    btn32 = types.InlineKeyboardButton('Едем в 3', callback_data='Едем в 3', one_time_keyboard=True)
+                    btn42 = types.InlineKeyboardButton('Едем в 4', callback_data='Едем в 4', one_time_keyboard=True)
+                    btn52 = types.InlineKeyboardButton('❓ Задать вопрос', url='https://t.me/Grouli123', one_time_keyboard=True)
+                    markup2.row(btn12)  
+                    markup2.row(btn22)  
+                    markup2.row(btn32)  
+                    markup2.row(btn42)  
+                    markup2.row(btn52) 
+            
                 
+                # print(users[10])
+                order_info = f'✅\n<b>•{users[2]}: </b>{needText} {users[3]} {humanCount}\n<b>•Адрес:</b>👉 {users[4]}\n<b>•Что делать:</b> {users[5]}\n<b>•Начало работ:</b> {users[6]}\n<b>•Вам на руки:</b> <u>{users[7]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
+                # if str(users[10]) == "False" and check_mess_already_send == False:    
+                    # print(users[10])      
+                    # order_info_close = f'❌ Заявка закрыта\n<b>•{users[2]}: </b>{needText} {users[3]} {humanCount}\n<b>•Адрес:</b>👉 {users[4]}\n<b>•Что делать:</b> {users[5]}\n<b>•Начало работ:</b> {users[6]}\n<b>•Вам на руки:</b> <u>{users[7]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
+                    # previos_mes = users[9]
+                    # print(previos_mes)
+                                       
+
+                    
+
+                    # for user_id_mess in user_message_ids.keys():
+                    #     cursor.execute("SELECT orderMessageId FROM orders WHERE id = ('%s')" % user_id_mess)
+                    #     order_message_id_str = cursor.fetchone()[0]
+
+                    #     # Разбейте строку orderMessageId на список message_id
+                    #     message_id_list = order_message_id_str.split(',') if order_message_id_str else []
+
+                    #     # Измените сообщение для каждого message_id
+                    #     for message_id in message_id_list:
+                    #         # print(message_id)
+                    #         bot.edit_message_text(order_info_close, message.chat.id, message_id, parse_mode='html')
+
+                    # # Закрытие соединения с базой данных
+                    # conn.close()
+
+                    # bot.edit_message_text(order_info_close, message.chat.id, previos_mes, parse_mode='html')
+                    # last_message_id = None
+                    # last_sent_message = None
+                    # print('работает иф')
+                    # check_mess_already_send = True
                 
-                print('работает елсе')
-                conn = sqlite3.connect('applicationbase.sql')
-                cursor = conn.cursor()
-                sent_message = bot.send_message(message.chat.id, order_info, reply_markup=markup2, parse_mode='html')
-                last_message_id = sent_message.message_id  
+                if order_info != last_sent_message:
+                    
+                    print('работает елсе')
+                    conn = sqlite3.connect('applicationbase.sql')
+                    cursor = conn.cursor()
 
-                sql_query = "UPDATE orders SET orderMessageId = ('%s') WHERE id = ('%s')"
-                cursor.execute(sql_query % (last_message_id , users[0]))
+                     # Получаем ID пользователя
+                    user_id_mess = users[0]
+                    # Получаем текущий список message_id из базы данных
+                    cursor.execute("SELECT orderMessageId FROM orders WHERE id = ('%s')" % (user_id_mess))
+                    current_message_ids_str = cursor.fetchone()[0]
+                    
+                    # Преобразуем текущую строку в список (если она не пуста)
+                    current_message_ids = current_message_ids_str.split(',') if current_message_ids_str else []
+                    
+                    # user_last_message_ids[user_id_mess] = last_message_id
+                    # # Проверяем, есть ли уже запись для этого пользователя в словаре
+                    # if user_id_mess in user_last_message_ids:
+                    #     user_last_message_ids[user_id_mess].append(last_message_id)
+                    # else:
+                    #     user_last_message_ids[user_id_mess] = [last_message_id]
+                    test = message.chat.id
+                    sent_message = bot.send_message(test, order_info, reply_markup=markup2, parse_mode='html')
+                    last_message_id = sent_message.message_id  
 
-                # Коммит изменений в базу данных
-                conn.commit()
+                    # user_chat_id_list = user_chat_ids.get(user_id_mess, [])
+                    # user_chat_id_list.append(test)
+                    # user_chat_ids[user_id_mess] = user_chat_id_list
 
-                # Закрытие соединения с базой данных
-                conn.close()
+                    user_chat_id_str = user_chat_ids.get(user_id_mess, "")
+                    if user_chat_id_str:
+                        user_chat_id_str += ","
+                    user_chat_id_str += str(test)
+                    user_chat_ids[user_id_mess] = user_chat_id_str
 
-                print(last_message_id)                  
-                last_sent_message = order_info
-                test = False
+                    user_message_id_list = user_message_ids.get(user_id_mess, [])
+                    # Добавляем новый message_id
+                    user_message_id_list.append(last_message_id)
+                    # Сохраняем обновленный список в словаре
+                    user_message_ids[user_id_mess] = user_message_id_list
+                    # Добавляем новый message_id
+                    last_message_id_str = str(last_message_id)
+                    current_message_ids.append(last_message_id_str)
+                    
+                    # Преобразуем обновленный список в строку
+                    updated_message_ids_str = ','.join(current_message_ids)
+                    # print('не должен равняться NONE ', last_message_id) #работает
+                    
+                    conn = sqlite3.connect('applicationbase.sql')
+                    cursor = conn.cursor()
+
+                    for user_id_mess, message_id_list in user_message_ids.items():
+                        updated_message_ids_str = ','.join(map(str, message_id_list))
+                        # sql_query = "UPDATE orders SET orderMessageId = ('%s') WHERE id = ('%s')"
+                        # cursor.execute(sql_query % (updated_message_ids_str, user_id_mess))
+                        sql_query = "UPDATE orders SET orderMessageId = ('%s'), orderChatId = ('%s') WHERE id = ('%s')"
+                        cursor.execute(sql_query % (updated_message_ids_str, user_chat_id_str, user_id_mess))
+
+                    # Коммит изменений в базу данных
+                    conn.commit()
+
+                    # # Закрытие соединения с базой данных
+                    # conn.close()
+                    # conn = sqlite3.connect('applicationbase.sql')
+                    # cursor = conn.cursor()
+                    # for user_id_mess, chat_id_list in user_chat_ids.items():
+                    #     updated_chat_id_str = ','.join(map(str, chat_id_list))
+                    #     sql_query = "UPDATE orders SET orderChatId = ('%s') WHERE id = ('%s')"
+                    #     cursor.execute(sql_query % (updated_chat_id_str, user_id_mess))
+
+                    
+
+                    
+
+                    # sql_query = "UPDATE orders SET orderMessageId = ('%s') WHERE id = ('%s')"
+                    # cursor.execute(sql_query % (updated_message_ids_str , user_id_mess))
+                    # print('мессадже айди ', user_id_mess)
+
+                    # # Коммит изменений в базу данных
+                    # conn.commit()
+
+                    # # Закрытие соединения с базой данных
+                    # conn.close()
+                    # print('апдейт мессадже ',updated_message_ids_str)
+
+                    # print(last_message_id)                  
+                    last_sent_message = order_info
+                    check_mess_already_send = False
+                else:
+                    print('Нет новых сообщений')
+                    print(user_last_message_ids)
+
             else:
-                print('Нет новых сообщений')
-        else:
-            bot.send_message(message.chat.id, 'Заказов пока что нет, но они скоро появятся')  
-
+                bot.send_message(message.chat.id, 'Заказов пока что нет, но они скоро появятся')  
+       
 
         # info = ''
         # for el in users:
@@ -269,9 +373,21 @@ def registration(message):
 
         # bot.send_message(message.chat.id, order_info)
         # print(order_info)
-        cur.close()
-        conn.close()
-        time.sleep(20)
+            cur.close()
+            conn.close()
+            time.sleep(20)
+        except sqlite3.Error as e:
+            # Обработка ошибки, если таблицы нет или произошла другая ошибка
+            if not error_reported:
+                bot.send_message(message.chat.id, f'Заказов пока нет, но скоро будут', parse_mode='html')
+                error_reported = True  # Устанавливаем флаг ошибки, чтобы сообщение выводилось только один раз
+    
+            # Закрытие соединения с базой данных
+            conn.close()
+        # finally:
+        #     # Закрытие соединения с базой данных
+        #     conn.close()
+
     
 @bot.callback_query_handler(func=lambda callback: callback.data == 'Еду 1')
 @bot.callback_query_handler(func=lambda callback: callback.data == 'Едем в 2') 
