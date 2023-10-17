@@ -79,7 +79,7 @@ user_id = None
 
 
 
-cityTrue = False
+cityTrue = 'False'
 
 check_user_id = None
 
@@ -122,6 +122,9 @@ isOpenEdit = False
 
 data_called = False  
 
+samozanYorN = None
+
+
 
 @bot.message_handler(commands=['start'])
 def registration(message):
@@ -139,7 +142,6 @@ def registration(message):
 
     global user_chat_ids
     global data_called
-
     data_called = False
 
     # conn = sqlite3.connect('user_data.sql')
@@ -426,7 +428,6 @@ def data(message):
     
     global cityTrue
 
-
     global nuberPhone
     global city
     global lastname
@@ -441,6 +442,10 @@ def data(message):
 
     global data_called
 
+    global nalogacc
+    global passport
+
+    global samozanYorN
 
     # conn = sqlite3.connect('user_data.sql')
     # cursor = conn.cursor()
@@ -480,21 +485,31 @@ def data(message):
             middlename = takeParam[6]
             dataOfBirth = takeParam[7]        
             citizenRF = takeParam[8]   
-            print('робит')
+            cityTrue = takeParam[14]  
+            nalogacc = takeParam[10]  
+            passport = takeParam[12]
+
 
         else:
             print('Значение не найдено') # Сообщение, если значение не найдено
 
             # Закрытие соединения с базой данных
         conn.close()
+        if nalogacc == 'Нет':
+            samozanYorN = 'Нет'
+        elif passport != 'Нет':
+            samozanYorN = f'Да\n💰 Р/С: {nalogacc}\n🪪 Паспорт: {passport}'
+        else:
+            samozanYorN = f'Да\n💰 Р/С: {nalogacc}'
+
         if check_user_id is not None or user_id is not None:
-            if cityTrue is False:
+            if  cityTrue == 'False':
                 markup = types.InlineKeyboardMarkup()
                 btn2 = types.InlineKeyboardButton('🖌Редактировать город', callback_data='🖌Редактировать город', one_time_keyboard=True)
                 btn3 = types.InlineKeyboardButton('✅Подтвердить', callback_data='✅Подтвердить', one_time_keyboard=True)
                 markup.row(btn2)  
                 markup.row(btn3)  
-                bot.send_message(message.chat.id, f'📞 Телефон: +{nuberPhone}\n👤 ФИО: {lastname} {firstname} {middlename}\n📅 Дата рождения: {dataOfBirth}\n🇷🇺 Гражданство РФ: {citizenRF}\n🤝 Самозанятый: Нет \n🏙 Город(а): {city}\n\nℹ️ Чтобы выйти из этого меню нажмите ✅Подтвердить', reply_markup=markup)
+                bot.send_message(message.chat.id, f'📞 Телефон: +{nuberPhone}\n👤 ФИО: {lastname} {firstname} {middlename}\n📅 Дата рождения: {dataOfBirth}\n🇷🇺 Гражданство РФ: {citizenRF}\n🤝 Самозанятый: {samozanYorN} \n🏙 Город(а): {city}\n\nℹ️ Чтобы выйти из этого меню нажмите ✅Подтвердить', reply_markup=markup)
                 print('первый иф',check_user_id, 'продолжение', user_id)
             else:
                 # user_id = message.from_user.id
@@ -504,46 +519,55 @@ def data(message):
                 # conn.commit()
                 # conn.close()
                 
-                    # Подключение к базе данных SQLite
-                conn = sqlite3.connect('peoplebase.sql')
-                cursor = conn.cursor()
+                #     # Подключение к базе данных SQLite
+                # conn = sqlite3.connect('peoplebase.sql')
+                # cursor = conn.cursor()
 
-                    # Запрос к базе данных для поиска строки по значению переменной
-                cursor.execute("SELECT * FROM users WHERE user_id = ('%s')" % (user_id))
-                takeParam = cursor.fetchone() # Получение первой соответствующей строки
+                #     # Запрос к базе данных для поиска строки по значению переменной
+                # cursor.execute("SELECT * FROM users WHERE user_id = ('%s')" % (user_id))
+                # takeParam = cursor.fetchone() # Получение первой соответствующей строки
                 
-                if takeParam:
-                    check_user_id = takeParam[9]
-                else:
-                    check_user_id = None
-                conn.close()
+                # if takeParam:
+                #     check_user_id = takeParam[9]
+                # else:
+                #     check_user_id = None
+                # conn.close()
                 
-                if takeParam:
-                    id_nubmer_list = takeParam[0]
-                    nuberPhone = takeParam[2]
-                    city = takeParam[3]
-                    lastname = takeParam[4]
-                    firstname = takeParam[5]
-                    middlename = takeParam[6]
-                    dataOfBirth = takeParam[7]        
-                    citizenRF = takeParam[8]   
-                    print('робит')
+                # if takeParam:
+                #     id_nubmer_list = takeParam[0]
+                #     nuberPhone = takeParam[2]
+                #     city = takeParam[3]
+                #     lastname = takeParam[4]
+                #     firstname = takeParam[5]
+                #     middlename = takeParam[6]
+                #     dataOfBirth = takeParam[7]        
+                #     citizenRF = takeParam[8]   
+                #     cityTrue = takeParam[14]  
+                #     print('робит2', cityTrue)
 
-                else:
-                    print('Значение не найдено') # Сообщение, если значение не найдено
+                # else:
+                #     print('Значение не найдено') # Сообщение, если значение не найдено
 
-                    # Закрытие соединения с базой данных
-                conn.close()
+                #     # Закрытие соединения с базой данных
+                # conn.close()
                 markup = types.InlineKeyboardMarkup()
                 btn1 = types.InlineKeyboardButton('📝Редактировать данные', callback_data='📝Редактировать данные', one_time_keyboard=True)
                 btn2 = types.InlineKeyboardButton('📊 Статистика заказов', callback_data='📊 Статистика заказов', one_time_keyboard=True)
-                btn3 = types.InlineKeyboardButton('✅Подтвердить аккаунт', callback_data='✅Подтвердить аккаунт', one_time_keyboard=True)
-                btn4 = types.InlineKeyboardButton('✅Самозанятость', callback_data='✅Самозанятость', one_time_keyboard=True)
                 markup.row(btn1)  
                 markup.row(btn2)  
-                markup.row(btn3)  
-                markup.row(btn4)  
-                bot.send_message(message.chat.id, f'📞 Телефон: +{nuberPhone}\n👤 ФИО: {lastname} {firstname} {middlename}\n📅 Дата рождения: {dataOfBirth}\n🇷🇺 Гражданство РФ: {citizenRF}\n🤝 Самозанятый: Нет \n🏙 Город(а): {city}\n\nℹ️ Чтобы выйти из этого меню нажмите ✅Подтвердить', reply_markup=markup)
+                if passport == 'Нет':
+                    messageInformation = f'📞 Телефон: +{nuberPhone}\n👤 ФИО: {lastname} {firstname} {middlename}\n📅 Дата рождения: {dataOfBirth}\n🇷🇺 Гражданство РФ: {citizenRF}\n🤝 Самозанятый: {samozanYorN}\n🏙 Город(а): {city}\n\nℹ️ Чтобы выйти из этого меню нажмите ✅Подтвердить'
+
+                    btn3 = types.InlineKeyboardButton('✅Подтвердить аккаунт', callback_data='✅Подтвердить аккаунт', one_time_keyboard=True)
+                    markup.row(btn3)  
+                else:
+                    messageInformation = f'📞 Телефон: +{nuberPhone}\n👤 ФИО: {lastname} {firstname} {middlename}\n📅 Дата рождения: {dataOfBirth}\n🇷🇺 Гражданство РФ: {citizenRF}\n🤝 Самозанятый: {samozanYorN}\n🏙 Город(а): {city}'
+
+                if nalogacc == 'Нет':
+                    btn4 = types.InlineKeyboardButton('✅Самозанятость', callback_data='✅Самозанятость', one_time_keyboard=True)
+                    markup.row(btn4)  
+                
+                bot.send_message(message.chat.id, messageInformation, reply_markup=markup)
                 print('первый элс',check_user_id, 'продолжение', user_id)
         else:
             print('второй иф',check_user_id, 'продолжение', user_id)
@@ -685,10 +709,19 @@ def callback_data_of_data(callback):
     global cityTrue
     global isOpenEdit
     global data_called
+    global samozanYorN
     if callback.data == '📝Редактировать данные':
         data_called = False
         bot.delete_message(callback.message.chat.id, callback.message.message_id)
-        cityTrue = False
+        cityTrue = 'False'
+        conn = sqlite3.connect('peoplebase.sql')
+        cur = conn.cursor()
+        cur.execute("UPDATE users SET  cityAgree = '%s' WHERE id = '%s'" % (cityTrue, id_nubmer_list))
+        conn.commit() 
+        cur.close()
+        conn.close()
+        print('сити тру ',cityTrue)
+
         data(callback.message)
 
     elif callback.data == '📊 Статистика заказов':  
@@ -704,7 +737,7 @@ def callback_data_of_data(callback):
         print(nuberPhone , lastname)
         data_called = False
         isOpenEdit = True
-        bot.edit_message_text(f'📞 Телефон: +{nuberPhone}\n👤 ФИО: {lastname} {firstname} {middlename}\n📅 Дата рождения: {dataOfBirth}\n🇷🇺 Гражданство РФ: {citizenRF}\n🤝 Самозанятый: Нет \n🏙 Город(а): {city}', callback.message.chat.id, callback.message.message_id)
+        bot.edit_message_text(f'📞 Телефон: +{nuberPhone}\n👤 ФИО: {lastname} {firstname} {middlename}\n📅 Дата рождения: {dataOfBirth}\n🇷🇺 Гражданство РФ: {citizenRF}\n🤝 Самозанятый: {samozanYorN} \n🏙 Город(а): {city}', callback.message.chat.id, callback.message.message_id)
         markup = types.InlineKeyboardMarkup()
         btn2 = types.InlineKeyboardButton('❌ Отменить подтверждение', callback_data='❌ Отменить подтверждение', one_time_keyboard=True)
         markup.row(btn2)  
@@ -712,7 +745,7 @@ def callback_data_of_data(callback):
     elif callback.data == '✅Самозанятость': 
         data_called = False
 
-        bot.edit_message_text(f'📞 Телефон: +{nuberPhone}\n👤 ФИО: {lastname} {firstname} {middlename}\n📅 Дата рождения: {dataOfBirth}\n🇷🇺 Гражданство РФ: {citizenRF}\n🤝 Самозанятый: Нет \n🏙 Город(а): {city}', callback.message.chat.id, callback.message.message_id)
+        bot.edit_message_text(f'📞 Телефон: +{nuberPhone}\n👤 ФИО: {lastname} {firstname} {middlename}\n📅 Дата рождения: {dataOfBirth}\n🇷🇺 Гражданство РФ: {citizenRF}\n🤝 Самозанятый: {samozanYorN} \n🏙 Город(а): {city}', callback.message.chat.id, callback.message.message_id)
         markup = types.InlineKeyboardMarkup()
         btn1 = types.InlineKeyboardButton('Кто такой самозанятый❓', callback_data='Кто такой самозанятый❓', one_time_keyboard=True, url='https://npd.nalog.ru/')
         btn2 = types.InlineKeyboardButton('✅Да, официально зарегистрирован', callback_data='✅Да, официально зареган', one_time_keyboard=True)
@@ -779,6 +812,8 @@ def my_nalog_accaunt_check(message):
             input_my_nalog_accaunt(message) 
         else:
             if message.text.isdigit():
+                bot.edit_message_text(f'Введите Ваш номер счёта (20 цифр, не номер карты, смотреть в реквизитах)', message.chat.id, message.message_id-1)
+
                 nalogacc = message.text.strip()
                 print(nalogacc)
                 conn = sqlite3.connect('peoplebase.sql')
@@ -1178,7 +1213,8 @@ def readyPassportInfo(message):
 def callback_rename_city(callback): 
     global cityTrue
     global data_called
-  
+    global agreeaccaunt
+
     if callback.data == '🖌Редактировать город':
         data_called = False
         usercitizenRF = f'Выбрано: 🟢{city}'        
@@ -1191,8 +1227,18 @@ def callback_rename_city(callback):
 
     elif callback.data == '✅Подтвердить':
         data_called = False
-        cityTrue = True
-        bot.edit_message_text('Данные успешно обновлены!', callback.message.chat.id, callback.message.message_id)
+        cityTrue = 'True'
+
+
+        conn = sqlite3.connect('peoplebase.sql')
+        cur = conn.cursor()
+        cur.execute("UPDATE users SET  cityAgree = '%s' WHERE id = '%s'" % (cityTrue, id_nubmer_list))
+        conn.commit() 
+        cur.close()
+        conn.close()
+        print('сити тру ',cityTrue)
+
+        bot.edit_message_text('✅Данные успешно обновлены!', callback.message.chat.id, callback.message.message_id)
         data(callback.message)
 
 

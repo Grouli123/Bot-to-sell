@@ -69,7 +69,7 @@ locationcity = None
 
 samozanatost = 'Нет'
 agreeaccaunt = 'Нет'
-passport = '0000000000'
+passport = 'Нет'
 
 state = 'initial'
 
@@ -82,6 +82,8 @@ ekaCity = citys.ekaterenburg
 sanCity = citys.sankt_peterburg
 
 chatcity = None
+
+cityTrue = 'False'
 
 @bot.message_handler(commands=['start'])
 def registration(message):
@@ -315,16 +317,16 @@ def city_check_for_chat(message):
 def import_into_database(message):
     global usercitizenRF   
     global state  
-    
+    global cityTrue
     conn = sqlite3.connect('peoplebase.sql')
     cur = conn.cursor()
-    cur.execute(insertIntoBase % (phone, locationcity, lastname, firstname, middlename, userbirthday, usercitizenRF, user_id, samozanatost, agreeaccaunt, passport, chatcity)) 
+    cur.execute(insertIntoBase % (phone, locationcity, lastname, firstname, middlename, userbirthday, usercitizenRF, user_id, samozanatost, agreeaccaunt, passport, chatcity, cityTrue)) 
    
     conn.commit()
     cur.close()
     conn.close()
     
-    print (chatcity)
+    print (cityTrue)
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton(f'{buttonResultName} {locationcity}', callback_data=nameOfBase, url=f'https://t.me/{chatcity}'))
        
