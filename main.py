@@ -2,12 +2,10 @@ import subprocess
 
 # Список путей к скриптам, которые нужно запустить
 script_paths = [
-    # 'test1.py',
-    # 'test2.py',
-    # 'test3.py'
     'admin_main.py',
     'get_orders_main.py',
-    'registration_main.py'
+    'registration_main.py',
+    'moskow_get_orders_main.py'
 ]
 
 # Список для хранения процессов

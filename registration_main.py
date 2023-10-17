@@ -86,15 +86,22 @@ chatcity = None
 @bot.message_handler(commands=['start'])
 def registration(message):
     global user_id
-    if registered is False:
-        conn = sqlite3.connect('peoplebase.sql')
-        cur = conn.cursor()
-        user_id = message.from_user.id
-        cur.execute(base)
-        conn.commit() 
-        cur.close()
-        conn.close()
-        print(user_id)
+    
+    conn = sqlite3.connect('peoplebase.sql')
+    cur = conn.cursor()
+    user_id = message.from_user.id
+    cur.execute(base)
+    conn.commit() 
+
+    cur.execute("SELECT * FROM users WHERE user_id = ('%s')" % (user_id))
+    existing_user = cur.fetchone()
+
+
+    cur.close()
+    conn.close()
+    print(user_id)
+
+    if existing_user is None:
         
         keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
         button_phone = types.KeyboardButton(text=phoneButtonText, request_contact=True)
@@ -102,10 +109,25 @@ def registration(message):
         bot.send_message(message.chat.id, phoneMessageText, reply_markup=keyboard, parse_mode='html')
         bot.register_next_step_handler(message, geolocation)   
     else:
+        conn = sqlite3.connect('peoplebase.sql')
+        cur = conn.cursor()
+
+        cur.execute("SELECT botchatname, city FROM users WHERE user_id = ('%s')" % (user_id))
+        result = cur.fetchone()
+        chatcity = result[0]
+        locationcity = result[1]
+        print(chatcity)
+
+
+        cur.close()
+        conn.close()
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton(f'{buttonResultName} {locationcity}', callback_data=nameOfBase, url=f'https://t.me/{chatcity}'))
         
         bot.send_message(message.chat.id, alreadyRegistered, reply_markup=markup)
+
+
+
 
 def geolocation(message):    
     global phone
@@ -296,7 +318,7 @@ def import_into_database(message):
     
     conn = sqlite3.connect('peoplebase.sql')
     cur = conn.cursor()
-    cur.execute(insertIntoBase % (phone, locationcity, lastname, firstname, middlename, userbirthday, usercitizenRF, user_id, samozanatost, agreeaccaunt, passport)) 
+    cur.execute(insertIntoBase % (phone, locationcity, lastname, firstname, middlename, userbirthday, usercitizenRF, user_id, samozanatost, agreeaccaunt, passport, chatcity)) 
    
     conn.commit()
     cur.close()

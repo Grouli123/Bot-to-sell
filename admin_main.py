@@ -108,6 +108,7 @@ needText = None
 arzCity = citys.arzamas
 ekaCity = citys.ekaterenburg
 sanCity = citys.sankt_peterburg
+mosCity = citys.moskow
 
 chatcity = None
 
@@ -115,6 +116,7 @@ chatcity = None
 login = 'admin'
 password = 'admin123'
 
+loginin = False
 
 sent_message_id = None
 
@@ -132,8 +134,13 @@ def start(message):
 
 @bot1.message_handler(commands=['start'])
 def input_admin(message):
-    bot1.send_message(message.chat.id, 'Введите логин', parse_mode='html')
-    bot1.register_next_step_handler(message, admin_check)   
+    print(loginin)
+    if loginin == False:
+        bot1.send_message(message.chat.id, 'Введите логин', parse_mode='html')
+        bot1.register_next_step_handler(message, admin_check)   
+    else:
+        start(message)
+
 
 def admin_check(message):
     if message.text is None:
@@ -156,6 +163,7 @@ def input_password(message):
     bot1.register_next_step_handler(message, password_check)   
 
 def password_check(message):
+    global loginin
     if message.text is None:
         bot1.send_message(message.from_user.id, textOnly)
         input_password(message) 
@@ -166,6 +174,7 @@ def password_check(message):
             input_password(message) 
         else:
             if password == message.text.strip():
+                loginin = True
                 start(message)
             else:
                 bot1.send_message(message.from_user.id, 'Пароль не подходит')
@@ -199,25 +208,30 @@ def password_check(message):
 
 
 def city_of_obj(message):
-    if message.text is None:
-        bot1.send_message(message.from_user.id, textOnly)
-        start(message) 
-    else:
-        if message.text == makeOrderButton:
-            bot1.send_message(message.chat.id, inputCityObject, reply_markup=types.ReplyKeyboardRemove())
-            bot1.register_next_step_handler(message, city_of_obj_check)
-
-        elif message.text == openBaseOrders:
-            bot1.send_message(message.chat.id, openBseOrdersMessage)
-            show_database_orders(message)
-            start(message)
-        elif message.text == openBasePeople:
-            bot1.send_message(message.chat.id, openBasePeopleMessage)
-            show_database_users(message)
-            start(message)
+    if loginin == True:
+        if message.text is None:
+            bot1.send_message(message.from_user.id, textOnly)
+            start(message) 
         else:
-            bot1.send_message(message.chat.id, chooseTruePointOfMenu)            
-            start(message)  
+            if message.text == makeOrderButton:
+                bot1.send_message(message.chat.id, inputCityObject, reply_markup=types.ReplyKeyboardRemove())
+                bot1.register_next_step_handler(message, city_of_obj_check)
+
+            elif message.text == openBaseOrders:
+                bot1.send_message(message.chat.id, openBseOrdersMessage)
+                show_database_orders(message)
+                start(message)
+            elif message.text == openBasePeople:
+                bot1.send_message(message.chat.id, openBasePeopleMessage)
+                show_database_users(message)
+                start(message)
+            else:
+                bot1.send_message(message.chat.id, chooseTruePointOfMenu)            
+                start(message)  
+    else:
+        bot1.send_message(message.chat.id, 'Введите логин и пароль прежде чем продолжить работу')
+        input_admin(message)
+
 
 def city_of_obj_check(message):
     global cityname
@@ -233,7 +247,9 @@ def city_of_obj_check(message):
             message.text.strip(None)
             city_of_obj(message) 
         else:
-            cityname = message.text.strip()            
+            cityname = message.text.strip() 
+            
+            print(cityname)           
             people_need_count(message)
 
 def people_need_count(message):
@@ -444,20 +460,19 @@ def callback_message_created_order(callback):
         #     markup2.row(btn52) 
 
         # for user_id_test in user_ids:
-        #     try:    
-        #         if cityname == 'Арзамас':
-        #             test2 = bot2.send_message(user_id_test[0], f'{application}', reply_markup=markup2, parse_mode='html')
-        #             sent_message_id2 = test2.message_id
-        #             print('Бот ордера: ',sent_message_id2)
-        #             chatcity = arzCity
-        #         elif cityname == 'Екатеринбург':                    
-        #             bot3.send_message(user_id_test[0], f'{application}', reply_markup=markup2, parse_mode='html')
-        #             chatcity = ekaCity
-        #         elif cityname == 'Санкт-Петербург':                    
-        #             bot4.send_message(user_id_test[0], f'{application}', reply_markup=markup2, parse_mode='html')                    
-        #             chatcity = sanCity           
-        #     except Exception as e:
-        #         print(f"Ошибка при отправке сообщения пользователю {user_id_test[0]}: {str(e)}")
+        # try:    
+        if cityname == 'Арзамас':
+            # sent_message_id2 = test2.message_id
+            chatcity = arzCity
+        elif cityname == 'Екатеринбург':                    
+            chatcity = ekaCity
+        elif cityname == 'Санкт-Петербург':                    
+            chatcity = sanCity           
+        elif cityname == 'Москва':
+            chatcity = mosCity
+
+        # except Exception as e:
+        #     print(f"Ошибка при отправке сообщения пользователю {user_id_test[0]}: {str(e)}")
 
         conn.close()
     else:          
@@ -575,6 +590,7 @@ def import_into_database(message):
 
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton(f'{buttonResultName} {cityname}', url=f'https://t.me/{chatcity}'))
+
        
     bot1.send_message(message.chat.id, alreadyRegistered, reply_markup=markup)
     
@@ -582,36 +598,51 @@ def import_into_database(message):
     start(message)
 
 def show_database_orders(message):
-    conn = sqlite3.connect('applicationbase.sql')
-    cur = conn.cursor()
-    cur.execute('SELECT * FROM orders')
-    users = cur.fetchall()
+    print(loginin)
+    if loginin == True:
 
-    info = ''
-    for el in users:
-        info += f'Заявка номер: {el[0]}, Дата создания: {el[1]}, Город: {el[2]}, Количество людей: {el[3]}, Адрес: {el[4]}, Что делать: {el[5]}, Начало работ: {el[6]}, Вам на руки: {el[7]}, Сообщение админки: {el[8]}, Сообщение ордера: {el[9]}, Id чатов: {el[11]}\n\n'
-    cur.close()
-    conn.close()
+        conn = sqlite3.connect('applicationbase.sql')
+        cur = conn.cursor()
+        cur.execute('SELECT * FROM orders')
+        users = cur.fetchall()
 
-    bot1.send_message(message.chat.id, info)
-    print(info)
+        info = ''
+        for el in users:
+            info += f'Заявка номер: {el[0]}, Дата создания: {el[1]}, Город: {el[2]}, Количество людей: {el[3]}, Адрес: {el[4]}, Что делать: {el[5]}, Начало работ: {el[6]}, Вам на руки: {el[7]}, Сообщение админки: {el[8]}, Сообщение ордера: {el[9]}, Id чатов: {el[11]}\n\n'
+        cur.close()
+        conn.close()
+
+        bot1.send_message(message.chat.id, info)
+        print(info)
+    else:
+        bot1.send_message(message.chat.id, 'Введите логин и пароль прежде чем продолжить работу')
+        input_admin(message)
+
 
 def show_database_users(message):
-    conn = sqlite3.connect('peoplebase.sql')
-    cur = conn.cursor()
+    print(loginin)
 
-    cur.execute('SELECT * FROM users')
-    users = cur.fetchall()
+    if loginin == True:
 
-    info = ''
-    for el in users:
-        info += f'Пользователь номер: {el[0]}, Дата регистрации: {el[1]}, Номер телефона: +{el[2]}, Город: {el[3]}, Фамилия: {el[4]}, Имя: {el[5]}, Отчество: {el[6]}, Дата рождения: {el[7]}, Гражданство РФ: {el[8]}\n\n'
+        conn = sqlite3.connect('peoplebase.sql')
+        cur = conn.cursor()
 
-    cur.close()
-    conn.close()
+        cur.execute('SELECT * FROM users')
+        users = cur.fetchall()
 
-    bot1.send_message(message.chat.id, info)
-    print(info)
+        info = ''
+        for el in users:
+            info += f'Пользователь номер: {el[0]}, Дата регистрации: {el[1]}, Номер телефона: +{el[2]}, Город: {el[3]}, Фамилия: {el[4]}, Имя: {el[5]}, Отчество: {el[6]}, Дата рождения: {el[7]}, Гражданство РФ: {el[8]}, самозанятость {el[10]}, аккаунт подтвержден {el[11]}, паспорт {el[12]}\n\n'
+
+        cur.close()
+        conn.close()
+
+        bot1.send_message(message.chat.id, info)
+        print(info)
+    else:
+        bot1.send_message(message.chat.id, 'Введите логин и пароль прежде чем продолжить работу')
+        input_admin(message)
+
 
 print('Bot started')
 
