@@ -399,11 +399,11 @@ def callback_message_created_order(callback):
     # global updated_message_id
     if callback.data == orderSendTextCallbackData:
 
-        conn = sqlite3.connect('user_data.sql')
-        cursor = conn.cursor()
+        # conn = sqlite3.connect('user_data.sql')
+        # cursor = conn.cursor()
 
-        cursor.execute("SELECT user_id FROM users")
-        user_ids = cursor.fetchall()
+        # cursor.execute("SELECT user_id FROM users")
+        # user_ids = cursor.fetchall()
 
         
 
@@ -474,7 +474,7 @@ def callback_message_created_order(callback):
         # except Exception as e:
         #     print(f"Ошибка при отправке сообщения пользователю {user_id_test[0]}: {str(e)}")
 
-        conn.close()
+        # conn.close()
     else:          
         feedback = orderDeleteText
         bot1.delete_message(callback.message.chat.id, callback.message.message_id)
@@ -501,7 +501,7 @@ def callback_message_created_order(callback):
 
                     # Закрытие соединения с базой данных
         conn.close()
-        application = f'❌ Заявка закрыта\n<b>·{cityname}: </b>{needText} {countPeople} {humanCount}\n<b>·Адрес:</b>👉 {adress}\n<b>·Что делать:</b> {whattodo}\n<b>·Начало работ:</b> {timetostart}\n<b>·Вам на руки:</b> <u>{salary}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
+        application = f'❌ Заявка закрыта\n<b>·{cityname}: </b>{needText} {countPeople} {humanCount}\n<b>·Адрес:</b>👉 {adress}\n<b>·Что делать:</b> {whattodo}\n<b>·Начало работ:</b> в {timetostart}\n<b>·Вам на руки:</b> <u>{salary}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
 
         bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html')
         print("все произошло")
@@ -523,7 +523,7 @@ def callback_message_created_order(callback):
         cur = conn.cursor()
         cur.execute('SELECT * FROM orders ORDER BY id DESC LIMIT 1')
         users = cur.fetchone() 
-        order_info_close = f'❌ Заявка закрыта\n<b>•{users[2]}: </b>{needText} {users[3]} {humanCount}\n<b>•Адрес:</b>👉 {users[4]}\n<b>•Что делать:</b> {users[5]}\n<b>•Начало работ:</b> {users[6]}\n<b>•Вам на руки:</b> <u>{users[7]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
+        order_info_close = f'❌ Заявка закрыта\n<b>•{users[2]}: </b>{needText} {users[3]} {humanCount}\n<b>•Адрес:</b>👉 {users[4]}\n<b>•Что делать:</b> {users[5]}\n<b>•Начало работ:</b> в {users[6]}\n<b>•Вам на руки:</b> <u>{users[7]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
         user_message_ids = users[9]
         chat_id_list = users[11].split(',') if users[11] else []
         message_id_list = user_message_ids.split(',') if user_message_ids else []
@@ -582,7 +582,7 @@ def import_into_database(message):
     global state  
     conn = sqlite3.connect('applicationbase.sql')
     cur = conn.cursor()
-    cur.execute(insertIntoBase1 % (cityname, countPeople, adress, whattodo, timetostart, salary, sent_message_id, None, 'True', None)) 
+    cur.execute(insertIntoBase1 % (cityname, countPeople, adress, whattodo, timetostart, salary, sent_message_id, '', 'True', '', '', '', '')) 
 
     conn.commit()
     cur.close()
@@ -608,7 +608,7 @@ def show_database_orders(message):
 
         info = ''
         for el in users:
-            info += f'Заявка номер: {el[0]}, Дата создания: {el[1]}, Город: {el[2]}, Количество людей: {el[3]}, Адрес: {el[4]}, Что делать: {el[5]}, Начало работ: {el[6]}, Вам на руки: {el[7]}, Сообщение админки: {el[8]}, Сообщение ордера: {el[9]}, Id чатов: {el[11]}\n\n'
+            info += f'Заявка номер: {el[0]}, Дата создания: {el[1]}, Город: {el[2]}, Количество людей: {el[3]}, Адрес: {el[4]}, Что делать: {el[5]}, Начало работ: {el[6]}, Вам на руки: {el[7]}, Сообщение админки: {el[8]}, Сообщение ордера: {el[9]}, Id чатов: {el[11]}, записался id: {el[12]}, номера телефонов друзей: {el[13]}, ФИО друзей: {el[14]}\n\n'
         cur.close()
         conn.close()
 
@@ -632,7 +632,7 @@ def show_database_users(message):
 
         info = ''
         for el in users:
-            info += f'Пользователь номер: {el[0]}, Дата регистрации: {el[1]}, Номер телефона: +{el[2]}, Город: {el[3]}, Фамилия: {el[4]}, Имя: {el[5]}, Отчество: {el[6]}, Дата рождения: {el[7]}, Гражданство РФ: {el[8]}, самозанятость {el[10]}, аккаунт подтвержден {el[11]}, паспорт {el[12]}\n\n'
+            info += f'Пользователь номер: {el[0]}, Дата регистрации: {el[1]}, Номер телефона: +{el[2]}, Город: {el[3]}, Фамилия: {el[4]}, Имя: {el[5]}, Отчество: {el[6]}, Дата рождения: {el[7]}, Гражданство РФ: {el[8]}, Cамозанятость: {el[10]}, Аккаунт подтвержден: {el[11]}, Паспорт: {el[12]}, взял заказ номер: {el[15]} tot {el[16]} {el[17]} \n\n'
 
         cur.close()
         conn.close()

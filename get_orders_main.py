@@ -125,6 +125,27 @@ data_called = False
 samozanYorN = None
 
 
+orderTake = None
+orderDone = None
+orderMiss = None
+
+user_id_mess = None
+# test = False
+# test2 = None
+orderTakeTwo = ''
+
+
+fioFirstFriend = None
+fioSecondFriend = None
+fioThirdFriend = None
+
+
+phoneNumberFirstFriend = None
+phoneNumberSecondFriend = None
+phoneNumberThirdFriend = None
+
+checkThirdFriend = False
+checkFourthFriend = False
 
 @bot.message_handler(commands=['start'])
 def registration(message):
@@ -142,6 +163,12 @@ def registration(message):
 
     global user_chat_ids
     global data_called
+
+    # global orderTakeTwo
+    global user_id_mess
+
+    # global test
+    # global test2
     data_called = False
 
     # conn = sqlite3.connect('user_data.sql')
@@ -170,6 +197,7 @@ def registration(message):
     
     if takeParam:
         check_user_id = takeParam[9]
+
     else:
         check_user_id = None
     conn.close()
@@ -190,8 +218,10 @@ def registration(message):
         bot.send_message(message.chat.id, f'Для регистрации перейдите к боту по кнопке!\n\n👇👇👇👇👇', parse_mode='html', reply_markup=markup)
 
     while True:
+       
         conn = sqlite3.connect('applicationbase.sql')
         cur = conn.cursor()
+
         try:
             cur.execute('SELECT * FROM orders ORDER BY id DESC LIMIT 1')
             users = cur.fetchone() 
@@ -288,6 +318,7 @@ def registration(message):
 
                      # Получаем ID пользователя
                     user_id_mess = users[0]
+                    # test2 = users[0]
                     # Получаем текущий список message_id из базы данных
                     cursor.execute("SELECT orderMessageId FROM orders WHERE id = ('%s')" % (user_id_mess))
                     current_message_ids_str = cursor.fetchone()[0]
@@ -328,9 +359,17 @@ def registration(message):
                     updated_message_ids_str = ','.join(current_message_ids)
                     # print('не должен равняться NONE ', last_message_id) #работает
                     
-                    conn = sqlite3.connect('applicationbase.sql')
-                    cursor = conn.cursor()
 
+                    
+                    # conn = sqlite3.connect('applicationbase.sql')
+                    # cursor = conn.cursor()
+                    # if test is True:
+                    #     cursor.execute("SELECT * FROM users WHERE user_id = ('%s')" % (user_id))
+                    #     takeParam3 = cursor2.fetchone() # Получение первой соответствующей строки
+
+                    #     test = False
+
+                
                     for user_id_mess, message_id_list in user_message_ids.items():
                         updated_message_ids_str = ','.join(map(str, message_id_list))
                         # sql_query = "UPDATE orders SET orderMessageId = ('%s') WHERE id = ('%s')"
@@ -368,6 +407,35 @@ def registration(message):
                     # print(last_message_id)                  
                     last_sent_message = order_info
                     check_mess_already_send = False
+
+
+
+
+                    # conn2 = sqlite3.connect('peoplebase.sql')
+                    # cursor2 = conn2.cursor()
+                    #     # Запрос к базе данных для поиска строки по значению переменной
+                    # # cursor2.execute("SELECT * FROM users WHERE user_id = ('%s')" % (user_id))
+                    
+                    
+                    # if test is True:
+                    # #     cursor.execute("SELECT * FROM users WHERE user_id = ('%s')" % (user_id))
+                    # #     takeParam3 = cursor2.fetchone() # Получение первой соответствующей строки
+                    #     cur.execute("UPDATE users SET orderTake = '%s' WHERE user_id = '%s'" % (test2, user_id))
+                    #     takeParam2 = cursor2.fetchone() # Получение первой соответствующей строки
+
+                    #     test = False
+
+                    # if takeParam2:
+                    #     orderTakeTwo = takeParam2[15]
+                    # else:
+                    #     print('не работает')
+                    # conn2.commit()
+
+                    # conn2.close()
+
+
+
+                    
                 else:
                     print('Нет новых сообщений')
                     print(user_last_message_ids)
@@ -408,14 +476,490 @@ def registration(message):
 @bot.callback_query_handler(func=lambda callback: callback.data == 'Едем в 3')
 @bot.callback_query_handler(func=lambda callback: callback.data == 'Едем в 4')
 def callback_data_of_data(callback): 
+    global orderTakeTwo
+    global checkThirdFriend
+    global checkFourthFriend
+    conn = sqlite3.connect('peoplebase.sql')
+    cursor = conn.cursor()
+    # cursor.execute("UPDATE users SET orderTake = '%s' WHERE user_id = '%s'" % (user_id_mess, user_id))
+    cursor.execute("SELECT * FROM users WHERE user_id = ('%s')" % (user_id))
+    takeParam2 = cursor.fetchone() # Получение первой соответствующей строки
+    if takeParam2:
+        orderTakeTwo = takeParam2[0]
+    else:
+        print('не работает')
+
     if callback.data == 'Еду 1':
-        bot.send_message(callback.message.chat.id, 'Принято, вы едете 1')
+        
+        
+        cursor.execute("SELECT orderTake FROM users WHERE user_id = ('%s')" % (user_id))
+        takeOrderTake = cursor.fetchone()
+
+        if takeOrderTake is not None:
+            current_orderId = takeOrderTake[0] if takeOrderTake[0] else ""
+
+            new_orderId = current_orderId + "," + str(user_id_mess) if current_orderId else user_id_mess
+            cursor.execute("UPDATE users SET orderTake = '%s' WHERE user_id = '%s'" % (new_orderId, user_id))
+
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        # conn2 = sqlite3.connect('applicationbase.sql')
+        # cursor2 = conn2.cursor()        
+
+        # cursor2.execute("SELECT whoTakeId FROM orders WHERE id = ('%s')" % (user_id_mess))
+        # current_values = cursor2.fetchone()
+
+        # current_phone_numbers = current_values[0] if current_values[0] else ""
+        # new_phone_numbers = current_phone_numbers + "," + phoneNumberSecondFriend if current_phone_numbers else phoneNumberSecondFriend
+
+        # cursor2.execute("UPDATE orders SET whoTakeId = '%s' WHERE id = '%s'" % (new_phone_numbers, user_id_mess))
+
+
+        # # cursor2.execute("UPDATE orders SET whoTakeId = '%s' WHERE id = '%s'" % (orderTakeTwo, user_id_mess))
+        # conn2.commit()
+        # cursor2.close()
+        # conn2.close()
+
+        conn2 = sqlite3.connect('applicationbase.sql')
+        cursor2 = conn2.cursor()        
+
+        cursor2.execute("SELECT whoTakeId FROM orders WHERE id = ('%s')" % (user_id_mess))
+        current_values = cursor2.fetchone()
+
+        if current_values is not None:
+            current_phone_numbers = current_values[0] if current_values[0] else ""
+            print(type(current_phone_numbers))
+            new_phone_numbers = current_phone_numbers + "," + str(orderTakeTwo) if current_phone_numbers else orderTakeTwo
+
+            cursor2.execute("UPDATE orders SET whoTakeId = '%s' WHERE id = '%s'" % (new_phone_numbers, user_id_mess))
+
+        conn2.commit()
+        cursor2.close()
+        conn2.close()
+
+        # conn = sqlite3.connect('applicationbase.sql')
+        # cursor = conn.cursor()
+
+        # cursor.execute("SELECT numberPhoneFriends, FIOFriends FROM orders WHERE id = ('%s')" % (user_id_mess))
+        # current_values = cursor.fetchone()
+
+        # current_phone_numbers = current_values[0] if current_values[0] else ""
+        # current_fio = current_values[1] if current_values[1] else ""
+                
+        # new_phone_numbers = current_phone_numbers + "," + phoneNumberSecondFriend if current_phone_numbers else phoneNumberSecondFriend
+        # new_fio = current_fio + "," + fioSecondFriend if current_fio else fioSecondFriend
+
+        # # cursor.execute("UPDATE orders SET numberPhoneFriends = ?, FIOFriends = ? WHERE id = ?", (new_phone_numbers, new_fio, user_id_mess))
+                
+
+        # cursor.execute("UPDATE orders SET numberPhoneFriends = '%s', FIOFriends = '%s' WHERE id = '%s'" % (new_phone_numbers, new_fio, user_id_mess))
+
+        # # cursor2.execute("SELECT orderMessageId FROM orders WHERE user_id = ('%s')" % (user_id))
+        # conn.commit()
+        # cursor.close()
+        # conn.close()
+        conn2 = sqlite3.connect('applicationbase.sql')
+        cursor2 = conn2.cursor()        
+
+        cursor2.execute("SELECT * FROM orders WHERE id = ('%s')" % (user_id_mess))
+        table_element = cursor2.fetchone()
+
+        order_info = f'✅\n<b>•{table_element[2]}: </b>{needText} {table_element[3]} {humanCount}\n<b>•Адрес:</b>👉 {table_element[4]}\n<b>•Что делать:</b> {table_element[5]}\n<b>•Начало работ:</b> {table_element[6]}\n<b>•Вам на руки:</b> <u>{table_element[7]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
+
+        bot.edit_message_text(order_info, callback.message.chat.id, callback.message.message_id, parse_mode='html')
+
+        bot.send_message(callback.message.chat.id, f'Принято, вы едете 1, ваш заказ номер: {user_id_mess}\n записался на заказ номер: {orderTakeTwo}') 
+        conn2.commit()
+        cursor2.close()
+        conn2.close()
     elif callback.data == 'Едем в 2':
-        bot.send_message(callback.message.chat.id, 'Принято, вы едете в 2')
+        conn2 = sqlite3.connect('applicationbase.sql')
+        cursor2 = conn2.cursor()        
+
+        cursor2.execute("SELECT * FROM orders WHERE id = ('%s')" % (user_id_mess))
+        table_element = cursor2.fetchone()
+
+        order_info = f'✅\n<b>•{table_element[2]}: </b>{needText} {table_element[3]} {humanCount}\n<b>•Адрес:</b>👉 {table_element[4]}\n<b>•Что делать:</b> {table_element[5]}\n<b>•Начало работ:</b> {table_element[6]}\n<b>•Вам на руки:</b> <u>{table_element[7]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
+
+        bot.edit_message_text(order_info, callback.message.chat.id, callback.message.message_id, parse_mode='html')
+
+        # bot.send_message(callback.message.chat.id, f'Принято, вы едете 1, ваш заказ номер: {user_id_mess}\n записался на заказ номер: {orderTakeTwo}') 
+        conn2.commit()
+        cursor2.close()
+        conn2.close()
+        input_fio_first_friend(callback.message)
+
     elif callback.data == 'Едем в 3':
-        bot.send_message(callback.message.chat.id, 'Принято, вы едете в 3')
-    elif callback.data == 'Едем в 4':
-        bot.send_message(callback.message.chat.id, 'Принято, вы едете в 4')
+        checkThirdFriend = True
+        conn2 = sqlite3.connect('applicationbase.sql')
+        cursor2 = conn2.cursor()        
+
+        cursor2.execute("SELECT * FROM orders WHERE id = ('%s')" % (user_id_mess))
+        table_element = cursor2.fetchone()
+
+        order_info = f'✅\n<b>•{table_element[2]}: </b>{needText} {table_element[3]} {humanCount}\n<b>•Адрес:</b>👉 {table_element[4]}\n<b>•Что делать:</b> {table_element[5]}\n<b>•Начало работ:</b> {table_element[6]}\n<b>•Вам на руки:</b> <u>{table_element[7]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
+
+        bot.edit_message_text(order_info, callback.message.chat.id, callback.message.message_id, parse_mode='html')
+
+        # bot.send_message(callback.message.chat.id, f'Принято, вы едете 1, ваш заказ номер: {user_id_mess}\n записался на заказ номер: {orderTakeTwo}') 
+        conn2.commit()
+        cursor2.close()
+        conn2.close()
+        input_fio_first_friend(callback.message)
+        # bot.send_message(callback.message.chat.id, 'Принято, вы едете в 3')
+    elif callback.data == 'Едем в 4':         
+        checkThirdFriend = True
+        checkFourthFriend = True       
+        conn2 = sqlite3.connect('applicationbase.sql')
+        cursor2 = conn2.cursor()        
+
+        cursor2.execute("SELECT * FROM orders WHERE id = ('%s')" % (user_id_mess))
+        table_element = cursor2.fetchone()
+
+        order_info = f'✅\n<b>•{table_element[2]}: </b>{needText} {table_element[3]} {humanCount}\n<b>•Адрес:</b>👉 {table_element[4]}\n<b>•Что делать:</b> {table_element[5]}\n<b>•Начало работ:</b> {table_element[6]}\n<b>•Вам на руки:</b> <u>{table_element[7]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
+
+        bot.edit_message_text(order_info, callback.message.chat.id, callback.message.message_id, parse_mode='html')
+
+        # bot.send_message(callback.message.chat.id, f'Принято, вы едете 1, ваш заказ номер: {user_id_mess}\n записался на заказ номер: {orderTakeTwo}') 
+        conn2.commit()
+        cursor2.close()
+        conn2.close()
+        input_fio_first_friend(callback.message)
+        # bot.send_message(callback.message.chat.id, 'Принято, вы едете в 4')
+
+def input_fio_first_friend(message):
+    bot.send_message(message.chat.id, 'Введите только ФИО друга', parse_mode='html')
+    bot.register_next_step_handler(message, fio_first_friend_check)
+
+def fio_first_friend_check(message):
+    global fioFirstFriend
+    if message.text is None:
+        bot.send_message(message.from_user.id, textOnly)
+        input_fio_first_friend(message) 
+    else:
+        if len(message.text.strip()) > maxSymbol:
+            bot.send_message(message.chat.id, lastnameError)
+            message.text.strip(None)
+            input_fio_first_friend(message) 
+        else:
+            fioFirstFriend = message.text.strip()
+            print(fioFirstFriend)
+            input_first_friend_number(message)
+
+def input_first_friend_number(message):
+    bot.send_message(message.chat.id, 'Введите номер телефона друга:', parse_mode='html')
+    bot.register_next_step_handler(message, first_friend_number_check)
+
+def first_friend_number_check(message):       
+    global phoneNumberFirstFriend
+    global checkThirdFriend
+    if message.text is None:
+        bot.send_message(message.from_user.id, textOnly)
+        input_first_friend_number(message)
+    else:
+        if len(message.text.strip()) != 11:
+            bot.send_message(message.chat.id, 'Введите правильный номер телефона')
+            message.text.strip(None)
+            input_first_friend_number(message)        
+        else:               
+            if message.text.isdigit():
+                phoneNumberFirstFriend = message.text.strip()    
+                if checkThirdFriend is True:          
+                    checkThirdFriend = False
+                    input_fio_second_friend(message)           
+                    print(checkThirdFriend)
+                else:  
+
+                    conn = sqlite3.connect('peoplebase.sql')
+                    cursor = conn.cursor()
+                    cursor.execute("SELECT orderTake FROM users WHERE user_id = ('%s')" % (user_id))
+                    takeOrderTake = cursor.fetchone()
+
+                    if takeOrderTake is not None:
+                        current_orderId = takeOrderTake[0] if takeOrderTake[0] else ""
+
+                        new_orderId = current_orderId + "," + str(user_id_mess) if current_orderId else user_id_mess
+                        cursor.execute("UPDATE users SET orderTake = '%s' WHERE user_id = '%s'" % (new_orderId, user_id))
+
+                    conn.commit()
+                    cursor.close()
+                    conn.close()
+
+
+                    conn2 = sqlite3.connect('applicationbase.sql')
+                    cursor2 = conn2.cursor()        
+
+                    cursor2.execute("SELECT whoTakeId FROM orders WHERE id = ('%s')" % (user_id_mess))
+                    current_values = cursor2.fetchone()
+
+                    if current_values is not None:
+                        current_phone_numbers = current_values[0] if current_values[0] else ""
+                        print(type(current_phone_numbers))
+                        new_phone_numbers = current_phone_numbers + "," + str(orderTakeTwo) if current_phone_numbers else orderTakeTwo
+
+                        cursor2.execute("UPDATE orders SET whoTakeId = '%s' WHERE id = '%s'" % (new_phone_numbers, user_id_mess))
+
+                    conn2.commit()
+                    cursor2.close()
+                    conn2.close()
+
+
+
+                    conn = sqlite3.connect('applicationbase.sql')
+                    cursor = conn.cursor()
+
+                    cursor.execute("SELECT numberPhoneFriends, FIOFriends FROM orders WHERE id = ('%s')" % (user_id_mess))
+                    current_values = cursor.fetchone()
+
+                    current_phone_numbers = current_values[0] if current_values[0] else ""
+                    current_fio = current_values[1] if current_values[1] else ""
+                    
+                    new_phone_numbers = current_phone_numbers + "," + phoneNumberFirstFriend if current_phone_numbers else phoneNumberFirstFriend
+                    new_fio = current_fio + "," + fioFirstFriend if current_fio else fioFirstFriend
+
+                    # cursor.execute("UPDATE orders SET numberPhoneFriends = ?, FIOFriends = ? WHERE id = ?", (new_phone_numbers, new_fio, user_id_mess))
+                    
+
+                    cursor.execute("UPDATE orders SET numberPhoneFriends = '%s', FIOFriends = '%s' WHERE id = '%s'" % (new_phone_numbers, new_fio, user_id_mess))
+
+                    # cursor2.execute("SELECT orderMessageId FROM orders WHERE user_id = ('%s')" % (user_id))
+                    conn.commit()
+                    cursor.close()
+                    conn.close()
+                    
+
+                    bot.send_message(message.chat.id, f'Вы {lastname} {firstname} {middlename} номер телефона: {nuberPhone} едете с другом: {fioFirstFriend} номер телефона: {phoneNumberFirstFriend}', parse_mode='html')
+                
+
+                    print('Номер телефона друга: ', phoneNumberFirstFriend, 'ФИО друга: ', fioFirstFriend)
+
+               
+                
+            else:
+                bot.send_message(message.chat.id, 'Введите корректный номер телефона друга без "+" и без пробелов, который начинается с 7 или с 8:', parse_mode='html')
+                input_first_friend_number(message)
+
+def input_fio_second_friend(message):
+    bot.send_message(message.chat.id, 'Введите только ФИО второго друга', parse_mode='html')
+    bot.register_next_step_handler(message, fio_second_friend_check)
+
+def fio_second_friend_check(message):
+    global fioSecondFriend
+    if message.text is None:
+        bot.send_message(message.from_user.id, textOnly)
+        input_fio_second_friend(message) 
+    else:
+        if len(message.text.strip()) > maxSymbol:
+            bot.send_message(message.chat.id, lastnameError)
+            message.text.strip(None)
+            input_fio_second_friend(message) 
+        else:
+            fioSecondFriend = message.text.strip()
+            print(fioSecondFriend)
+            input_second_friend_number(message)
+
+def input_second_friend_number(message):
+    bot.send_message(message.chat.id, 'Введите номер телефона второго друга:', parse_mode='html')
+    bot.register_next_step_handler(message, second_friend_number_check)
+
+def second_friend_number_check(message):       
+    global phoneNumberSecondFriend
+    global checkFourthFriend
+
+    if message.text is None:
+        bot.send_message(message.from_user.id, textOnly)
+        input_second_friend_number(message)
+    else:
+        if len(message.text.strip()) != 11:
+            bot.send_message(message.chat.id, 'Введите правильный номер телефона')
+            message.text.strip(None)
+            input_second_friend_number(message)        
+        else:               
+            if message.text.isdigit():
+                phoneNumberSecondFriend = message.text.strip()    
+                if checkFourthFriend is True:      
+                    checkFourthFriend = False
+                    input_fio_third_friend(message)              
+                    print(checkFourthFriend)
+                else:
+                    conn = sqlite3.connect('peoplebase.sql')
+                    cursor = conn.cursor()
+                    cursor.execute("SELECT orderTake FROM users WHERE user_id = ('%s')" % (user_id))
+                    takeOrderTake = cursor.fetchone()
+
+                    if takeOrderTake is not None:
+                        current_orderId = takeOrderTake[0] if takeOrderTake[0] else ""
+
+                        new_orderId = current_orderId + "," + str(user_id_mess) if current_orderId else user_id_mess
+                        cursor.execute("UPDATE users SET orderTake = '%s' WHERE user_id = '%s'" % (new_orderId, user_id))
+
+                    conn.commit()
+                    cursor.close()
+                    conn.close()
+
+                    conn2 = sqlite3.connect('applicationbase.sql')
+                    cursor2 = conn2.cursor()        
+
+                    cursor2.execute("SELECT whoTakeId FROM orders WHERE id = ('%s')" % (user_id_mess))
+                    current_values = cursor2.fetchone()
+
+                    if current_values is not None:
+                        current_phone_numbers = current_values[0] if current_values[0] else ""
+                        print(type(current_phone_numbers))
+                        new_phone_numbers = current_phone_numbers + "," + str(orderTakeTwo) if current_phone_numbers else orderTakeTwo
+
+                        cursor2.execute("UPDATE orders SET whoTakeId = '%s' WHERE id = '%s'" % (new_phone_numbers, user_id_mess))
+
+                    conn2.commit()
+                    cursor2.close()
+                    conn2.close()
+
+
+                    conn = sqlite3.connect('applicationbase.sql')
+                    cursor = conn.cursor()
+
+                    cursor.execute("SELECT numberPhoneFriends, FIOFriends FROM orders WHERE id = ('%s')" % (user_id_mess))
+                    current_values = cursor.fetchone()
+
+                    current_phone_numbers = current_values[0] if current_values[0] else ""
+                    current_fio = current_values[1] if current_values[1] else ""
+                    new_phone_numbers = current_phone_numbers + "," + phoneNumberFirstFriend + "," + phoneNumberSecondFriend if current_phone_numbers else phoneNumberFirstFriend + "," + phoneNumberSecondFriend
+                    new_fio = current_fio + "," + fioFirstFriend + "," + fioSecondFriend if current_fio else fioFirstFriend + "," + fioSecondFriend
+
+                    # cursor.execute("UPDATE orders SET numberPhoneFriends = ?, FIOFriends = ? WHERE id = ?", (new_phone_numbers, new_fio, user_id_mess))
+                    
+
+                    cursor.execute("UPDATE orders SET numberPhoneFriends = '%s', FIOFriends = '%s' WHERE id = '%s'" % (new_phone_numbers, new_fio, user_id_mess))
+
+                    # cursor2.execute("SELECT orderMessageId FROM orders WHERE user_id = ('%s')" % (user_id))
+                    conn.commit()
+                    cursor.close()
+                    conn.close()
+                    
+
+                    bot.send_message(message.chat.id, f'Вы {lastname} {firstname} {middlename} номер телефона: {nuberPhone}.\nВаши друзья:\n1. {fioFirstFriend} номер телефона: {phoneNumberFirstFriend}\n2. {fioSecondFriend} номер телефона: {phoneNumberSecondFriend}', parse_mode='html')
+
+
+                    print('Номер телефона друга: ', phoneNumberSecondFriend, 'ФИО друга: ', fioSecondFriend)
+
+                
+            else:
+                bot.send_message(message.chat.id, 'Введите корректный номер телефона друга без "+" и без пробелов, который начинается с 7 или с 8:', parse_mode='html')
+                input_second_friend_number(message)
+
+def input_fio_third_friend(message):
+    bot.send_message(message.chat.id, 'Введите только ФИО третьего друга', parse_mode='html')
+    bot.register_next_step_handler(message, fio_third_friend_check)
+
+def fio_third_friend_check(message):
+    global fioThirdFriend
+    if message.text is None:
+        bot.send_message(message.from_user.id, textOnly)
+        input_fio_third_friend(message) 
+    else:
+        if len(message.text.strip()) > maxSymbol:
+            bot.send_message(message.chat.id, lastnameError)
+            message.text.strip(None)
+            input_fio_third_friend(message) 
+        else:
+            fioThirdFriend = message.text.strip()
+            print(fioThirdFriend)
+            input_third_friend_number(message)
+
+def input_third_friend_number(message):
+    bot.send_message(message.chat.id, 'Введите номер телефона третьего друга:', parse_mode='html')
+    bot.register_next_step_handler(message, third_friend_number_check)
+
+def third_friend_number_check(message):   
+    global phoneNumberThirdFriend
+    if message.text is None:
+        bot.send_message(message.from_user.id, textOnly)
+        input_third_friend_number(message)
+    else:
+        if len(message.text.strip()) != 11:
+            bot.send_message(message.chat.id, 'Введите правильный номер телефона')
+            message.text.strip(None)
+            input_third_friend_number(message)        
+        else:               
+            if message.text.isdigit():
+                phoneNumberThirdFriend = message.text.strip()    
+
+                conn = sqlite3.connect('peoplebase.sql')
+                cursor = conn.cursor()
+                cursor.execute("SELECT orderTake FROM users WHERE user_id = ('%s')" % (user_id))
+                takeOrderTake = cursor.fetchone()
+
+                if takeOrderTake is not None:
+                    current_orderId = takeOrderTake[0] if takeOrderTake[0] else ""
+
+                    new_orderId = current_orderId + "," + str(user_id_mess) if current_orderId else user_id_mess
+                    cursor.execute("UPDATE users SET orderTake = '%s' WHERE user_id = '%s'" % (new_orderId, user_id))
+
+                conn.commit()
+                cursor.close()
+                conn.close()
+
+
+                conn2 = sqlite3.connect('applicationbase.sql')
+                cursor2 = conn2.cursor()        
+
+                cursor2.execute("SELECT whoTakeId FROM orders WHERE id = ('%s')" % (user_id_mess))
+                current_values = cursor2.fetchone()
+                print(user_id_mess)
+                if current_values is not None:
+                    current_phone_numbers = current_values[0] if current_values[0] else ""
+                    print(type(current_phone_numbers))
+                    new_phone_numbers = current_phone_numbers + "," + str(orderTakeTwo) if current_phone_numbers else orderTakeTwo
+
+                    cursor2.execute("UPDATE orders SET whoTakeId = '%s' WHERE id = '%s'" % (new_phone_numbers, user_id_mess))
+
+                conn2.commit()
+                cursor2.close()
+                conn2.close()
+
+
+
+                conn = sqlite3.connect('applicationbase.sql')
+                cursor = conn.cursor()
+
+                cursor.execute("SELECT numberPhoneFriends, FIOFriends FROM orders WHERE id = ('%s')" % (user_id_mess))
+                current_values = cursor.fetchone()
+
+                current_phone_numbers = current_values[0] if current_values[0] else ""
+                current_fio = current_values[1] if current_values[1] else ""
+
+
+                # new_phone_numbers = current_phone_numbers + "," + phoneNumberFirstFriend + "," + phoneNumberSecondFriend if current_phone_numbers else phoneNumberSecondFriend
+                # new_fio = current_fio + "," + fioFirstFriend + "," + fioSecondFriend if current_fio else fioSecondFriend
+
+                
+                new_phone_numbers = current_phone_numbers + "," + phoneNumberFirstFriend + "," + phoneNumberSecondFriend + "," + phoneNumberThirdFriend if current_phone_numbers else phoneNumberFirstFriend + "," + phoneNumberSecondFriend + "," + phoneNumberThirdFriend
+                new_fio = current_fio + "," + fioFirstFriend + "," + fioSecondFriend + "," + fioThirdFriend if current_fio else fioFirstFriend + "," + fioSecondFriend + "," + fioThirdFriend
+
+                # cursor.execute("UPDATE orders SET numberPhoneFriends = ?, FIOFriends = ? WHERE id = ?", (new_phone_numbers, new_fio, user_id_mess))
+                
+
+                cursor.execute("UPDATE orders SET numberPhoneFriends = '%s', FIOFriends = '%s' WHERE id = '%s'" % (new_phone_numbers, new_fio, user_id_mess))
+
+                # cursor2.execute("SELECT orderMessageId FROM orders WHERE user_id = ('%s')" % (user_id))
+                conn.commit()
+                cursor.close()
+                conn.close()
+                
+                bot.send_message(message.chat.id, f'Вы {lastname} {firstname} {middlename} номер телефона: {nuberPhone}.\nВаши друзья:\n1.{fioFirstFriend} номер телефона: {phoneNumberFirstFriend}\n2. {fioSecondFriend} номер телефона: {phoneNumberSecondFriend}\n 3. {fioThirdFriend} номер телефона: {phoneNumberThirdFriend}', parse_mode='html')
+
+                # bot.send_message(message.chat.id, f'Вы {lastname} {firstname} {middlename} номер телефона: {nuberPhone} едете с другом: {fioThirdFriend} номер телефона: {phoneNumberThirdFriend}', parse_mode='html')
+                
+
+                print('Номер телефона друга: ', phoneNumberFirstFriend, 'ФИО друга: ', fioFirstFriend)
+                print('Номер телефона друга: ', phoneNumberSecondFriend, 'ФИО друга: ', fioSecondFriend)
+                print('Номер телефона друга: ', phoneNumberThirdFriend, 'ФИО друга: ', fioThirdFriend)
+            else:
+                bot.send_message(message.chat.id, 'Введите корректный номер телефона друга без "+" и без пробелов, который начинается с 7 или с 8:', parse_mode='html')
+                input_third_friend_number(message)
+
 
 
 
@@ -446,6 +990,13 @@ def data(message):
     global passport
 
     global samozanYorN
+
+    global orderTake
+    global orderDone
+    global orderMiss
+
+    global percent_completed
+    global percent_failed
 
     # conn = sqlite3.connect('user_data.sql')
     # cursor = conn.cursor()
@@ -488,6 +1039,14 @@ def data(message):
             cityTrue = takeParam[14]  
             nalogacc = takeParam[10]  
             passport = takeParam[12]
+            orderTake = takeParam[15]
+            orderDone = takeParam[16]
+            orderMiss = takeParam[17]
+
+
+            
+
+
 
 
         else:
@@ -617,8 +1176,21 @@ def orders(message):
         check_user_id = None
     conn.close()
     if check_user_id is not None or user_id is not None:
-        usercitizenRF = 'На данный момент у Вас нет активных заявок. Следите за новыми заявками и берите те, по которым хотите работать.'   
-        bot.send_message(message.chat.id, usercitizenRF)
+
+        conn = sqlite3.connect('applicationbase.sql')
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM orders WHERE id = ('%s')" % (user_id_mess))
+        users = cur.fetchall()
+        info = ''
+        for el in users:
+            info += f'Вы взяли заказ номер: {el[0]}\n<b>•Город:</b> {el[2]}\n<b>•Адрес:</b>👉 {el[4]}\n<b>•Что делать:</b> {el[5]}\n<b>•Начало работ:</b> в {el[6]}\n<b>•Вам на руки:</b> <u>{el[7]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
+        cur.close()
+        conn.close()
+
+        bot.send_message(message.chat.id, info, parse_mode='html')
+
+        # usercitizenRF = 'На данный момент у Вас нет активных заявок. Следите за новыми заявками и берите те, по которым хотите работать.'   
+        # bot.send_message(message.chat.id, usercitizenRF)
     else:
         markup = types.InlineKeyboardMarkup()
         btn2 = types.InlineKeyboardButton('👉 Перейти к боту регистрации', url='https://t.me/GraeYeBot', one_time_keyboard=True)
@@ -710,6 +1282,9 @@ def callback_data_of_data(callback):
     global isOpenEdit
     global data_called
     global samozanYorN
+
+    global percent_completed
+    global percent_failed
     if callback.data == '📝Редактировать данные':
         data_called = False
         bot.delete_message(callback.message.chat.id, callback.message.message_id)
@@ -725,13 +1300,49 @@ def callback_data_of_data(callback):
         data(callback.message)
 
     elif callback.data == '📊 Статистика заказов':  
-        data_called = False      
+        data_called = False         
+        conn = sqlite3.connect('peoplebase.sql')
+        c = conn.cursor()
+
+        # Выполнение SQL-запроса
+        # c.execute("SELECT orderTake, orderDone, orderMiss FROM users")
+        c.execute("SELECT * FROM users WHERE id = '%s'" % (id_nubmer_list))
+        test2 = c.fetchone()
+        # Получение данных
+        orderDataTake = test2[15]
+        orderDataDone = test2[16]
+        orderDataMiss = test2[17]
+
+        # Разделение данных по запятым и подсчет количества записей
+        recordsTake = orderDataTake.split(',')
+        orderCountTake = len(recordsTake)
+
+        recordsDone = orderDataDone.split(',')
+        orderCountDone = len(recordsDone)
+
+        recordsMiss = orderDataMiss.split(',')
+        orderCountMiss = len(recordsMiss)
+
+        print(f"Количество записей: {orderCountTake}")
+        print(f"Количество записей: {orderCountDone}")
+        print(f"Количество записей: {orderCountMiss}")
+
+        # Закрытие соединения с базой данных
+        conn.close()
+        try:
+            percent_completed = (orderCountDone / orderCountTake) * 100
+            percent_failed = (orderCountMiss / orderCountTake) * 100
+        except Exception:
+            percent_completed = 0
+            percent_failed = 0
+            print('на ноль делить нельзя')
+
         markup = types.InlineKeyboardMarkup()
         btn2 = types.InlineKeyboardButton(citizenRuButtonYesText, callback_data=citizenRuButtonYesTextCallbackData, one_time_keyboard=True)
         btn3 = types.InlineKeyboardButton(citizenRuButtonNoText, callback_data=citizenRuButtonNoTextCallbackData, one_time_keyboard=True)
         markup.row(btn2)  
         markup.row(btn3)  
-        bot.send_message(callback.message.chat.id, f'📊 Статистика заказов:\n• Взял 0\n• Выполнил 0 (0%)\n• Брак 0 (0%)', reply_markup=markup)
+        bot.send_message(callback.message.chat.id, f'📊 Статистика заказов:\n• Взял: {orderCountTake}\n• Выполнил: {orderCountDone} ({percent_completed}%)\n• Брак: {orderCountMiss} ({percent_failed}%)', reply_markup=markup)
 
     elif callback.data == '✅Подтвердить аккаунт': 
         print(nuberPhone , lastname)
