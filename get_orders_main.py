@@ -218,14 +218,27 @@ def registration(message):
         bot.send_message(message.chat.id, f'Для регистрации перейдите к боту по кнопке!\n\n👇👇👇👇👇', parse_mode='html', reply_markup=markup)
 
     while True:
+
+        # c.execute("SELECT orderMessageId, actualMess FROM orders")
+
+        # # Проходимся по всем строкам
+        # for row in c.fetchall():
+        #     if row[1] == False:  # Если actualMess равно False
+        #         print(row[0])  # Выводим orderMessageId
+
+        # # Закрываем соединение с базой данных
+        # conn.close()
        
         conn = sqlite3.connect('applicationbase.sql')
         cur = conn.cursor()
 
         try:
+            # cur.execute('SELECT * FROM orders')
             cur.execute('SELECT * FROM orders ORDER BY id DESC LIMIT 1')
             users = cur.fetchone() 
-
+            # for users in cur.fetchall():
+            #     if users[10] == 'False':  # Если actualMess равно False
+            #         print(users[9])  # Выводим orderMessageId
             
 
             
@@ -279,7 +292,7 @@ def registration(message):
             
                 
                 # print(users[10])
-                order_info = f'✅\n<b>•{users[2]}: </b>{needText} {users[3]} {humanCount}\n<b>•Адрес:</b>👉 {users[4]}\n<b>•Что делать:</b> {users[5]}\n<b>•Начало работ:</b> {users[6]}\n<b>•Вам на руки:</b> <u>{users[7]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
+                order_info = f'✅\n<b>•{users[2]}: </b>{needText} {users[3]} {humanCount}\n<b>•Адрес:</b>👉 {users[4]}\n<b>•Что делать:</b> {users[5]}\n<b>•Начало работ:</b> в {users[6]}\n<b>•Вам на руки:</b> <u>{users[7]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
                 # if str(users[10]) == "False" and check_mess_already_send == False:    
                     # print(users[10])      
                     # order_info_close = f'❌ Заявка закрыта\n<b>•{users[2]}: </b>{needText} {users[3]} {humanCount}\n<b>•Адрес:</b>👉 {users[4]}\n<b>•Что делать:</b> {users[5]}\n<b>•Начало работ:</b> {users[6]}\n<b>•Вам на руки:</b> <u>{users[7]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
@@ -566,7 +579,7 @@ def callback_data_of_data(callback):
         cursor2.execute("SELECT * FROM orders WHERE id = ('%s')" % (user_id_mess))
         table_element = cursor2.fetchone()
 
-        order_info = f'✅\n<b>•{table_element[2]}: </b>{needText} {table_element[3]} {humanCount}\n<b>•Адрес:</b>👉 {table_element[4]}\n<b>•Что делать:</b> {table_element[5]}\n<b>•Начало работ:</b> {table_element[6]}\n<b>•Вам на руки:</b> <u>{table_element[7]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
+        order_info = f'✅\n<b>•{table_element[2]}: </b>{needText} {table_element[3]} {humanCount}\n<b>•Адрес:</b>👉 {table_element[4]}\n<b>•Что делать:</b> {table_element[5]}\n<b>•Начало работ:</b> в {table_element[6]}\n<b>•Вам на руки:</b> <u>{table_element[7]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
 
         bot.edit_message_text(order_info, callback.message.chat.id, callback.message.message_id, parse_mode='html')
 
@@ -581,7 +594,7 @@ def callback_data_of_data(callback):
         cursor2.execute("SELECT * FROM orders WHERE id = ('%s')" % (user_id_mess))
         table_element = cursor2.fetchone()
 
-        order_info = f'✅\n<b>•{table_element[2]}: </b>{needText} {table_element[3]} {humanCount}\n<b>•Адрес:</b>👉 {table_element[4]}\n<b>•Что делать:</b> {table_element[5]}\n<b>•Начало работ:</b> {table_element[6]}\n<b>•Вам на руки:</b> <u>{table_element[7]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
+        order_info = f'✅\n<b>•{table_element[2]}: </b>{needText} {table_element[3]} {humanCount}\n<b>•Адрес:</b>👉 {table_element[4]}\n<b>•Что делать:</b> {table_element[5]}\n<b>•Начало работ:</b> в {table_element[6]}\n<b>•Вам на руки:</b> <u>{table_element[7]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
 
         bot.edit_message_text(order_info, callback.message.chat.id, callback.message.message_id, parse_mode='html')
 
@@ -599,7 +612,7 @@ def callback_data_of_data(callback):
         cursor2.execute("SELECT * FROM orders WHERE id = ('%s')" % (user_id_mess))
         table_element = cursor2.fetchone()
 
-        order_info = f'✅\n<b>•{table_element[2]}: </b>{needText} {table_element[3]} {humanCount}\n<b>•Адрес:</b>👉 {table_element[4]}\n<b>•Что делать:</b> {table_element[5]}\n<b>•Начало работ:</b> {table_element[6]}\n<b>•Вам на руки:</b> <u>{table_element[7]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
+        order_info = f'✅\n<b>•{table_element[2]}: </b>{needText} {table_element[3]} {humanCount}\n<b>•Адрес:</b>👉 {table_element[4]}\n<b>•Что делать:</b> {table_element[5]}\n<b>•Начало работ:</b> в {table_element[6]}\n<b>•Вам на руки:</b> <u>{table_element[7]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
 
         bot.edit_message_text(order_info, callback.message.chat.id, callback.message.message_id, parse_mode='html')
 
@@ -618,7 +631,7 @@ def callback_data_of_data(callback):
         cursor2.execute("SELECT * FROM orders WHERE id = ('%s')" % (user_id_mess))
         table_element = cursor2.fetchone()
 
-        order_info = f'✅\n<b>•{table_element[2]}: </b>{needText} {table_element[3]} {humanCount}\n<b>•Адрес:</b>👉 {table_element[4]}\n<b>•Что делать:</b> {table_element[5]}\n<b>•Начало работ:</b> {table_element[6]}\n<b>•Вам на руки:</b> <u>{table_element[7]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
+        order_info = f'✅\n<b>•{table_element[2]}: </b>{needText} {table_element[3]} {humanCount}\n<b>•Адрес:</b>👉 {table_element[4]}\n<b>•Что делать:</b> {table_element[5]}\n<b>•Начало работ:</b> в {table_element[6]}\n<b>•Вам на руки:</b> <u>{table_element[7]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
 
         bot.edit_message_text(order_info, callback.message.chat.id, callback.message.message_id, parse_mode='html')
 
@@ -1308,20 +1321,20 @@ def callback_data_of_data(callback):
         # c.execute("SELECT orderTake, orderDone, orderMiss FROM users")
         c.execute("SELECT * FROM users WHERE id = '%s'" % (id_nubmer_list))
         test2 = c.fetchone()
-        # Получение данных
+            # Получение данных
         orderDataTake = test2[15]
         orderDataDone = test2[16]
-        orderDataMiss = test2[17]
+        orderDataMiss = test2[17] 
 
         # Разделение данных по запятым и подсчет количества записей
         recordsTake = orderDataTake.split(',')
         orderCountTake = len(recordsTake)
 
         recordsDone = orderDataDone.split(',')
-        orderCountDone = len(recordsDone)
+        orderCountDone = len(recordsDone) - 1
 
         recordsMiss = orderDataMiss.split(',')
-        orderCountMiss = len(recordsMiss)
+        orderCountMiss = len(recordsMiss) - 1
 
         print(f"Количество записей: {orderCountTake}")
         print(f"Количество записей: {orderCountDone}")
@@ -1330,8 +1343,8 @@ def callback_data_of_data(callback):
         # Закрытие соединения с базой данных
         conn.close()
         try:
-            percent_completed = (orderCountDone / orderCountTake) * 100
-            percent_failed = (orderCountMiss / orderCountTake) * 100
+            percent_completed = (orderCountDone / (orderCountTake)) * 100
+            percent_failed = (orderCountMiss / (orderCountTake)) * 100
         except Exception:
             percent_completed = 0
             percent_failed = 0

@@ -383,7 +383,7 @@ def created_order(message):
     btn2 = types.InlineKeyboardButton(orderSendText, callback_data=orderSendTextCallbackData, one_time_keyboard=True)
     btn3 = types.InlineKeyboardButton(orderDeleteText, callback_data=orderDeleteCallbackData, one_time_keyboard=True)
     markup.row(btn2, btn3)    
-    sent_message = bot1.send_message(message.chat.id, f'✅\n<b>·{cityname}: </b>{needText} {countPeople} {humanCount}\n<b>·Адрес:</b>👉 {adress}\n<b>·Что делать:</b> {whattodo}\n<b>·Начало работ:</b> {timetostart}\n<b>·Вам на руки:</b> <u>{salary}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>', parse_mode='html', reply_markup=markup)  
+    sent_message = bot1.send_message(message.chat.id, f'✅\n<b>·{cityname}: </b>{needText} {countPeople} {humanCount}\n<b>·Адрес:</b>👉 {adress}\n<b>·Что делать:</b> {whattodo}\n<b>·Начало работ:</b> в {timetostart}\n<b>·Вам на руки:</b> <u>{salary}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>', parse_mode='html', reply_markup=markup)  
     # start(message)
     sent_message_id = sent_message.message_id
 
@@ -413,7 +413,7 @@ def callback_message_created_order(callback):
         # sent_message_id = sent_message.message_id
 
 
-        application = f'✅\n<b>·{cityname}: </b>{needText} {countPeople} {humanCount}\n<b>·Адрес:</b>👉 {adress}\n<b>·Что делать:</b> {whattodo}\n<b>·Начало работ:</b> {timetostart}\n<b>·Вам на руки:</b> <u>{salary}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
+        application = f'✅\n<b>·{cityname}: </b>{needText} {countPeople} {humanCount}\n<b>·Адрес:</b>👉 {adress}\n<b>·Что делать:</b> {whattodo}\n<b>·Начало работ:</b> в {timetostart}\n<b>·Вам на руки:</b> <u>{salary}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
         
         markup1 = types.InlineKeyboardMarkup()
         btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='❌ Закрыть заявку', one_time_keyboard=True)
@@ -491,17 +491,20 @@ def callback_message_created_order(callback):
         # sent_message = bot.send_message(message.chat.id, order_info, reply_markup=markup2, parse_mode='html')
         # last_message_id = sent_message.message_id  
         
-        users = cursor.fetchone()
+        # users = cursor.fetchone()
         
+        message_id = callback.message.message_id
         sql_query = "UPDATE orders SET actualMess = ('%s') WHERE adminMessageId = ('%s')"
-        cursor.execute(sql_query % ('False' , sent_message_id))
+        cursor.execute(sql_query % ('False' , message_id))
 
+        cursor.execute("SELECT cityOfobj, countpeople, adress, whattodo, timetostart, salary FROM orders WHERE adminMessageId = ('%s')" % (message_id))
+        test2 = cursor.fetchone()
                     # Коммит изменений в базу данных
         conn.commit()
 
                     # Закрытие соединения с базой данных
         conn.close()
-        application = f'❌ Заявка закрыта\n<b>·{cityname}: </b>{needText} {countPeople} {humanCount}\n<b>·Адрес:</b>👉 {adress}\n<b>·Что делать:</b> {whattodo}\n<b>·Начало работ:</b> в {timetostart}\n<b>·Вам на руки:</b> <u>{salary}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
+        application = f'❌ Заявка закрыта\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</b> в {test2[4]}\n<b>·Вам на руки:</b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
 
         bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html')
         print("все произошло")
@@ -521,13 +524,16 @@ def callback_message_created_order(callback):
         # conn.close()
         conn = sqlite3.connect('applicationbase.sql')
         cur = conn.cursor()
-        cur.execute('SELECT * FROM orders ORDER BY id DESC LIMIT 1')
-        users = cur.fetchone() 
-        order_info_close = f'❌ Заявка закрыта\n<b>•{users[2]}: </b>{needText} {users[3]} {humanCount}\n<b>•Адрес:</b>👉 {users[4]}\n<b>•Что делать:</b> {users[5]}\n<b>•Начало работ:</b> в {users[6]}\n<b>•Вам на руки:</b> <u>{users[7]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
-        user_message_ids = users[9]
-        chat_id_list = users[11].split(',') if users[11] else []
-        message_id_list = user_message_ids.split(',') if user_message_ids else []
+        
+        # cur.execute('SELECT * FROM orders ORDER BY id DESC LIMIT 1')
+        cur.execute("SELECT cityOfobj, countpeople, adress, whattodo, timetostart, salary, orderMessageId, orderChatId FROM orders WHERE adminMessageId = ('%s')" % (message_id))
 
+        users = cur.fetchone() 
+        order_info_close = f'❌ Заявка закрыта\n<b>•{users[0]}: </b>{needText} {users[1]} {humanCount}\n<b>•Адрес:</b>👉 {users[2]}\n<b>•Что делать:</b> {users[3]}\n<b>•Начало работ:</b> в {users[4]}\n<b>•Вам на руки:</b> <u>{users[5]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
+        user_message_ids = users[6]
+        chat_id_list = users[7].split(',') if users[7] else []
+        message_id_list = user_message_ids.split(',') if user_message_ids else []
+        conn.close()
         for chat_id, message_id in zip(chat_id_list, message_id_list):
             print('Чат id: ',chat_id)
             print('Месседж id: ', message_id)
@@ -556,7 +562,7 @@ def callback_message_created_order(callback):
         #         bot2.edit_message_text(order_info_close, chat_id, message_id, parse_mode='html')
                                                     # нужно поменять callback.message.chat.id на чат id который будет меняться
                     # Закрытие соединения с базой данных
-    conn.close()
+    
         
 
 
