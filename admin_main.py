@@ -16,6 +16,12 @@ import get_orders_config.get_orders_config_message as config_message_bot_order
 
 import citys.city_list as citys
 
+# admin_main.py
+from observable import Observable
+
+admin_bot = Observable()
+
+
 
 
 botApiKey = API_key_one.botAPI
@@ -121,6 +127,7 @@ loginin = False
 sent_message_id = None
 
 user_message_ids = {}
+
 
 def start(message):
     markup = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
@@ -388,7 +395,9 @@ def created_order(message):
     sent_message_id = sent_message.message_id
 
 
-
+# def get_value(testTest):
+#     testTest = False
+#     return testTest
 
 
 @bot1.callback_query_handler(func=lambda callback: callback.data == orderSendTextCallbackData)
@@ -396,22 +405,9 @@ def created_order(message):
 def callback_message_created_order(callback):  
     global feedback 
     global chatcity
-    # global updated_message_id
     if callback.data == orderSendTextCallbackData:
 
-        # conn = sqlite3.connect('user_data.sql')
-        # cursor = conn.cursor()
-
-        # cursor.execute("SELECT user_id FROM users")
-        # user_ids = cursor.fetchall()
-
-        
-
         feedback = orderSendText     
-        # sent_message  = bot1.send_message(callback.message.chat.id, userCitizenRuText,parse_mode='html')
-        
-        # sent_message_id = sent_message.message_id
-
 
         application = f'✅\n<b>·{cityname}: </b>{needText} {countPeople} {humanCount}\n<b>·Адрес:</b>👉 {adress}\n<b>·Что делать:</b> {whattodo}\n<b>·Начало работ:</b> в {timetostart}\n<b>·Вам на руки:</b> <u>{salary}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
         
@@ -419,50 +415,9 @@ def callback_message_created_order(callback):
         btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='❌ Закрыть заявку', one_time_keyboard=True)
         markup1.row(btn01)
         bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, reply_markup=markup1, parse_mode='html')
-        # updated_message_id = sent_message_id.message_id
 
         print(sent_message_id)
-        # if (int(countPeople) <= 1):
-        #     markup2 = types.InlineKeyboardMarkup()
-        #     btn12 = types.InlineKeyboardButton('Еду 1', callback_data='Еду 1', one_time_keyboard=True)
-        #     btn52 = types.InlineKeyboardButton('❓ Задать вопрос', callback_data='❓ Задать вопрос', one_time_keyboard=True)
-        #     markup2.row(btn12)  
-        #     markup2.row(btn52)            
-        # elif (int(countPeople) == 2):
-        #     markup2 = types.InlineKeyboardMarkup()
-        #     btn12 = types.InlineKeyboardButton('Еду 1', callback_data='Еду 1', one_time_keyboard=True)
-        #     btn22 = types.InlineKeyboardButton('Едем в 2', callback_data='Едем в 2', one_time_keyboard=True)
-        #     btn52 = types.InlineKeyboardButton('❓ Задать вопрос', callback_data='❓ Задать вопрос', one_time_keyboard=True)
-        #     markup2.row(btn12)  
-        #     markup2.row(btn22)  
-        #     markup2.row(btn52) 
-        # elif (int(countPeople) == 3):
-        #     markup2 = types.InlineKeyboardMarkup()
-        #     btn12 = types.InlineKeyboardButton('Еду 1', callback_data='Еду 1', one_time_keyboard=True)
-        #     btn22 = types.InlineKeyboardButton('Едем в 2', callback_data='Едем в 2', one_time_keyboard=True)
-        #     btn32 = types.InlineKeyboardButton('Едем в 3', callback_data='Едем в 3', one_time_keyboard=True)
-        #     btn52 = types.InlineKeyboardButton('❓ Задать вопрос', callback_data='❓ Задать вопрос', one_time_keyboard=True)
-        #     markup2.row(btn12)  
-        #     markup2.row(btn22)  
-        #     markup2.row(btn32)  
-        #     markup2.row(btn52) 
-        # elif (int(countPeople) >= 4):
-        #     markup2 = types.InlineKeyboardMarkup()
-        #     btn12 = types.InlineKeyboardButton('Еду 1', callback_data='Еду 1', one_time_keyboard=True)
-        #     btn22 = types.InlineKeyboardButton('Едем в 2', callback_data='Едем в 2', one_time_keyboard=True)
-        #     btn32 = types.InlineKeyboardButton('Едем в 3', callback_data='Едем в 3', one_time_keyboard=True)
-        #     btn42 = types.InlineKeyboardButton('Едем в 4', callback_data='Едем в 4', one_time_keyboard=True)
-        #     btn52 = types.InlineKeyboardButton('❓ Задать вопрос', callback_data='❓ Задать вопрос', one_time_keyboard=True)
-        #     markup2.row(btn12)  
-        #     markup2.row(btn22)  
-        #     markup2.row(btn32)  
-        #     markup2.row(btn42)  
-        #     markup2.row(btn52) 
-
-        # for user_id_test in user_ids:
-        # try:    
         if cityname == 'Арзамас':
-            # sent_message_id2 = test2.message_id
             chatcity = arzCity
         elif cityname == 'Екатеринбург':                    
             chatcity = ekaCity
@@ -471,10 +426,8 @@ def callback_message_created_order(callback):
         elif cityname == 'Москва':
             chatcity = mosCity
 
-        # except Exception as e:
-        #     print(f"Ошибка при отправке сообщения пользователю {user_id_test[0]}: {str(e)}")
-
-        # conn.close()
+        # admin_main.py
+        admin_bot.value = "Ваше сообщение здесь"
     else:          
         feedback = orderDeleteText
         bot1.delete_message(callback.message.chat.id, callback.message.message_id)
