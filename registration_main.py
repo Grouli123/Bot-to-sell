@@ -323,7 +323,7 @@ def import_into_database(message):
     global state  
     conn = sqlite3.connect('peoplebase.sql')
     cur = conn.cursor()
-    cur.execute(insertIntoBase % (phone, locationcity, lastname, firstname, middlename, userbirthday, usercitizenRF, user_id, samozanatost, agreeaccaunt, passport, chatcity, cityTrue, orderTake, orderDone, orderMiss, '')) 
+    cur.execute(insertIntoBase % (phone, locationcity, lastname, firstname, middlename, userbirthday, usercitizenRF, user_id, samozanatost, agreeaccaunt, passport, chatcity, cityTrue, orderTake, orderDone, orderMiss, 'None')) 
    
     conn.commit()
     cur.close()

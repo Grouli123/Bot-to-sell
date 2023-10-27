@@ -538,8 +538,6 @@ def check_callback_message_ready_order(message):
             bot1.edit_message_text(userCitizenRuText, message.chat.id, message.message_id)
 
 def import_into_database(message):
-    from get_orders_main import get_user_id
-
     global state  
     conn = sqlite3.connect('applicationbase.sql')
     cur = conn.cursor()
@@ -556,8 +554,8 @@ def import_into_database(message):
     bot1.send_message(message.chat.id, alreadyRegistered, reply_markup=markup)
     
     state = 'citizenRU'
-    user_id = get_user_id()
-    print('новый юзер', user_id)
+    # user_id = get_user_id()
+    # print('новый юзер', user_id)
     testMethod()
 
 
