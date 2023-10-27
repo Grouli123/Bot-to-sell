@@ -17,12 +17,13 @@ import get_orders_config.get_orders_config_message as config_message_bot_order
 import citys.city_list as citys
 
 # admin_main.py
-from observable import Observable
+# from observable import Observable
 
-admin_bot = Observable()
+# admin_bot = Observable()
 
 
 
+from get_orders_main import testMethod
 
 botApiKey = API_key_one.botAPI
 
@@ -406,7 +407,6 @@ def callback_message_created_order(callback):
     global feedback 
     global chatcity
     if callback.data == orderSendTextCallbackData:
-
         feedback = orderSendText     
 
         application = f'✅\n<b>·{cityname}: </b>{needText} {countPeople} {humanCount}\n<b>·Адрес:</b>👉 {adress}\n<b>·Что делать:</b> {whattodo}\n<b>·Начало работ:</b> в {timetostart}\n<b>·Вам на руки:</b> <u>{salary}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
@@ -427,7 +427,7 @@ def callback_message_created_order(callback):
             chatcity = mosCity
 
         # admin_main.py
-        admin_bot.value = "Ваше сообщение здесь"
+        # admin_bot.value = "Ваше сообщение здесь"
     else:          
         feedback = orderDeleteText
         bot1.delete_message(callback.message.chat.id, callback.message.message_id)
@@ -538,6 +538,8 @@ def check_callback_message_ready_order(message):
             bot1.edit_message_text(userCitizenRuText, message.chat.id, message.message_id)
 
 def import_into_database(message):
+    from get_orders_main import get_user_id
+
     global state  
     conn = sqlite3.connect('applicationbase.sql')
     cur = conn.cursor()
@@ -554,6 +556,11 @@ def import_into_database(message):
     bot1.send_message(message.chat.id, alreadyRegistered, reply_markup=markup)
     
     state = 'citizenRU'
+    user_id = get_user_id()
+    print('новый юзер', user_id)
+    testMethod()
+
+
     start(message)
 
 def show_database_orders(message):
