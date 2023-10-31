@@ -8,11 +8,17 @@ import registration_people_config.registration_API_key as API_key
 import registration_people_config.registration_sqlBase as sqlBase
 import registration_people_config.registration_config_message as config_message
 
+
+
+import registration_people_config.custumers_sqlBase as sqlBaseCustomer
+
+
 import citys.city_list as citys
 
 botApiKey = API_key.botAPI
 
 bot = telebot.TeleBot(botApiKey)
+
 
 base = sqlBase.createDatabase
 insertIntoBase = sqlBase.insertIntoDatabase
@@ -71,7 +77,8 @@ samozanatost = 'Нет'
 agreeaccaunt = 'Нет'
 passport = 'Нет'
 
-state = 'initial'
+state = None
+
 
 user_id = None
 
@@ -85,17 +92,45 @@ chatcity = None
 
 cityTrue = 'False'
 
+actualOrder = ''
 orderTake = ''
 orderDone = ''
 orderMiss = ''
+raiting = ''
+
+user_id_order = None
+phoneOrder = None
+lastnameOrder = None
+firstnameOrder = None
+middlenameOrder = None
+loginOrder = None
+passwordOrder = None
+
+baseCustomer = sqlBaseCustomer.createDatabase
+
+nameOfBaseCustomer = sqlBaseCustomer.name_of_base
 
 @bot.message_handler(commands=['start'])
 def registration(message):
-    global user_id
+    global user_id 
+    user_id = message.from_user.id
+    print(user_id)
+    markup = types.InlineKeyboardMarkup()
+    btn2 = types.InlineKeyboardButton('Я заказчик', callback_data='Заказчик', one_time_keyboard=True)
+    btn3 = types.InlineKeyboardButton('Я рабочий', callback_data='Рабочий', one_time_keyboard=True)
+    markup.row(btn2, btn3)    
+    bot.send_message(message.chat.id, f'Выберите пункт:', parse_mode='html', reply_markup=markup)  
+    
+
+    
+
+
+def numberPhoneInput(message):
+    # global user_id
     
     conn = sqlite3.connect('peoplebase.sql')
     cur = conn.cursor()
-    user_id = message.from_user.id
+    # user_id = message.from_user.id
     cur.execute(base)
     conn.commit() 
 
@@ -131,9 +166,6 @@ def registration(message):
         markup.add(types.InlineKeyboardButton(f'{buttonResultName} {locationcity}', callback_data=nameOfBase, url=f'https://t.me/{chatcity}'))
         
         bot.send_message(message.chat.id, alreadyRegistered, reply_markup=markup)
-
-
-
 
 def geolocation(message):    
     global phone
@@ -241,6 +273,181 @@ def middlename_check(message):
             print(middlename_check)
             input_birtgday(message)
 
+
+
+def numberPhoneInput_order(message):
+    # global user_id
+    
+    conn = sqlite3.connect('customerBase.sql')
+    cur = conn.cursor()
+    # user_id = message.from_user.id
+    cur.execute(baseCustomer)
+    conn.commit() 
+
+    print('юзер ордер', user_id)
+
+    cur.execute("SELECT * FROM custumers WHERE user_id = ('%s')" % (user_id))
+    existing_user = cur.fetchone()
+
+
+    cur.close()
+    conn.close()
+
+    if existing_user is None:
+        
+        keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+        button_phone = types.KeyboardButton(text=phoneButtonText, request_contact=True)
+        keyboard.add(button_phone)
+        bot.send_message(message.chat.id, phoneMessageText, reply_markup=keyboard, parse_mode='html')
+        bot.register_next_step_handler(message, number_check)   
+    else:
+        conn = sqlite3.connect('customerBase.sql')
+        cur = conn.cursor()
+
+        cur.execute("SELECT botchatname, city FROM custumers WHERE user_id = ('%s')" % (user_id))
+        result = cur.fetchone()
+        chatcity = result[0]
+        locationcity = result[1]
+        print(chatcity)
+
+
+        cur.close()
+        conn.close()
+        markup = types.InlineKeyboardMarkup()
+        markup.add(types.InlineKeyboardButton(f'{buttonResultName} {locationcity}', callback_data=nameOfBaseCustomer, url=f'https://t.me/{chatcity}'))
+        
+        bot.send_message(message.chat.id, alreadyRegistered, reply_markup=markup)
+
+def number_check(message):    
+    global phoneOrder 
+    try:
+        phoneOrder = message.contact.phone_number
+        if phoneOrder.startswith('+7') or phoneOrder.startswith('7'):
+            bot.send_message(message.chat.id, f'Отлично, осталось немного', reply_markup=types.ReplyKeyboardRemove()) 
+            input_lastname_order(message)
+
+        else:
+            keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+            button_phone = types.KeyboardButton(text=phoneButtonText, request_contact=True)
+            keyboard.add(button_phone)
+            bot.send_message(message.chat.id, f"Недопустимый номер {phoneOrder}.\n\nПривет!\n\nДавай пройдём короткую регистрацию🤝Для начала - поделись номером телефона!👇👇👇👇👇", reply_markup=keyboard, parse_mode='html')
+            bot.register_next_step_handler(message, number_check)   
+    except Exception:        
+        bot.send_message(message.chat.id, phoneError, parse_mode='html')
+        bot.register_next_step_handler(message, number_check)   
+
+def input_lastname_order(message):
+    bot.send_message(message.chat.id, lastnameText, parse_mode='html')
+    bot.register_next_step_handler(message, lastneme_check_order)   
+
+def lastneme_check_order(message):
+    global lastnameOrder 
+    if message.text is None:
+        bot.send_message(message.from_user.id, textOnly)
+        input_lastname_order(message) 
+    else:
+        if len(message.text.strip()) > maxSymbol:
+            bot.send_message(message.chat.id, lastnameError)
+            message.text.strip(None)
+            input_lastname_order(message) 
+        else:
+            lastnameOrder = message.text.strip()
+            input_firstname_order(message)
+
+def input_firstname_order(message):
+    bot.send_message(message.chat.id, firstnameText, parse_mode='html')
+    bot.register_next_step_handler(message, firstname_check_order)
+
+def firstname_check_order(message):       
+    global firstnameOrder 
+    if message.text is None:
+        bot.send_message(message.from_user.id, textOnly)
+        input_firstname_order(message)
+    else:
+        if len(message.text.strip()) > maxSymbol:
+            bot.send_message(message.chat.id, firstnameError)
+            message.text.strip(None)
+            input_firstname_order(message)        
+        else:                  
+            firstnameOrder = message.text.strip()   
+            input_middlename_order(message)
+        
+def input_middlename_order(message):
+    bot.send_message(message.chat.id, middlenameText, parse_mode='html')
+    bot.register_next_step_handler(message, middlename_check_order)
+
+def middlename_check_order(message):      
+    global middlenameOrder
+    if message.text is None:
+        bot.send_message(message.from_user.id, textOnly)
+        input_middlename_order(message)
+    else:
+        if len(message.text.strip()) > maxSymbol:
+            bot.send_message(message.chat.id, middlenameError)
+            message.text.strip(None)
+            input_middlename_order(message) 
+        else:     
+            middlenameOrder = message.text.strip()
+            city_order(message)
+
+
+def city_order(message):
+
+    markup = types.InlineKeyboardMarkup()
+    btn1 = types.InlineKeyboardButton('Москва и МО', callback_data='Москва и МО', one_time_keyboard=True)
+    btn2 = types.InlineKeyboardButton('Екатеринбург', callback_data='Екатеринбург', one_time_keyboard=True)
+    btn3 = types.InlineKeyboardButton('Санкт-Петербург', callback_data='Санкт-Петербург', one_time_keyboard=True)
+    btn4 = types.InlineKeyboardButton('Арзамас', callback_data='Арзамас', one_time_keyboard=True)
+    markup.row(btn1, btn2)  
+    markup.row(btn3, btn4)   
+    bot.send_message(message.chat.id, f'Выберите пункт:', parse_mode='html', reply_markup=markup)  
+
+
+def input_login_order(message):
+    bot.send_message(message.chat.id, 'Введите ВАШ будущий логин: ', parse_mode='html')
+    bot.register_next_step_handler(message, login_check_order)
+
+def login_check_order(message):       
+    global loginOrder 
+    if message.text is None:
+        bot.send_message(message.from_user.id, textOnly)
+        input_login_order(message)
+    else:
+        if len(message.text.strip()) > maxSymbol:
+            bot.send_message(message.chat.id, firstnameError)
+            message.text.strip(None)
+            input_login_order(message)        
+        else:                  
+            loginOrder = message.text.strip()   
+            input_password_order(message)
+
+def input_password_order(message):
+    bot.send_message(message.chat.id, 'Введите ВАШ будущий пароль: ', parse_mode='html')
+    bot.register_next_step_handler(message, password_check_order)
+
+def password_check_order(message):       
+    global passwordOrder 
+    if message.text is None:
+        bot.send_message(message.from_user.id, textOnly)
+        input_password_order(message)
+    else:
+        if len(message.text.strip()) > maxSymbol:
+            bot.send_message(message.chat.id, firstnameError)
+            message.text.strip(None)
+            input_password_order(message)        
+        else:                  
+            passwordOrder = message.text.strip()   
+            sendMoney(message)
+
+
+def sendMoney(message):
+    markup1 = types.InlineKeyboardMarkup()
+    btn01 = types.InlineKeyboardButton('💵 Оплатить', url='https://t.me/Grouli123', one_time_keyboard=True)
+    markup1.row(btn01)
+    bot.send_message(message.from_user.id, f'Стоимость месячной подписки 5.000 рублей\nОплатить можно переводом по номеру +79535504730 ТОЛЬКО НА (СБЕРБАНК)\nПо кнопке ниже вы перейдете на нашего менеджера.\nОтправьте ему в чат:\n\n1.ФИО от кого вы отправили перевод\n2.Сумму перевода\n3.Скриншот перевода\n4.Логин по которому вы будете заходить в бота чтобы регистрировать заявку\n5. Пароль по которому вы будете заходить в бота чтобы регистрировать заявку\n\nПосле поступления денежных средст на счет, ваша подписка будет активирована и вы сможете выставлять заказы\n\nЗа ошибки в номере телефона или банке при совершении оплаты мы ответственности не несем.\nПеревод строко по указанному номеру и на указанный банк!', reply_markup= markup1)
+
+
+
 def input_birtgday(message):
     bot.send_message(message.chat.id, dataOfBirthday, parse_mode='html')
     bot.register_next_step_handler(message, user_birthday_check)
@@ -270,6 +477,9 @@ def user_birthday_check(message):
         bot.register_next_step_handler(message, user_birthday_check)
 
 def citizenRU(message):
+    global state
+    state = 'initial'
+
     markup = types.InlineKeyboardMarkup()
     btn2 = types.InlineKeyboardButton(citizenRuButtonYesText, callback_data=citizenRuButtonYesTextCallbackData, one_time_keyboard=True)
     btn3 = types.InlineKeyboardButton(citizenRuButtonNoText, callback_data=citizenRuButtonNoTextCallbackData, one_time_keyboard=True)
@@ -291,6 +501,60 @@ def callback_message_citizen(callback):
     bot.send_message(callback.message.chat.id, f'📞 Телефон: {phone}\n👤 ФИО: {lastname} {firstname} {middlename}\n📅 Дата рождения: {userbirthday}\n🇷🇺 Гражданство РФ: {usercitizenRF}\n🏙 Город(а): {locationcity}')
     city_check_for_chat(callback.message)
 
+@bot.callback_query_handler(func=lambda callback: callback.data == 'Заказчик')
+@bot.callback_query_handler(func=lambda callback: callback.data == 'Рабочий') 
+def callback_message_citizen(callback):   
+    global usercitizenRF 
+    global registered
+    if callback.data == 'Заказчик':
+
+        user_id_test = callback.from_user.id
+        print(f"Пользователь с ID {user_id_test} нажал кнопку 'Заказчик'")
+
+
+
+        bot.edit_message_text('Выберите пункт: ', callback.message.chat.id, callback.message.message_id)        
+        bot.send_message(callback.message.chat.id, 'Заказчик')
+        numberPhoneInput_order(callback.message)
+
+    elif callback.data == 'Рабочий':  
+        bot.edit_message_text('Выберите пункт: ', callback.message.chat.id, callback.message.message_id)        
+        bot.send_message(callback.message.chat.id, 'Рабочий')
+        numberPhoneInput(callback.message)
+
+
+
+
+@bot.callback_query_handler(func=lambda callback: callback.data == 'Москва и МО')
+@bot.callback_query_handler(func=lambda callback: callback.data == 'Екатеринбург') 
+@bot.callback_query_handler(func=lambda callback: callback.data == 'Санкт-Петербург') 
+@bot.callback_query_handler(func=lambda callback: callback.data == 'Арзамас') 
+def callback_message_citizen(callback):   
+    if callback.data == 'Москва и МО':
+        bot.edit_message_text('Москва и МО', callback.message.chat.id, callback.message.message_id)        
+        bot.send_message(callback.message.chat.id, 'Я вас понял: Москва и МО')
+        input_login_order(callback.message)
+
+    elif callback.data == 'Екатеринбург':  
+        bot.edit_message_text('Екатеринбург', callback.message.chat.id, callback.message.message_id)        
+        bot.send_message(callback.message.chat.id, 'Я вас понял: Екатеринбург')
+        input_login_order(callback.message)
+
+    elif callback.data == 'Санкт-Петербург':  
+        bot.edit_message_text('Санкт-Петербург', callback.message.chat.id, callback.message.message_id)        
+        bot.send_message(callback.message.chat.id, 'Я вас понял: Санкт-Петербург')
+        input_login_order(callback.message)
+    
+    elif callback.data == 'Арзамас':  
+        bot.edit_message_text('Арзамас', callback.message.chat.id, callback.message.message_id)        
+        bot.send_message(callback.message.chat.id, 'Я вас понял: Арзамас')
+        input_login_order(callback.message)
+
+
+
+
+
+
 @bot.message_handler(content_types=['text'])
 def check_callback_message_citizen(message):          
         global state      
@@ -301,8 +565,8 @@ def check_callback_message_citizen(message):
         elif state == 'citizenRU':
             bot.send_message(message.chat.id, registrationSucsess, parse_mode='html')
             city_check_for_chat(message)
-        else:
-            bot.edit_message_text(userCitizenRuText, message.chat.id, message.message_id)
+        # else:
+        #     bot.edit_message_text(userCitizenRuText, message.chat.id, message.message_id)
 
 def city_check_for_chat(message):
     global chatcity
@@ -323,7 +587,7 @@ def import_into_database(message):
     global state  
     conn = sqlite3.connect('peoplebase.sql')
     cur = conn.cursor()
-    cur.execute(insertIntoBase % (phone, locationcity, lastname, firstname, middlename, userbirthday, usercitizenRF, user_id, samozanatost, agreeaccaunt, passport, chatcity, cityTrue, orderTake, orderDone, orderMiss, 'None')) 
+    cur.execute(insertIntoBase % (phone, locationcity, lastname, firstname, middlename, userbirthday, usercitizenRF, user_id, samozanatost, agreeaccaunt, passport, chatcity, cityTrue, actualOrder, orderTake, orderDone, orderMiss, 'None', raiting)) 
    
     conn.commit()
     cur.close()

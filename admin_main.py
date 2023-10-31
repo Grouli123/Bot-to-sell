@@ -102,6 +102,7 @@ citizenRuButtonNoTextCallbackDataOne = config_message_bot_order.citizen_ru_butto
 adress = None
 whattodo = None
 timetostart = None
+orderTime = None
 feedback = None
 cityname = None
 countPeople = None
@@ -125,12 +126,13 @@ password = 'admin123'
 
 loginin = False
 
+adminChatId = None
 sent_message_id = None
 
 user_message_ids = {}
 
 
-def start(message):
+def start(message):    
     markup = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
     btn1 = types.KeyboardButton(makeOrderButton)
     btn2 = types.KeyboardButton(openBaseOrders)
@@ -141,8 +143,12 @@ def start(message):
     bot1.register_next_step_handler(message, city_of_obj)
 
 @bot1.message_handler(commands=['start'])
-def input_admin(message):
+def input_admin(message):      
+    global adminChatId
+    adminChatId = message.chat.id  # Получаем chat_id из сообщения
+
     print(loginin)
+
     if loginin == False:
         bot1.send_message(message.chat.id, 'Введите логин', parse_mode='html')
         bot1.register_next_step_handler(message, admin_check)   
@@ -406,6 +412,7 @@ def created_order(message):
 def callback_message_created_order(callback):  
     global feedback 
     global chatcity
+    
     if callback.data == orderSendTextCallbackData:
         feedback = orderSendText     
 
@@ -541,7 +548,7 @@ def import_into_database(message):
     global state  
     conn = sqlite3.connect('applicationbase.sql')
     cur = conn.cursor()
-    cur.execute(insertIntoBase1 % (cityname, countPeople, adress, whattodo, timetostart, salary, sent_message_id, '', 'True', '', '', '', '')) 
+    cur.execute(insertIntoBase1 % (cityname, countPeople, adress, whattodo, timetostart, orderTime, salary, adminChatId, sent_message_id, '', 'True', '', '', '', '')) 
 
     conn.commit()
     cur.close()
@@ -572,7 +579,7 @@ def show_database_orders(message):
 
         info = ''
         for el in users:
-            info += f'Заявка номер: {el[0]}, Дата создания: {el[1]}, Город: {el[2]}, Количество людей: {el[3]}, Адрес: {el[4]}, Что делать: {el[5]}, Начало работ: {el[6]}, Вам на руки: {el[7]}, Сообщение админки: {el[8]}, Сообщение ордера: {el[9]}, Id чатов: {el[11]}, записался id: {el[12]}, номера телефонов друзей: {el[13]}, ФИО друзей: {el[14]}\n\n'
+            info += f'Чат id: {el[9]}\nЗаявка номер: {el[0]}, Дата создания: {el[1]}, Город: {el[2]}, Количество людей: {el[3]}, Адрес: {el[4]}, Что делать: {el[5]}, Начало работ: {el[6]}, Вам на руки: {el[8]}, Сообщение админки: {el[10]}, Сообщение ордера: {el[11]}, Id чатов: {el[13]}, записался id: {el[14]}, номера телефонов друзей: {el[15]}, ФИО друзей: {el[16]}\n\n'
         cur.close()
         conn.close()
 
@@ -596,7 +603,7 @@ def show_database_users(message):
 
         info = ''
         for el in users:
-            info += f'Пользователь номер: {el[0]}, Дата регистрации: {el[1]}, Номер телефона: +{el[2]}, Город: {el[3]}, Фамилия: {el[4]}, Имя: {el[5]}, Отчество: {el[6]}, Дата рождения: {el[7]}, Гражданство РФ: {el[8]}, Cамозанятость: {el[10]}, Аккаунт подтвержден: {el[11]}, Паспорт: {el[12]}, взял заказ номер: {el[15]} tot {el[16]} {el[17]} \n\n'
+            info += f'юзер айди {el[9]}\nПользователь номер: {el[0]}, Дата регистрации: {el[1]}, Номер телефона: +{el[2]}, Город: {el[3]}, Фамилия: {el[4]}, Имя: {el[5]}, Отчество: {el[6]}, Дата рождения: {el[7]}, Гражданство РФ: {el[8]}, Cамозанятость: {el[10]}, Аккаунт подтвержден: {el[11]}, Паспорт: {el[12]}, взял заказ номер: {el[15]} tot {el[16]} {el[17]} \n\n'
 
         cur.close()
         conn.close()
