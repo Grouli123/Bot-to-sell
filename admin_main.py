@@ -131,6 +131,14 @@ sent_message_id = None
 
 user_message_ids = {}
 
+user_id_two = None
+
+
+users_who_clicked = []
+
+user_name = None
+
+take_user_id = None
 
 def start(message):    
     markup = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
@@ -523,9 +531,172 @@ def callback_message_created_order(callback):
                                                     # нужно поменять callback.message.chat.id на чат id который будет меняться
                     # Закрытие соединения с базой данных
     
-        
+
+# def update_message_with_users_list(chat_id, message_id, test, user_id, users_who_clicked):
+#     global user_id_two
+#     user_id_two = user_id
+#     print('в админке юзер айди это ', user_id_two)
+#     conn3 = sqlite3.connect('applicationbase.sql')
+#     cur3 = conn3.cursor()
+#     cur3.execute("SELECT orderMessageId, adminChatId, adminMessageId FROM orders")
+#     rows = cur3.fetchall() 
+#     for row in rows:
+#         order_message_ids = row[0].split(',')
+#         admin_chat_id = row[1]
+#         admin_message_id = row[2]
 
 
+#     if str(test) in order_message_ids:
+#             markup = types.InlineKeyboardMarkup()
+#             for user_id in users_who_clicked:
+#                 user_name = get_user_name_from_database(user_id)
+#                 btn = types.InlineKeyboardButton(str(user_name), callback_data=f'user_{user_id}')
+#                 print(print(f"Значение user_{user_id}"))
+#                 markup.row(btn)
+#             bot1.edit_message_reply_markup(chat_id=admin_chat_id, message_id=admin_message_id, reply_markup=markup)
+    
+
+# def get_user_name_from_database(user_id):
+#     conn = sqlite3.connect('peoplebase.sql')
+#     cursor = conn.cursor()
+#     cursor.execute("SELECT * FROM users WHERE user_id = ('%s')" % (user_id))
+#     takeParam2 = cursor.fetchone()
+#     if takeParam2:
+#         user_lastname = takeParam2[4]
+#         user_firstname = takeParam2[5] 
+#         user_middlename = takeParam2[6]
+#         user_name = user_lastname + ' ' + user_firstname + ' ' + user_middlename# Предположим, что имя пользователя находится во второй колонке
+#         print('тут это', user_name)
+#         return user_name
+
+# def set_user_id():
+#     global user_id_two
+#     user_id_two = get_user_id()
+#     return user_id_two
+
+
+# def update_message_with_users_list(chat_id, message_id, test, user_id, users_who_clicked):
+#     conn3 = sqlite3.connect('applicationbase.sql')
+#     cur3 = conn3.cursor()
+#     cur3.execute("SELECT orderMessageId, adminChatId, adminMessageId, whoTakeId FROM orders")
+#     rows = cur3.fetchall() 
+#     for row in rows:
+#         order_message_ids = row[0].split(',')
+#         admin_chat_id = row[1]
+#         admin_message_id = row[2]        
+#         how_take = row[3]
+
+
+#     if str(test) in order_message_ids:
+#             markup = types.InlineKeyboardMarkup()
+#             for user_id in users_who_clicked:
+#                 user_name = get_user_name_from_database(user_id)
+#                 btn = types.InlineKeyboardButton(str(user_name), callback_data=f'user_')
+#                 print(print(f"Значение user_{user_id}"))
+#                 markup.row(btn)
+#             bot1.edit_message_reply_markup(chat_id=admin_chat_id, message_id=admin_message_id, reply_markup=markup)
+    
+
+# def get_user_name_from_database(user_id):
+#     conn = sqlite3.connect('peoplebase.sql')
+#     cursor = conn.cursor()
+#     cursor.execute("SELECT * FROM users WHERE user_id = ('%s')" % (user_id))
+#     takeParam2 = cursor.fetchone()
+#     if takeParam2:
+#         user_lastname = takeParam2[4]
+#         user_firstname = takeParam2[5] 
+#         user_middlename = takeParam2[6]
+#         user_name = user_lastname + ' ' + user_firstname + ' ' + user_middlename# Предположим, что имя пользователя находится во второй колонке
+#         print('тут это', user_name)
+#         return user_name
+    
+
+
+
+
+
+def update_message_with_users_list(test):
+    global take_user_id
+    conn3 = sqlite3.connect('applicationbase.sql')
+    cur3 = conn3.cursor()
+    cur3.execute("SELECT adminChatId, adminMessageId, whoTakeId FROM orders")
+    rows = cur3.fetchall()
+
+    for row in rows:
+        # order_message_ids = row[0].split(',')
+        admin_chat_id = row[0]
+        admin_message_id = row[1]
+        who_take_ids = row[2].split(',') if row[2] else []  # Разбиваем whoTakeId на отдельные идентификаторы
+
+        if str(test) in admin_message_id:
+            markup = types.InlineKeyboardMarkup()
+            for take_user_id in who_take_ids:
+                user_name = get_user_name_from_database(take_user_id)
+                btn = types.InlineKeyboardButton(str(user_name), callback_data=f'user_{take_user_id}')
+
+                markup.row(btn)
+
+            btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='❌ Закрыть заявку', one_time_keyboard=True)
+            btn02 = types.InlineKeyboardButton('Свернуть', callback_data='Свернуть', one_time_keyboard=True)
+
+
+            markup.row(btn01)
+            markup.row(btn02)
+            bot1.edit_message_reply_markup(chat_id=admin_chat_id, message_id=admin_message_id, reply_markup=markup)
+
+def get_user_name_from_database(user_id):
+    global user_name
+    print('юзер айди в админке', user_id, type(user_id))
+    conn = sqlite3.connect('peoplebase.sql')
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM users WHERE id = ('%s')" % (user_id))
+    takeParam2 = cursor.fetchone()
+    if takeParam2:
+        user_lastname = takeParam2[4]
+        user_firstname = takeParam2[5]
+        user_middlename = takeParam2[6]
+        user_name = f"{user_lastname} {user_firstname} {user_middlename}"
+        return user_name
+    else:
+        print('база данных: ', user_name)
+        return None
+
+
+@bot1.callback_query_handler(func=lambda callback: callback.data == f'user_{take_user_id}')
+def testmess(callback):
+    conn = sqlite3.connect('peoplebase.sql')
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM users WHERE id = ('%s')" % (take_user_id))
+    takeParam2 = cursor.fetchone()
+    if takeParam2:
+        user_lastname = takeParam2[4]
+        user_firstname = takeParam2[5] 
+        user_middlename = takeParam2[6]
+        user_name = user_lastname + ' ' + user_firstname + ' ' + user_middlename# Предположим, что имя пользователя находится во второй колонке
+        print('тут это', user_name)
+        print('в админке работает все ', user_name)        
+
+
+    
+
+
+@bot1.callback_query_handler(func=lambda callback: callback.data == 'Свернуть')
+def testmess(callback):
+    markup = types.InlineKeyboardMarkup()
+    btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='❌ Закрыть заявку', one_time_keyboard=True)
+    btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='ОтправленоАдмину', one_time_keyboard=True)
+    markup.row(btn02)
+    markup.row(btn01)
+    bot1.edit_message_reply_markup(chat_id=callback.message.chat.id, message_id=callback.message.message_id, reply_markup=markup)
+
+    
+
+
+
+@bot1.callback_query_handler(func=lambda callback: callback.data == 'ОтправленоАдмину')
+def testmess(callback):
+    test = callback.message.message_id
+    update_message_with_users_list(test)
         
 
 

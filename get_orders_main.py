@@ -11,6 +11,7 @@ import  get_orders_config.get_orders_API_key as API_key
 # import get_orders_config.get_orders_sqlBase as sqlBase
 import  get_orders_config.get_orders_config_message as config_message
 
+# from admin_main import update_message_with_users_list
 
 botApiKey = API_key.botAPIArz
 
@@ -572,67 +573,82 @@ def testMethod():
         conn.close()
 
 
+# def update_message_with_users_list(chat_id, message_id, test, user_id, users_who_clicked):
+#     conn3 = sqlite3.connect('applicationbase.sql')
+#     cur3 = conn3.cursor()
+#     cur3.execute("SELECT orderMessageId, adminChatId, adminMessageId FROM orders")
+#     rows = cur3.fetchall() 
+#     for row in rows:
+#         order_message_ids = row[0].split(',')
+#         admin_chat_id = row[1]
+#         admin_message_id = row[2]
+
+
+#     if str(test) in order_message_ids:
+#             markup = types.InlineKeyboardMarkup()
+#             for user_id in users_who_clicked:
+#                 user_name = get_user_name_from_database(user_id)
+#                 btn = types.InlineKeyboardButton(str(user_name), callback_data=f'user_')
+#                 print(print(f"Значение user_{user_id}"))
+#                 markup.row(btn)
+#             bot1.edit_message_reply_markup(chat_id=admin_chat_id, message_id=admin_message_id, reply_markup=markup)
+    
+
+# def get_user_name_from_database(user_id):
+#     conn = sqlite3.connect('peoplebase.sql')
+#     cursor = conn.cursor()
+#     cursor.execute("SELECT * FROM users WHERE user_id = ('%s')" % (user_id))
+#     takeParam2 = cursor.fetchone()
+#     if takeParam2:
+#         user_lastname = takeParam2[4]
+#         user_firstname = takeParam2[5] 
+#         user_middlename = takeParam2[6]
+#         user_name = user_lastname + ' ' + user_firstname + ' ' + user_middlename# Предположим, что имя пользователя находится во второй колонке
+#         print('тут это', user_name)
+#         return user_name
+
+
 def update_message_with_users_list(chat_id, message_id, test, user_id, users_who_clicked):
     conn3 = sqlite3.connect('applicationbase.sql')
     cur3 = conn3.cursor()
-    # cur3.execute("SELECT adminChatId, adminMessageId FROM orders WHERE orderMessageId = ('%s')" % (test))
     cur3.execute("SELECT orderMessageId, adminChatId, adminMessageId FROM orders")
     rows = cur3.fetchall() 
-    # chat_id = users[0]
-    # message_id = users[1]
-    # print(chat_id)
     for row in rows:
         order_message_ids = row[0].split(',')
         admin_chat_id = row[1]
         admin_message_id = row[2]
 
-    # current_message_ids_str = cur.fetchone()[0]
-                    
-    # current_chat_id_admin = rows.split(',') if rows else []
-
 
     if str(test) in order_message_ids:
+        try:
             markup = types.InlineKeyboardMarkup()
-            for user_id in users_who_clicked:
-                user_name = get_user_name_from_database(user_id)
-                btn = types.InlineKeyboardButton(str(user_name), callback_data=f'user_{user_id}')
-                markup.row(btn)
+            # user_name = get_user_name_from_database(user_id)
+            btn = types.InlineKeyboardButton('Посмотреть запись', callback_data='ОтправленоАдмину')
+            btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='❌ Закрыть заявку', one_time_keyboard=True)
+
+            print(print(f"Значение user_{user_id}"))
+            markup.row(btn)
+            markup.row(btn01)
+
             bot1.edit_message_reply_markup(chat_id=admin_chat_id, message_id=admin_message_id, reply_markup=markup)
-    # return chat_id, message_id
+        except Exception:
+            print('какая-то ошибка, можно игнорировать')
+    
 
-    # markup = types.InlineKeyboardMarkup()
-    # for user_id in users_who_clicked:
-    #     # Получите имя пользователя по его user_id и добавьте кнопку в разметку
-    #     user_name = get_user_name_from_database(user_id)
-    #     btn = types.InlineKeyboardButton(str(user_name), callback_data=f'user_{user_id}')
-    #     markup.row(btn)
-    #     print('работаем да',user_name)
-    # bot1.edit_message_reply_markup(chat_id=chat_id, message_id=message_id, reply_markup=markup)
-    # return chat_id, message_id
-
-
-# def get_user_name_from_database(user_id_ads):
+# def get_user_name_from_database(user_id):
 #     conn = sqlite3.connect('peoplebase.sql')
 #     cursor = conn.cursor()
 #     cursor.execute("SELECT * FROM users WHERE user_id = ('%s')" % (user_id))
-#     takeParam2 = cursor.fetchone() # Получение первой соответствующей строки
-#     user_id_ads = takeParam2[0]
-#     print('тут это', user_id_ads)
+#     takeParam2 = cursor.fetchone()
+#     if takeParam2:
+#         user_lastname = takeParam2[4]
+#         user_firstname = takeParam2[5] 
+#         user_middlename = takeParam2[6]
+#         user_name = user_lastname + ' ' + user_firstname + ' ' + user_middlename# Предположим, что имя пользователя находится во второй колонке
+#         print('тут это', user_name)
+#         return user_name
 
-def get_user_name_from_database(user_id):
-    conn = sqlite3.connect('peoplebase.sql')
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM users WHERE user_id = ('%s')" % (user_id))
-    takeParam2 = cursor.fetchone()
-    if takeParam2:
-        user_lastname = takeParam2[4]
-        user_firstname = takeParam2[5] 
-        user_middlename = takeParam2[6]
-        user_name = user_lastname + ' ' + user_firstname + ' ' + user_middlename# Предположим, что имя пользователя находится во второй колонке
-        print('тут это', user_name)
-        return user_name
 
-    
 @bot.callback_query_handler(func=lambda callback: callback.data == 'Еду 1')
 @bot.callback_query_handler(func=lambda callback: callback.data == 'Едем в 2') 
 @bot.callback_query_handler(func=lambda callback: callback.data == 'Едем в 3')
@@ -673,9 +689,11 @@ def callback_data_of_data(callback):
     if callback.data == 'Еду 1':
         test = callback.message.message_id
         user_id = callback.from_user.id  # Получаем ID пользователя, который нажал на кнопку
-
+        # get_user_id()
 
         print('тест ', user_id)
+
+
         users_who_clicked.append(user_id)
         update_message_with_users_list(callback.message.chat.id, callback.message.message_id, test, user_id, users_who_clicked)
         
@@ -730,7 +748,7 @@ def callback_data_of_data(callback):
 
                 print('нею пхоне', new_phone_numbers)
 
-                cursor2.execute("UPDATE orders SET whoTakeId = '%s' WHERE id = '%s'" % (new_phone_numbers, test))
+                cursor2.execute("UPDATE orders SET whoTakeId = '%s' WHERE id = '%s'" % (new_phone_numbers, order_id2))
                 print(cursor2)
                 conn2.commit()
 
@@ -772,6 +790,10 @@ def callback_data_of_data(callback):
             conn2.commit()
             cursor2.close()
             conn2.close()
+
+    if takeParam2:
+        orderTakeTwo = takeParam2[0]
+
     elif callback.data == 'Едем в 2':
         test = callback.message.message_id
 
@@ -904,6 +926,8 @@ def callback_data_of_data(callback):
         cursor2.close()
         conn2.close()
         input_fio_first_friend(callback.message)
+
+
 
 def input_fio_first_friend(message):
     bot.send_message(message.chat.id, 'Введите только ФИО друга', parse_mode='html')
