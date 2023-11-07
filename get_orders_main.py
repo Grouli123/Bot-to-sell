@@ -159,6 +159,8 @@ test = None
 
 users_who_clicked = []
 
+takeParam2 = None
+
 
 @bot.message_handler(commands=['start'])
 def registration(message):
@@ -650,9 +652,9 @@ def update_message_with_users_list(chat_id, message_id, test, user_id, users_who
 
 
 @bot.callback_query_handler(func=lambda callback: callback.data == 'Еду 1')
-@bot.callback_query_handler(func=lambda callback: callback.data == 'Едем в 2') 
-@bot.callback_query_handler(func=lambda callback: callback.data == 'Едем в 3')
-@bot.callback_query_handler(func=lambda callback: callback.data == 'Едем в 4')
+# @bot.callback_query_handler(func=lambda callback: callback.data == 'Едем в 2') 
+# @bot.callback_query_handler(func=lambda callback: callback.data == 'Едем в 3')
+# @bot.callback_query_handler(func=lambda callback: callback.data == 'Едем в 4')
 def callback_data_of_data(callback): 
     global orderTakeTwo
     global checkThirdFriend
@@ -661,34 +663,39 @@ def callback_data_of_data(callback):
     global user_id_name
     global test
     global user_id
+    global takeParam2
+
     
-    conn = sqlite3.connect('peoplebase.sql')
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM users WHERE user_id = ('%s')" % (user_id))
-    takeParam2 = cursor.fetchone() # Получение первой соответствующей строки
-    print('юзер айди ',user_id)
-
-    if takeParam2:
-        orderTakeTwo = takeParam2[0]
-
-        conn4 = sqlite3.connect('applicationbase.sql')
-        cur4 = conn4.cursor()
-        cur4.execute("SELECT orderMessageId, id FROM orders")
-        rows = cur4.fetchall()
-        for row in rows:
-            order_message_ids2 = row[0].split(',')
-            order_id2 = row[1]
-            print('ордер айди ', order_id2)
-
-
-        print(orderTakeTwo)
-        print('работает')
-    else:
-        print('не работает')
 
     if callback.data == 'Еду 1':
         test = callback.message.message_id
-        user_id = callback.from_user.id  # Получаем ID пользователя, который нажал на кнопку
+        user_id = callback.from_user.id
+        conn = sqlite3.connect('peoplebase.sql')
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM users WHERE user_id = ('%s')" % (user_id))
+        takeParam2 = cursor.fetchone() # Получение первой соответствующей строки
+        print('юзер айди ',user_id)
+
+        if takeParam2:
+            orderTakeTwo = takeParam2[0]
+
+            conn4 = sqlite3.connect('applicationbase.sql')
+            cur4 = conn4.cursor()
+            cur4.execute("SELECT orderMessageId, id FROM orders")
+            rows = cur4.fetchall()
+            for row in rows:
+                order_message_ids2 = row[0].split(',')
+                order_id2 = row[1]
+                print('ордер айди ', order_id2)
+
+
+            print(orderTakeTwo)
+            print('работает')
+            cur4.close()
+            conn4.close()
+        else:
+            print('не работает')
+          # Получаем ID пользователя, который нажал на кнопку
         # get_user_id()
 
         print('тест ', user_id)
@@ -755,6 +762,8 @@ def callback_data_of_data(callback):
             else:  
                 print('тут не работает')
 
+            
+
             # conn2.commit()
             cursor2.close()
             conn2.close()
@@ -794,14 +803,56 @@ def callback_data_of_data(callback):
     if takeParam2:
         orderTakeTwo = takeParam2[0]
 
-    elif callback.data == 'Едем в 2':
+
+@bot.callback_query_handler(func=lambda callback: callback.data == 'Едем в 2') 
+def callback_data_of_data_two(callback):     
+    global orderTakeTwo
+    global checkThirdFriend
+    global checkFourthFriend
+    global user_id_mess
+    global user_id_name
+    global test
+    global user_id
+    global takeParam2
+
+    if callback.data == 'Едем в 2':
         test = callback.message.message_id
+        user_id = callback.from_user.id
+        conn = sqlite3.connect('peoplebase.sql')
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM users WHERE user_id = ('%s')" % (user_id))
+        takeParam2 = cursor.fetchone() # Получение первой соответствующей строки
+        print('юзер айди ',user_id)
+
+        if takeParam2:
+            orderTakeTwo = takeParam2[0]
+
+            conn4 = sqlite3.connect('applicationbase.sql')
+            cur4 = conn4.cursor()
+            cur4.execute("SELECT orderMessageId, id FROM orders")
+            rows = cur4.fetchall()
+            for row in rows:
+                order_message_ids2 = row[0].split(',')
+                order_id2 = row[1]
+                print('ордер айди ', order_id2)
+
+
+            print(orderTakeTwo)
+            print('работает')
+            cur4.close()
+            conn4.close()
+        else:
+            print('не работает')
+        # test = callback.message.message_id
+        
+        # users_who_clicked.append(user_id)
+        # update_message_with_users_list(callback.message.chat.id, callback.message.message_id, test, user_id, users_who_clicked)
 
         conn3 = sqlite3.connect('applicationbase.sql')
         cur3 = conn3.cursor()
         cur3.execute("SELECT * FROM orders WHERE orderMessageId = ('%s')" % (test))
         users = cur3.fetchone() 
-        print(callback.message.message_id)
+        # print(callback.message.message_id)
             # conn.commit()
             
             # Получаем ID пользователя
@@ -837,8 +888,52 @@ def callback_data_of_data(callback):
         conn2.close()
         input_fio_first_friend(callback.message)
 
-    elif callback.data == 'Едем в 3':
+
+
+@bot.callback_query_handler(func=lambda callback: callback.data == 'Едем в 3') 
+def callback_data_of_data_three(callback):     
+    global orderTakeTwo
+    global checkThirdFriend
+    global checkFourthFriend
+    global user_id_mess
+    global user_id_name
+    global test
+    global user_id
+    global takeParam2
+
+    if callback.data == 'Едем в 3':
         test = callback.message.message_id
+        user_id = callback.from_user.id
+        conn = sqlite3.connect('peoplebase.sql')
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM users WHERE user_id = ('%s')" % (user_id))
+        takeParam2 = cursor.fetchone() # Получение первой соответствующей строки
+        print('юзер айди ',user_id)
+
+        if takeParam2:
+            orderTakeTwo = takeParam2[0]
+
+            conn4 = sqlite3.connect('applicationbase.sql')
+            cur4 = conn4.cursor()
+            cur4.execute("SELECT orderMessageId, id FROM orders")
+            rows = cur4.fetchall()
+            for row in rows:
+                order_message_ids2 = row[0].split(',')
+                order_id2 = row[1]
+                print('ордер айди ', order_id2)
+
+
+            print(orderTakeTwo)
+            print('работает')
+            cur4.close()
+            conn4.close()
+        else:
+            print('не работает')
+
+        
+        # users_who_clicked.append(user_id)
+        # update_message_with_users_list(callback.message.chat.id, callback.message.message_id, test, user_id, users_who_clicked)
+        # test = callback.message.message_id
 
         
         conn3 = sqlite3.connect('applicationbase.sql')
@@ -881,8 +976,54 @@ def callback_data_of_data(callback):
         cursor2.close()
         conn2.close()
         input_fio_first_friend(callback.message)
-    elif callback.data == 'Едем в 4': 
+
+
+
+@bot.callback_query_handler(func=lambda callback: callback.data == 'Едем в 4') 
+def callback_data_of_data_four(callback): 
+    global orderTakeTwo
+    global checkThirdFriend
+    global checkFourthFriend
+    global user_id_mess
+    global user_id_name
+    global test
+    global user_id
+    global takeParam2
+
+    
+    if callback.data == 'Едем в 4': 
         test = callback.message.message_id
+        user_id = callback.from_user.id
+        conn = sqlite3.connect('peoplebase.sql')
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM users WHERE user_id = ('%s')" % (user_id))
+        takeParam2 = cursor.fetchone() # Получение первой соответствующей строки
+        print('юзер айди ',user_id)
+
+        if takeParam2:
+            orderTakeTwo = takeParam2[0]
+
+            conn4 = sqlite3.connect('applicationbase.sql')
+            cur4 = conn4.cursor()
+            cur4.execute("SELECT orderMessageId, id FROM orders")
+            rows = cur4.fetchall()
+            for row in rows:
+                order_message_ids2 = row[0].split(',')
+                order_id2 = row[1]
+                print('ордер айди ', order_id2)
+
+
+            print(orderTakeTwo)
+            print('работает')
+            cur4.close()
+            conn4.close()
+        else:
+            print('не работает')
+        
+        
+        # users_who_clicked.append(user_id)
+        # update_message_with_users_list(callback.message.chat.id, callback.message.message_id, test, user_id, users_who_clicked)
+        # test = callback.message.message_id
 
         
         conn3 = sqlite3.connect('applicationbase.sql')
@@ -928,7 +1069,6 @@ def callback_data_of_data(callback):
         input_fio_first_friend(callback.message)
 
 
-
 def input_fio_first_friend(message):
     bot.send_message(message.chat.id, 'Введите только ФИО друга', parse_mode='html')
     bot.register_next_step_handler(message, fio_first_friend_check)
@@ -971,6 +1111,9 @@ def first_friend_number_check(message):
                     input_fio_second_friend(message)           
                     print(checkThirdFriend)
                 else:  
+                    
+                    users_who_clicked.append(user_id)
+                    update_message_with_users_list(message.chat.id, message.message_id, test, user_id, users_who_clicked)
 
                     conn = sqlite3.connect('peoplebase.sql')
                     cursor = conn.cursor()
@@ -1100,6 +1243,10 @@ def second_friend_number_check(message):
                     input_fio_third_friend(message)              
                     print(checkFourthFriend)
                 else:
+                    
+                    users_who_clicked.append(user_id)
+                    update_message_with_users_list(message.chat.id, message.message_id, test, user_id, users_who_clicked)
+                    
                     conn = sqlite3.connect('peoplebase.sql')
                     cursor = conn.cursor()
                     cursor.execute("SELECT orderTake FROM users WHERE user_id = ('%s')" % (user_id))
@@ -1219,6 +1366,9 @@ def third_friend_number_check(message):
         else:               
             if message.text.isdigit():
                 phoneNumberThirdFriend = message.text.strip()    
+                
+                users_who_clicked.append(user_id)
+                update_message_with_users_list(message.chat.id, message.message_id, test, user_id, users_who_clicked)
 
                 conn = sqlite3.connect('peoplebase.sql')
                 cursor = conn.cursor()
