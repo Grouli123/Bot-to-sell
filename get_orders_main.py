@@ -723,19 +723,22 @@ def callback_data_of_data(callback):
                 
                 # Получаем ID пользователя
                 user_id_mess = users[0]
-                # print('юзер айди ',user_id_mess)
+                print('юзер айди месссс',type(user_id_mess))
                 
                 cur3.close()
                 conn3.close()
 
                 new_orderId = current_orderId + "," + str(user_id_mess) if current_orderId else user_id_mess
-                cursor.execute("UPDATE users SET orderTake = '%s', actualOrder = '%s' WHERE user_id = '%s'" % (new_orderId, user_id_mess, user_id))
+                cursor.execute("UPDATE users SET orderTake = '%s', actualOrder = '%s' WHERE user_id = '%s'" % (new_orderId, str(user_id_mess), user_id))
+                conn.commit()  
+                cursor.close()
+                conn.close()
                 
                 
 
-            conn.commit()
-            cursor.close()
-            conn.close()
+            # # conn.commit()
+            # cursor.close()
+            # conn.close()
 
             conn2 = sqlite3.connect('applicationbase.sql')
             cursor2 = conn2.cursor()        
@@ -800,8 +803,8 @@ def callback_data_of_data(callback):
             cursor2.close()
             conn2.close()
 
-    if takeParam2:
-        orderTakeTwo = takeParam2[0]
+    # if takeParam2:
+    #     orderTakeTwo = takeParam2[0]
 
 
 @bot.callback_query_handler(func=lambda callback: callback.data == 'Едем в 2') 
@@ -1808,9 +1811,9 @@ def callback_data_of_data(callback):
         c.execute("SELECT * FROM users WHERE id = '%s'" % (id_nubmer_list))
         test2 = c.fetchone()
             # Получение данных
-        orderDataTake = test2[15]
-        orderDataDone = test2[16]
-        orderDataMiss = test2[17] 
+        orderDataTake = test2[16]
+        orderDataDone = test2[17]
+        orderDataMiss = test2[18] 
 
         # Разделение данных по запятым и подсчет количества записей
         recordsTake = orderDataTake.split(',')
