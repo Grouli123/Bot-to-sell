@@ -655,7 +655,7 @@ def update_message_with_users_list(test):
     cur3 = conn3.cursor()
     cur3.execute("SELECT adminChatId, adminMessageId, whoTakeId FROM orders")
     rows = cur3.fetchall()
-
+    
     for row in rows:
         # order_message_ids = row[0].split(',')
         admin_chat_id = row[0]
@@ -666,9 +666,9 @@ def update_message_with_users_list(test):
             markup = types.InlineKeyboardMarkup()
             for take_user_id in who_take_ids:
                 user_name = get_user_name_from_database(take_user_id)
-                btn = types.InlineKeyboardButton(str(user_name), callback_data=f'user_{take_user_id}')
-
-                markup.row(btn)
+                if user_name is not None:
+                    btn = types.InlineKeyboardButton(str(user_name), callback_data=f'user_{take_user_id}')
+                    markup.row(btn)
 
             btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='❌ Закрыть заявку', one_time_keyboard=True)
             btn02 = types.InlineKeyboardButton('Свернуть', callback_data='Свернуть', one_time_keyboard=True)
@@ -693,7 +693,7 @@ def get_user_name_from_database(user_id):
         return user_name
     else:
         print('база данных: ', user_name)
-        return None
+        # return None
 
 
 
@@ -758,10 +758,10 @@ def testmess(callback):
 
 
         
+        markup.row(btn04) 
+        markup.row(btn05) 
+        markup.row(btn03) 
         markup.row(btn01)
-        markup.row(btn04)
-        markup.row(btn05)
-        markup.row(btn03)
         markup.row(btn02)
 
         
@@ -979,37 +979,69 @@ def callback_data_of_data_miss(callback):
 def callback_data_of_data_close(callback): 
     # global test123
 
-    conn2 = sqlite3.connect('peoplebase.sql')
-    cursor2 = conn2.cursor()
+    # conn2 = sqlite3.connect('peoplebase.sql')
+    # cursor2 = conn2.cursor()
     
-    cursor2.execute("SELECT actualOrder, orderTake FROM users WHERE id = ('%s')" % (take_user_id))
-    takeOrderTake = cursor2.fetchone()
+    # cursor2.execute("SELECT actualOrder, orderTake FROM users WHERE id = ('%s')" % (take_user_id))
+    # takeOrderTake = cursor2.fetchone()
 
-    test_test = takeOrderTake[0]
+    # test_test = takeOrderTake[0]
     
-    current_orderId = takeOrderTake[1] if takeOrderTake[1] else ""
+    # current_orderId = takeOrderTake[1] if takeOrderTake[1] else ""
 
 
-
-        
-
-    # Разделите строку по запятым и удалите последний элемент
-    orderTake_list = current_orderId.split(',')
-    new_orderTake = ','.join(orderTake_list[:-1])
-
-
-
-
-
-
-    cursor2.execute("UPDATE users SET actualOrder = '%s', orderTake = '%s' WHERE id = '%s'" % ("",  new_orderTake, take_user_id))
-
-            
-            
-
-    conn2.commit()
 
     message_id = callback.message.message_id
+        
+
+    # # Разделите строку по запятым и удалите последний элемент
+    # orderTake_list = current_orderId.split(',')
+    # new_orderTake = ','.join(orderTake_list[:-1])
+
+
+    
+    conn_applicationbase = sqlite3.connect('applicationbase.sql')
+    cur_applicationbase = conn_applicationbase.cursor()
+
+    # # Замените 'your_peoplebase.sql' на имя вашей базы данных peoplebase.sql
+    # conn_peoplebase = sqlite3.connect('peoplebase.sql')
+    # cur_peoplebase = conn_peoplebase.cursor()
+
+    user_name_to_remove = callback.from_user.first_name  # Используйте last_name или другие поля, если нужно
+
+    # Поиск соответствующей записи в базе данных applicationbase
+    cur_applicationbase.execute("SELECT adminChatId, adminMessageId, whoTakeId FROM orders WHERE adminMessageId = ('%s')" % (message_id))
+    order_info = cur_applicationbase.fetchone()
+
+    if order_info:
+        admin_chat_id, admin_message_id, who_take_ids_str = order_info
+        who_take_ids = who_take_ids_str.split(',') if who_take_ids_str else []
+
+        # Удаление имени пользователя из списка who_take_ids
+        if user_name_to_remove in who_take_ids:
+            who_take_ids.remove(user_name_to_remove)
+
+
+        # Обновление базы данных applicationbase с новым списком who_take_ids
+        # new_who_take_ids_str = ','.join(who_take_ids)
+        print('Я не знаю', who_take_ids)
+        cur_applicationbase.execute("UPDATE orders SET whoTakeId = ('%s') WHERE adminMessageId = ('%s')" % (user_name_to_remove, admin_message_id))
+        conn_applicationbase.commit()
+
+    conn_applicationbase.close()
+
+
+
+
+
+
+    # cursor2.execute("UPDATE users SET actualOrder = '%s', orderTake = '%s' WHERE id = '%s'" % ("",  new_orderTake, take_user_id))
+
+            
+            
+
+    # conn2.commit()
+
     conn = sqlite3.connect('applicationbase.sql')
     cursor = conn.cursor()
 
@@ -1159,7 +1191,7 @@ def show_database_orders(message):
 
         info = ''
         for el in users:
-            info += f'Чат id: {el[9]}\nЗаявка номер: {el[0]}, Дата создания: {el[1]}, Город: {el[2]}, Количество людей: {el[3]}, Адрес: {el[4]}, Что делать: {el[5]}, Начало работ: {el[6]}, Вам на руки: {el[8]}, Сообщение админки: {el[10]}, Сообщение ордера: {el[11]}, Id чатов: {el[13]}, записался id: {el[14]}, номера телефонов друзей: {el[15]}, ФИО друзей: {el[16]}\n\n'
+            info += f'тут:{el[14]} Чат id: {el[9]}\nЗаявка номер: {el[0]}, Дата создания: {el[1]}, Город: {el[2]}, Количество людей: {el[3]}, Адрес: {el[4]}, Что делать: {el[5]}, Начало работ: {el[6]}, Вам на руки: {el[8]}, Сообщение админки: {el[10]}, Сообщение ордера: {el[11]}, Id чатов: {el[13]}, записался id: {el[14]}, номера телефонов друзей: {el[15]}, ФИО друзей: {el[16]}\n\n'
         cur.close()
         conn.close()
 
