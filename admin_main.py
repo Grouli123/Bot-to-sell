@@ -138,7 +138,7 @@ users_who_clicked = []
 
 user_name = None
 
-take_user_id = None
+take_user_id_id = None
 
 
 test123 = None
@@ -636,10 +636,10 @@ def update_message_with_users_list_test(test):
             markup = types.InlineKeyboardMarkup()
             for take_user_id in who_take_ids:
                 user_name = get_user_name_from_database(take_user_id)
-                btn = types.InlineKeyboardButton(str(user_name), callback_data=f'user_{take_user_id}')
-
-                markup.row(btn)
-
+                if user_name is not None:
+                    btn = types.InlineKeyboardButton(str(user_name), callback_data=f'user_{take_user_id}')
+                    markup.row(btn)
+                    
             btn02 = types.InlineKeyboardButton('Свернуть', callback_data='Свернуть1', one_time_keyboard=True)
 
 
@@ -650,17 +650,15 @@ def update_message_with_users_list_test(test):
 
 
 def update_message_with_users_list(test):
-    global take_user_id
     conn3 = sqlite3.connect('applicationbase.sql')
     cur3 = conn3.cursor()
     cur3.execute("SELECT adminChatId, adminMessageId, whoTakeId FROM orders")
     rows = cur3.fetchall()
     
     for row in rows:
-        # order_message_ids = row[0].split(',')
         admin_chat_id = row[0]
         admin_message_id = row[1]
-        who_take_ids = row[2].split(',') if row[2] else []  # Разбиваем whoTakeId на отдельные идентификаторы
+        who_take_ids = row[2].split(',') if row[2] else []
 
         if str(test) in admin_message_id:
             markup = types.InlineKeyboardMarkup()
@@ -673,10 +671,11 @@ def update_message_with_users_list(test):
             btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='❌ Закрыть заявку', one_time_keyboard=True)
             btn02 = types.InlineKeyboardButton('Свернуть', callback_data='Свернуть', one_time_keyboard=True)
 
-
             markup.row(btn01)
             markup.row(btn02)
             bot1.edit_message_reply_markup(chat_id=admin_chat_id, message_id=admin_message_id, reply_markup=markup)
+
+
 
 def get_user_name_from_database(user_id):
     global user_name
@@ -729,25 +728,29 @@ def testmess_sendAd(callback):
     test = callback.message.message_id
     update_message_with_users_list(test)
 
-        
-@bot1.callback_query_handler(func=lambda callback: callback.data == f'user_{take_user_id}')
+ 
+@bot1.callback_query_handler(func=lambda callback: callback.data.startswith('user_'))
 def testmess(callback):
+    take_user_id = callback.data.split('_')[1]
+    print('Идентификатор пользователя:', take_user_id)
+
     conn = sqlite3.connect('peoplebase.sql')
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM users WHERE id = ('%s')" % (take_user_id))
     takeParam2 = cursor.fetchone()
+    
+
     if takeParam2:
         user_lastname = takeParam2[4]
-        user_firstname = takeParam2[5] 
+        user_firstname = takeParam2[5]
         user_middlename = takeParam2[6]
-        user_name = user_lastname + ' ' + user_firstname + ' ' + user_middlename# Предположим, что имя пользователя находится во второй колонке
+        user_name = user_lastname + ' ' + user_firstname + ' ' + user_middlename
         print('тут это', user_name)
-        print('в админке работает все ', user_name)      
-          
+        print('в админке работает все ', user_name)
+
         cursor.close()
         conn.close()
-        application = f'📞 Телефон: +{takeParam2[2]}\n👤 ФИО: {takeParam2[4]} {takeParam2[5]} {takeParam2[6]}\n📅 Дата рождения: {takeParam2[7]}\n🇷🇺 Гражданство РФ: {takeParam2[8]}\n🤝 Самозанятый: {takeParam2[10]} \n🏙 Город(а): {takeParam2[3]}' 
-
+        application = f'📞 Телефон: +{takeParam2[2]}\n👤 ФИО: {takeParam2[4]} {takeParam2[5]} {takeParam2[6]}\n📅 Дата рождения: {takeParam2[7]}\n🇷🇺 Гражданство РФ: {takeParam2[8]}\n🤝 Самозанятый: {takeParam2[10]} \n🏙 Город(а): {takeParam2[3]}'
 
         markup = types.InlineKeyboardMarkup()
         btn01 = types.InlineKeyboardButton('📊 Статистика заказов', callback_data='📊 Статистика заказов', one_time_keyboard=True)
@@ -756,15 +759,13 @@ def testmess(callback):
         btn04 = types.InlineKeyboardButton('Подтвердить выполнение заказа', callback_data='Подтвердить заказ', one_time_keyboard=True)
         btn05 = types.InlineKeyboardButton('Заказ выполнен с браком', callback_data='Заказ с браком', one_time_keyboard=True)
 
-
-        
-        markup.row(btn04) 
-        markup.row(btn05) 
-        markup.row(btn03) 
         markup.row(btn01)
+        if takeParam2[15] != '':
+            markup.row(btn04)
+            markup.row(btn05)
+            markup.row(btn03)
         markup.row(btn02)
 
-        
         bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
         print("все произошло")
 
@@ -834,9 +835,10 @@ def testmess_test_test(callback):
         btn05 = types.InlineKeyboardButton('Заказ выполнен с браком', callback_data='Заказ с браком', one_time_keyboard=True)
 
         markup.row(btn01)
-        markup.row(btn04)
-        markup.row(btn05)
-        markup.row(btn03)
+        if takeParam2[15] != '':
+            markup.row(btn04)
+            markup.row(btn05)
+            markup.row(btn03)
         markup.row(btn02)
 
         
