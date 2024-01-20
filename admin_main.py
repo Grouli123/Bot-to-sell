@@ -1228,6 +1228,26 @@ def show_database_users(message):
         bot1.send_message(message.chat.id, 'Введите логин и пароль прежде чем продолжить работу')
         input_admin(message)
 
+# def show_database_userOrder(message):
+#     print(loginin)
+#     if loginin == True:
+
+#         conn = sqlite3.connect('customerBase.sql')
+#         cur = conn.cursor()
+#         cur.execute('SELECT * FROM orders')
+#         users = cur.fetchall()
+
+#         info = ''
+#         for el in users:
+#             info += f'тут:{el[14]} Чат id: {el[9]}\nЗаявка номер: {el[0]}, Дата создания: {el[1]}, Город: {el[2]}, Количество людей: {el[3]}, Адрес: {el[4]}, Что делать: {el[5]}, Начало работ: {el[6]}, Вам на руки: {el[8]}, Сообщение админки: {el[10]}, Сообщение ордера: {el[11]}, Id чатов: {el[13]}, записался id: {el[14]}, номера телефонов друзей: {el[15]}, ФИО друзей: {el[16]}\n\n'
+#         cur.close()
+#         conn.close()
+
+#         bot1.send_message(message.chat.id, info)
+#         print(info)
+#     else:
+#         bot1.send_message(message.chat.id, 'Введите логин и пароль прежде чем продолжить работу')
+#         input_admin(message)
 
 print('Bot started')
 
