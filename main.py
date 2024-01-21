@@ -4,7 +4,8 @@ import subprocess
 script_paths = [
     'admin_main.py',
     'get_orders_main.py',
-    'registration_main.py'
+    'registration_main.py',
+    'OrdersAdmin.py'
     # 'openTest.py',
     # 'observable.py',
     # 'observer.py'

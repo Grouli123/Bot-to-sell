@@ -15,6 +15,7 @@ import registration_people_config.custumers_sqlBase as sqlBaseCustomer
 
 import citys.city_list as citys
 
+
 botApiKey = API_key.botAPI
 
 bot = telebot.TeleBot(botApiKey)
@@ -23,6 +24,8 @@ bot = telebot.TeleBot(botApiKey)
 base = sqlBase.createDatabase
 insertIntoBase = sqlBase.insertIntoDatabase
 nameOfBase = sqlBase.name_of_base
+
+insertIntoAdminOrderBase = sqlBaseCustomer.insertIntoDatabase
 
 maxSymbol = config_message.max_symbol_for_message
 
@@ -278,7 +281,7 @@ def middlename_check(message):
 def numberPhoneInput_order(message):
     # global user_id
     
-    conn = sqlite3.connect('customerBase.sql')
+    conn = sqlite3.connect('custumers.sql')
     cur = conn.cursor()
     # user_id = message.from_user.id
     cur.execute(baseCustomer)
@@ -301,7 +304,7 @@ def numberPhoneInput_order(message):
         bot.send_message(message.chat.id, phoneMessageText, reply_markup=keyboard, parse_mode='html')
         bot.register_next_step_handler(message, number_check)   
     else:
-        conn = sqlite3.connect('customerBase.sql')
+        conn = sqlite3.connect('custumers.sql')
         cur = conn.cursor()
 
         cur.execute("SELECT botchatname, city FROM custumers WHERE user_id = ('%s')" % (user_id))
@@ -419,6 +422,7 @@ def login_check_order(message):
             input_login_order(message)        
         else:                  
             loginOrder = message.text.strip()   
+            print(loginOrder, ' login')
             input_password_order(message)
 
 def input_password_order(message):
@@ -437,10 +441,12 @@ def password_check_order(message):
             input_password_order(message)        
         else:                  
             passwordOrder = message.text.strip()   
+            print(passwordOrder, ' pawwword')
             sendMoney(message)
 
 
 def sendMoney(message):
+    import_into_database_order_admin(message)
     markup1 = types.InlineKeyboardMarkup()
     btn01 = types.InlineKeyboardButton('💵 Оплатить', url='https://t.me/Grouli123', one_time_keyboard=True)
     markup1.row(btn01)
@@ -600,6 +606,25 @@ def import_into_database(message):
     
     state = 'citizenRU'
 
+def import_into_database_order_admin(message):
+    # global usercitizenRF   
+    global state  
+    conn = sqlite3.connect('custumers.sql')
+    cur = conn.cursor()
+    cur.execute(insertIntoAdminOrderBase % (phoneOrder, 'Арзамас', lastnameOrder, firstnameOrder, middlenameOrder, user_id, loginOrder, passwordOrder)) 
+   
+    conn.commit()
+    cur.close()
+    conn.close()
+
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(f'{buttonResultName} {locationcity}', callback_data=nameOfBase, url=f'https://t.me/{chatcity}'))
+       
+    bot.send_message(message.chat.id, alreadyRegistered, reply_markup=markup)
+    
+    state = 'citizenRU'
+
 print('Bot started')
 
 bot.polling(non_stop=True)
+
