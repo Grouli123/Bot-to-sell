@@ -108,6 +108,7 @@ firstnameOrder = None
 middlenameOrder = None
 loginOrder = None
 passwordOrder = None
+cityOrder = None
 
 baseCustomer = sqlBaseCustomer.createDatabase
 
@@ -535,23 +536,28 @@ def callback_message_citizen(callback):
 @bot.callback_query_handler(func=lambda callback: callback.data == 'Екатеринбург') 
 @bot.callback_query_handler(func=lambda callback: callback.data == 'Санкт-Петербург') 
 @bot.callback_query_handler(func=lambda callback: callback.data == 'Арзамас') 
-def callback_message_citizen(callback):   
+def callback_message_citizen(callback): 
+    global cityOrder  
     if callback.data == 'Москва и МО':
+        cityOrder = 'Москва и МО'
         bot.edit_message_text('Москва и МО', callback.message.chat.id, callback.message.message_id)        
         bot.send_message(callback.message.chat.id, 'Я вас понял: Москва и МО')
         input_login_order(callback.message)
 
     elif callback.data == 'Екатеринбург':  
+        cityOrder = 'Екатеринбург'
         bot.edit_message_text('Екатеринбург', callback.message.chat.id, callback.message.message_id)        
         bot.send_message(callback.message.chat.id, 'Я вас понял: Екатеринбург')
         input_login_order(callback.message)
 
-    elif callback.data == 'Санкт-Петербург':  
+    elif callback.data == 'Санкт-Петербург': 
+        cityOrder = 'Санкт-Петербург' 
         bot.edit_message_text('Санкт-Петербург', callback.message.chat.id, callback.message.message_id)        
         bot.send_message(callback.message.chat.id, 'Я вас понял: Санкт-Петербург')
         input_login_order(callback.message)
     
     elif callback.data == 'Арзамас':  
+        cityOrder = 'Арзамас' 
         bot.edit_message_text('Арзамас', callback.message.chat.id, callback.message.message_id)        
         bot.send_message(callback.message.chat.id, 'Я вас понял: Арзамас')
         input_login_order(callback.message)
@@ -611,7 +617,7 @@ def import_into_database_order_admin(message):
     global state  
     conn = sqlite3.connect('custumers.sql')
     cur = conn.cursor()
-    cur.execute(insertIntoAdminOrderBase % (phoneOrder, 'Арзамас', lastnameOrder, firstnameOrder, middlenameOrder, user_id, loginOrder, passwordOrder)) 
+    cur.execute(insertIntoAdminOrderBase % (phoneOrder, cityOrder, lastnameOrder, firstnameOrder, middlenameOrder, user_id, loginOrder, passwordOrder)) 
    
     conn.commit()
     cur.close()

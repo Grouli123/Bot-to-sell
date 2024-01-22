@@ -144,11 +144,11 @@ take_user_id_id = None
 test123 = None
 def start(message):    
     markup = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-    btn1 = types.KeyboardButton(makeOrderButton)
+    # btn1 = types.KeyboardButton(makeOrderButton)
     btn2 = types.KeyboardButton(openBaseOrders)
     btn3 = types.KeyboardButton(openBasePeople)
     btn4 = types.KeyboardButton('Открыть базу данных админов')
-    markup.row(btn1)
+    # markup.row(btn1)
     markup.row(btn2, btn3)    
     markup.row(btn4)    
     bot1.send_message(message.chat.id, startBotMessage,  reply_markup=markup)
