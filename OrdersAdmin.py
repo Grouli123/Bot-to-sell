@@ -3,11 +3,11 @@ from telebot import types
 import sqlite3
 import json
 
-import admin_config.admin_API_key as API_key_one
+# import admin_config.admin_API_key as API_key_one
 import admin_config.admin_sqlBase as sqlBase_one
 import admin_config.admin_config_message as config_message_one
 
-import get_orders_config.get_orders_API_key as API_key_Test
+# import get_orders_config.get_orders_API_key as API_keky_Test
 
 
 
@@ -23,19 +23,19 @@ import citys.city_list as citys
 
 
 
-from get_orders_main import testMethod
+# from get_orders_main import testMethod
 
-botApiKey = '6433261921:AAEmTi8RVvhuSdYSlxB2uq0x3tP0X4wMRBE'
+botApiKey13 = '6433261921:AAEmTi8RVvhuSdYSlxB2uq0x3tP0X4wMRBE'
 
-arzamasBot = API_key_Test.botAPIArz
+# arzamasBot = API_key_Test.botAPIArz
 # ekaterinburgBot = API_key_Test.botAPIEka
 # sankt_peterburgBot = API_key_Test.botAPISan
 
 
 bot_to_send = None
 
-bot1 = telebot.TeleBot(botApiKey)
-bot2 = telebot.TeleBot(arzamasBot)
+bot13 = telebot.TeleBot(botApiKey13)
+# bot2 = telebot.TeleBot(arzamasBot)
 # bot3 = telebot.TeleBot(ekaterinburgBot)
 # bot4 = telebot.TeleBot(sankt_peterburgBot)
 
@@ -151,10 +151,10 @@ def start(message):
     # markup.row(btn1)
     markup.row(btn2, btn3)    
     markup.row(btn4)    
-    bot1.send_message(message.chat.id, startBotMessage,  reply_markup=markup)
-    bot1.register_next_step_handler(message, city_of_obj)
+    bot13.send_message(message.chat.id, startBotMessage,  reply_markup=markup)
+    bot13.register_next_step_handler(message, city_of_obj)
 
-@bot1.message_handler(commands=['start'])
+@bot13.message_handler(commands=['start'])
 def input_admin(message):      
     global adminChatId
     adminChatId = message.chat.id  # Получаем chat_id из сообщения
@@ -162,40 +162,40 @@ def input_admin(message):
     print(loginin)
 
     if loginin == False:
-        bot1.send_message(message.chat.id, 'Введите логин', parse_mode='html')
-        bot1.register_next_step_handler(message, admin_check)   
+        bot13.send_message(message.chat.id, 'Введите логин', parse_mode='html')
+        bot13.register_next_step_handler(message, admin_check)   
     else:
         start(message)
 
 
 def admin_check(message):
     if message.text is None:
-        bot1.send_message(message.from_user.id, textOnly)
+        bot13.send_message(message.from_user.id, textOnly)
         input_admin(message) 
     else:
         if len(message.text.strip()) > maxSymbol1:
-            bot1.send_message(message.chat.id, adressError)
+            bot13.send_message(message.chat.id, adressError)
             message.text.strip(None)
             input_admin(message) 
         else:
             if login == message.text.strip():
                 input_password(message)
             else:
-                bot1.send_message(message.from_user.id, 'Логин не найден')
+                bot13.send_message(message.from_user.id, 'Логин не найден')
                 input_admin(message)
 
 def input_password(message):
-    bot1.send_message(message.chat.id, 'Введите пароль', parse_mode='html')
-    bot1.register_next_step_handler(message, password_check)   
+    bot13.send_message(message.chat.id, 'Введите пароль', parse_mode='html')
+    bot13.register_next_step_handler(message, password_check)   
 
 def password_check(message):
     global loginin
     if message.text is None:
-        bot1.send_message(message.from_user.id, textOnly)
+        bot13.send_message(message.from_user.id, textOnly)
         input_password(message) 
     else:
         if len(message.text.strip()) > maxSymbol1:
-            bot1.send_message(message.chat.id, adressError)
+            bot13.send_message(message.chat.id, adressError)
             message.text.strip(None)
             input_password(message) 
         else:
@@ -203,7 +203,7 @@ def password_check(message):
                 loginin = True
                 start(message)
             else:
-                bot1.send_message(message.from_user.id, 'Пароль не подходит')
+                bot13.send_message(message.from_user.id, 'Пароль не подходит')
                 input_password(message)
 
 
@@ -236,30 +236,30 @@ def password_check(message):
 def city_of_obj(message):
     if loginin == True:
         if message.text is None:
-            bot1.send_message(message.from_user.id, textOnly)
+            bot13.send_message(message.from_user.id, textOnly)
             start(message) 
         else:
             if message.text == makeOrderButton:
-                bot1.send_message(message.chat.id, inputCityObject, reply_markup=types.ReplyKeyboardRemove())
-                bot1.register_next_step_handler(message, city_of_obj_check)
+                bot13.send_message(message.chat.id, inputCityObject, reply_markup=types.ReplyKeyboardRemove())
+                bot13.register_next_step_handler(message, city_of_obj_check)
 
             elif message.text == openBaseOrders:
-                bot1.send_message(message.chat.id, openBseOrdersMessage)
+                bot13.send_message(message.chat.id, openBseOrdersMessage)
                 show_database_orders(message)
                 start(message)
             elif message.text == openBasePeople:
-                bot1.send_message(message.chat.id, openBasePeopleMessage)
+                bot13.send_message(message.chat.id, openBasePeopleMessage)
                 show_database_users(message)
                 start(message)
             elif message.text == 'Открыть базу данных админов':
-                bot1.send_message(message.chat.id, 'Открыть базу данных админов')
+                bot13.send_message(message.chat.id, 'Открыть базу данных админов')
                 show_database_userOrder(message)
                 start(message)
             else:
-                bot1.send_message(message.chat.id, chooseTruePointOfMenu)            
+                bot13.send_message(message.chat.id, chooseTruePointOfMenu)            
                 start(message)  
     else:
-        bot1.send_message(message.chat.id, 'Введите логин и пароль прежде чем продолжить работу')
+        bot13.send_message(message.chat.id, 'Введите логин и пароль прежде чем продолжить работу')
         input_admin(message)
 
 
@@ -269,11 +269,11 @@ def city_of_obj_check(message):
     
 
     if message.text is None:
-        bot1.send_message(message.from_user.id, textOnly)
+        bot13.send_message(message.from_user.id, textOnly)
         city_of_obj(message) 
     else:
         if len(message.text.strip()) > maxSymbol1:
-            bot1.send_message(message.chat.id, adressError)
+            bot13.send_message(message.chat.id, adressError)
             message.text.strip(None)
             city_of_obj(message) 
         else:
@@ -290,17 +290,17 @@ def people_need_count(message):
     conn.commit() 
     cur.close()
     conn.close()
-    bot1.send_message(message.chat.id, inputCountOfNeedPeople, parse_mode='html')
-    bot1.register_next_step_handler(message, people_need_count_check)   
+    bot13.send_message(message.chat.id, inputCountOfNeedPeople, parse_mode='html')
+    bot13.register_next_step_handler(message, people_need_count_check)   
 
 def people_need_count_check(message):
     global countPeople
     if message.text is None:
-        bot1.send_message(message.from_user.id, textOnly)
+        bot13.send_message(message.from_user.id, textOnly)
         people_need_count(message) 
     else:
         if len(message.text.strip()) > maxSymbol1:
-            bot1.send_message(message.chat.id, adressError)
+            bot13.send_message(message.chat.id, adressError)
             message.text.strip(None)
             people_need_count(message) 
         else:
@@ -309,22 +309,22 @@ def people_need_count_check(message):
                 int(countPeople)
                 input_adress(message)
             except ValueError:
-                bot1.send_message(message.from_user.id, inputNumber)
+                bot13.send_message(message.from_user.id, inputNumber)
                 people_need_count(message)
             
         
 def input_adress(message):
-    bot1.send_message(message.chat.id, adressText, parse_mode='html')
-    bot1.register_next_step_handler(message, adress_check)   
+    bot13.send_message(message.chat.id, adressText, parse_mode='html')
+    bot13.register_next_step_handler(message, adress_check)   
 
 def adress_check(message):
     global adress
     if message.text is None:
-        bot1.send_message(message.from_user.id, textOnly)
+        bot13.send_message(message.from_user.id, textOnly)
         input_adress(message) 
     else:
         if len(message.text.strip()) > maxSymbol1:
-            bot1.send_message(message.chat.id, adressError)
+            bot13.send_message(message.chat.id, adressError)
             message.text.strip(None)
             input_adress(message) 
         else:
@@ -333,17 +333,17 @@ def adress_check(message):
             input_whattodo(message)
 
 def input_whattodo(message):
-    bot1.send_message(message.chat.id, whatToDoText, parse_mode='html')
-    bot1.register_next_step_handler(message, whattodo_check)
+    bot13.send_message(message.chat.id, whatToDoText, parse_mode='html')
+    bot13.register_next_step_handler(message, whattodo_check)
 
 def whattodo_check(message):       
     global whattodo
     if message.text is None:
-        bot1.send_message(message.from_user.id, textOnly)
+        bot13.send_message(message.from_user.id, textOnly)
         input_whattodo(message)
     else:
         if len(message.text.strip()) > maxSymbol1:
-            bot1.send_message(message.chat.id, whatToDoError)
+            bot13.send_message(message.chat.id, whatToDoError)
             message.text.strip(None)
             input_whattodo(message)        
         else:                  
@@ -352,17 +352,17 @@ def whattodo_check(message):
             input_startwork(message)
         
 def input_startwork(message):
-    bot1.send_message(message.chat.id, startWorkText, parse_mode='html')
-    bot1.register_next_step_handler(message, startwork_check)
+    bot13.send_message(message.chat.id, startWorkText, parse_mode='html')
+    bot13.register_next_step_handler(message, startwork_check)
 
 def startwork_check(message):      
     global timetostart
     if message.text is None:
-        bot1.send_message(message.from_user.id, textOnly)
+        bot13.send_message(message.from_user.id, textOnly)
         input_startwork(message)
     else:
         if len(message.text.strip()) > maxSymbol1:
-            bot1.send_message(message.chat.id, startWorkError)
+            bot13.send_message(message.chat.id, startWorkError)
             message.text.strip(None)
             input_startwork(message) 
         else:     
@@ -371,17 +371,17 @@ def startwork_check(message):
             input_salary(message)
 
 def input_salary(message):
-    bot1.send_message(message.chat.id, inputSumInHour, parse_mode='html')
-    bot1.register_next_step_handler(message, salary_check)
+    bot13.send_message(message.chat.id, inputSumInHour, parse_mode='html')
+    bot13.register_next_step_handler(message, salary_check)
 
 def salary_check(message):      
     global salary
     if message.text is None:
-        bot1.send_message(message.from_user.id, textOnly)
+        bot13.send_message(message.from_user.id, textOnly)
         input_salary(message)
     else:
         if len(message.text.strip()) > maxSymbol1:
-            bot1.send_message(message.chat.id, startWorkError)
+            bot13.send_message(message.chat.id, startWorkError)
             message.text.strip(None)
             input_salary(message) 
         else:     
@@ -391,7 +391,7 @@ def salary_check(message):
                 print(startwork_check)
                 created_order(message)
             except ValueError:
-                bot1.send_message(message.from_user.id, inputNumbers)
+                bot13.send_message(message.from_user.id, inputNumbers)
                 input_salary(message)
             
 def created_order(message):
@@ -413,7 +413,7 @@ def created_order(message):
     btn2 = types.InlineKeyboardButton(orderSendText, callback_data=orderSendTextCallbackData, one_time_keyboard=True)
     btn3 = types.InlineKeyboardButton(orderDeleteText, callback_data=orderDeleteCallbackData, one_time_keyboard=True)
     markup.row(btn2, btn3)    
-    sent_message = bot1.send_message(message.chat.id, f'✅\n<b>·{cityname}: </b>{needText} {countPeople} {humanCount}\n<b>·Адрес:</b>👉 {adress}\n<b>·Что делать:</b> {whattodo}\n<b>·Начало работ:</b> в {timetostart}\n<b>·Вам на руки:</b> <u>{salary}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>', parse_mode='html', reply_markup=markup)  
+    sent_message = bot13.send_message(message.chat.id, f'✅\n<b>·{cityname}: </b>{needText} {countPeople} {humanCount}\n<b>·Адрес:</b>👉 {adress}\n<b>·Что делать:</b> {whattodo}\n<b>·Начало работ:</b> в {timetostart}\n<b>·Вам на руки:</b> <u>{salary}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>', parse_mode='html', reply_markup=markup)  
     # start(message)
     sent_message_id = sent_message.message_id
 
@@ -421,10 +421,198 @@ def created_order(message):
 # def get_value(testTest):
 #     testTest = False
 #     return testTest
+def testMethod():
+    # global messageChatId
+    global check_mess_already_send
+    global check_user_id
+    global last_sent_message
+
+    global humanCount
+    global needText
+    global last_message_id
+    global error_reported
+    global user_last_message_ids
+    global user_message_ids
+
+    global user_chat_ids
+    global data_called
+    # global user_id
+    global user_id_mess
+    data_called = False
+
+    # user_id = get_user_id()
+
+    # print("User ID:", user_id)
+    conn5 = sqlite3.connect('peoplebase.sql')
+    cur5 = conn5.cursor()
+    cur5.execute("SELECT botChatId FROM users")
+    
+    # test = cur5.fetchall()
+
+    results = cur5.fetchall()
+
+    
+    
+    # print('юзер айди тут перед',user_id)
+
+    # if results:
+    #     test2 = results[0]
+    # else:
+    #     print('еще чего захотел?')
+    # cur5.close()
+    # conn5.close()
+
+    conn = sqlite3.connect('applicationbase.sql')
+    cur = conn.cursor()
+
+    # print('А тут?', messageChatId)
+    try:
+        # cur.execute('SELECT * FROM orders')
+        cur.execute("SELECT * FROM orders ORDER BY id DESC LIMIT 1")
+        users = cur.fetchone() 
+            
+
+        
+        if users is not None:
+            if (int(users[3]) <= 1) or (int(users[3]) >= 5):
+                humanCount = 'человек'
+            else:
+                humanCount = 'человека'
+                    
+            if int(users[3]) > 1:
+                needText = 'Нужно'
+            else:
+                needText = 'Нужен'
+
+            if (int(users[3]) <= 1):
+                markup2 = types.InlineKeyboardMarkup()
+                btn12 = types.InlineKeyboardButton('Еду 1', callback_data='Еду 1', one_time_keyboard=True)
+                btn52 = types.InlineKeyboardButton('❓ Задать вопрос', url='https://t.me/Grouli123', one_time_keyboard=True)
+                markup2.row(btn12)  
+                markup2.row(btn52)            
+            elif (int(users[3]) == 2):
+                markup2 = types.InlineKeyboardMarkup()
+                btn12 = types.InlineKeyboardButton('Еду 1', callback_data='Еду 1', one_time_keyboard=True)
+                btn22 = types.InlineKeyboardButton('Едем в 2', callback_data='Едем в 2', one_time_keyboard=True)
+                btn52 = types.InlineKeyboardButton('❓ Задать вопрос', url='https://t.me/Grouli123', one_time_keyboard=True)
+                markup2.row(btn12)  
+                markup2.row(btn22)  
+                markup2.row(btn52) 
+            elif (int(users[3]) == 3):
+                markup2 = types.InlineKeyboardMarkup()
+                btn12 = types.InlineKeyboardButton('Еду 1', callback_data='Еду 1', one_time_keyboard=True)
+                btn22 = types.InlineKeyboardButton('Едем в 2', callback_data='Едем в 2', one_time_keyboard=True)
+                btn32 = types.InlineKeyboardButton('Едем в 3', callback_data='Едем в 3', one_time_keyboard=True)
+                btn52 = types.InlineKeyboardButton('❓ Задать вопрос', url='https://t.me/Grouli123', one_time_keyboard=True)
+                markup2.row(btn12)  
+                markup2.row(btn22)  
+                markup2.row(btn32)  
+                markup2.row(btn52) 
+            elif (int(users[3]) >= 4):
+                markup2 = types.InlineKeyboardMarkup()
+                btn12 = types.InlineKeyboardButton('Еду 1', callback_data='Еду 1', one_time_keyboard=True)
+                btn22 = types.InlineKeyboardButton('Едем в 2', callback_data='Едем в 2', one_time_keyboard=True)
+                btn32 = types.InlineKeyboardButton('Едем в 3', callback_data='Едем в 3', one_time_keyboard=True)
+                btn42 = types.InlineKeyboardButton('Едем в 4', callback_data='Едем в 4', one_time_keyboard=True)
+                btn52 = types.InlineKeyboardButton('❓ Задать вопрос', url='https://t.me/Grouli123', one_time_keyboard=True)
+                markup2.row(btn12)  
+                markup2.row(btn22)  
+                markup2.row(btn32)  
+                markup2.row(btn42)  
+                markup2.row(btn52) 
+            
+                
+            order_info = f'✅\n<b>•{users[2]}: </b>{needText} {users[3]} {humanCount}\n<b>•Адрес:</b>👉 {users[4]}\n<b>•Что делать:</b> {users[5]}\n<b>•Начало работ:</b> в {users[6]}\n<b>•Вам на руки:</b> <u>{users[8]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
+                
+                
+            if order_info != last_sent_message:
+                    
+                print('работает елсе')
+                # conn = sqlite3.connect('applicationbase.sql')
+                # cursor = conn.cursor()
+
+                # Получаем ID пользователя
+                user_id_mess = users[0]
+                print(user_id_mess)
+                # Получаем текущий список message_id из базы данных
+                cur.execute("SELECT orderMessageId FROM orders WHERE id = ('%s')" % (user_id_mess))
+                current_message_ids_str = cur.fetchone()[0]
+                    
+                # Преобразуем текущую строку в список (если она не пуста)
+                current_message_ids = current_message_ids_str.split(',') if current_message_ids_str else []
+                
+                for result in results:
+                    botChatIdw = result[0]  # Получаем значение botChatId из результата
+                    if botChatIdw != 'None':
+                        print("Заполненное значение botChatId:", botChatIdw)
+
+                # messageChatId = message.chat.id
+                        sent_message = bot13.send_message(botChatIdw, order_info, reply_markup=markup2, parse_mode='html')
+                        last_message_id = sent_message.message_id  
 
 
-@bot1.callback_query_handler(func=lambda callback: callback.data == orderSendTextCallbackData)
-@bot1.callback_query_handler(func=lambda callback: callback.data == orderDeleteCallbackData) 
+                        user_chat_id_str = user_chat_ids.get(user_id_mess, "")
+                        if user_chat_id_str:
+                            user_chat_id_str += ","
+                        user_chat_id_str += str(botChatIdw)
+                        user_chat_ids[user_id_mess] = user_chat_id_str
+
+                        user_message_id_list = user_message_ids.get(user_id_mess, [])
+                        # Добавляем новый message_id
+                        user_message_id_list.append(last_message_id)
+                        # Сохраняем обновленный список в словаре
+                        user_message_ids[user_id_mess] = user_message_id_list
+                        # Добавляем новый message_id
+                        last_message_id_str = str(last_message_id)
+                        current_message_ids.append(last_message_id_str)
+                            
+                        # Преобразуем обновленный список в строку
+                        updated_message_ids_str = ','.join(current_message_ids)
+                cur5.close()
+                conn5.close()   
+
+                    
+
+                
+                for user_id_mess, message_id_list in user_message_ids.items():
+                    updated_message_ids_str = ','.join(map(str, message_id_list))
+                    sql_query = "UPDATE orders SET orderMessageId = ('%s'), orderChatId = ('%s') WHERE id = ('%s')"
+                    cur.execute(sql_query % (updated_message_ids_str, user_chat_id_str, user_id_mess))
+
+                # Коммит изменений в базу данных
+                conn.commit()
+                last_sent_message = order_info
+                check_mess_already_send = False
+
+
+
+                    
+            else:
+                print('Нет новых сообщений')
+                print(user_last_message_ids)
+
+        else:                
+            print('Заказов пока нет, но скоро будут')
+       
+
+       
+        cur.close()
+        conn.close()
+        # time.sleep(3)
+    except sqlite3.Error as e:
+        # Обработка ошибки, если таблицы нет или произошла другая ошибка
+        if not error_reported:
+                
+            print('Заказов пока нет, но скоро будут')
+            error_reported = True  # Устанавливаем флаг ошибки, чтобы сообщение выводилось только один раз
+    
+        # Закрытие соединения с базой данных
+        conn.close()
+
+
+
+@bot13.callback_query_handler(func=lambda callback: callback.data == orderSendTextCallbackData)
+@bot13.callback_query_handler(func=lambda callback: callback.data == orderDeleteCallbackData) 
 def callback_message_created_order(callback):  
     global feedback 
     global chatcity
@@ -437,7 +625,7 @@ def callback_message_created_order(callback):
         markup1 = types.InlineKeyboardMarkup()
         btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='❌ Закрыть заявку', one_time_keyboard=True)
         markup1.row(btn01)
-        bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, reply_markup=markup1, parse_mode='html')
+        bot13.edit_message_text(application, callback.message.chat.id, callback.message.message_id, reply_markup=markup1, parse_mode='html')
 
         print(sent_message_id)
         if cityname == 'Арзамас':
@@ -453,13 +641,13 @@ def callback_message_created_order(callback):
         # admin_bot.value = "Ваше сообщение здесь"
     else:          
         feedback = orderDeleteText
-        bot1.delete_message(callback.message.chat.id, callback.message.message_id)
+        bot13.delete_message(callback.message.chat.id, callback.message.message_id)
     
     import_into_database(callback.message)
 
 
 
-@bot1.callback_query_handler(func=lambda callback: callback.data == '❌ Закрыть заявку')
+@bot13.callback_query_handler(func=lambda callback: callback.data == '❌ Закрыть заявку')
 def callback_message_created_order(callback):  
     if callback.data == '❌ Закрыть заявку':
         conn = sqlite3.connect('applicationbase.sql')
@@ -488,7 +676,7 @@ def callback_message_created_order(callback):
         markup.row(btn02)
 
         
-        bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
+        bot13.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
         print("все произошло")
 
 
@@ -520,7 +708,7 @@ def callback_message_created_order(callback):
             print('Чат id: ',chat_id)
             print('Месседж id: ', message_id)
 
-            bot2.edit_message_text(order_info_close, chat_id, message_id, parse_mode='html')
+            # bot2.edit_message_text(order_info_close, chat_id, message_id, parse_mode='html')
 
         # order_message_id_str = cursor.fetchone()[0]
 
@@ -649,7 +837,7 @@ def update_message_with_users_list_test(test):
 
 
             markup.row(btn02)
-            bot1.edit_message_reply_markup(chat_id=admin_chat_id, message_id=admin_message_id, reply_markup=markup)
+            bot13.edit_message_reply_markup(chat_id=admin_chat_id, message_id=admin_message_id, reply_markup=markup)
        
 
 
@@ -678,7 +866,7 @@ def update_message_with_users_list(test):
 
             markup.row(btn01)
             markup.row(btn02)
-            bot1.edit_message_reply_markup(chat_id=admin_chat_id, message_id=admin_message_id, reply_markup=markup)
+            bot13.edit_message_reply_markup(chat_id=admin_chat_id, message_id=admin_message_id, reply_markup=markup)
 
 
 
@@ -703,38 +891,38 @@ def get_user_name_from_database(user_id):
 
 
 
-@bot1.callback_query_handler(func=lambda callback: callback.data == 'Свернуть1')
+@bot13.callback_query_handler(func=lambda callback: callback.data == 'Свернуть1')
 def testmess_close_one(callback):
     markup = types.InlineKeyboardMarkup()
     btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='ОтправленоАдмину1', one_time_keyboard=True)
     markup.row(btn02)
-    bot1.edit_message_reply_markup(chat_id=callback.message.chat.id, message_id=callback.message.message_id, reply_markup=markup)
+    bot13.edit_message_reply_markup(chat_id=callback.message.chat.id, message_id=callback.message.message_id, reply_markup=markup)
     
 
 
-@bot1.callback_query_handler(func=lambda callback: callback.data == 'Свернуть')
+@bot13.callback_query_handler(func=lambda callback: callback.data == 'Свернуть')
 def testmess_close(callback):
     markup = types.InlineKeyboardMarkup()
     btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='❌ Закрыть заявку', one_time_keyboard=True)
     btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='ОтправленоАдмину', one_time_keyboard=True)
     markup.row(btn02)
     markup.row(btn01)
-    bot1.edit_message_reply_markup(chat_id=callback.message.chat.id, message_id=callback.message.message_id, reply_markup=markup)
+    bot13.edit_message_reply_markup(chat_id=callback.message.chat.id, message_id=callback.message.message_id, reply_markup=markup)
 
     
-@bot1.callback_query_handler(func=lambda callback: callback.data == 'ОтправленоАдмину1')
+@bot13.callback_query_handler(func=lambda callback: callback.data == 'ОтправленоАдмину1')
 def testmess_sendAdOne(callback):
     test = callback.message.message_id
     update_message_with_users_list_test(test)
 
 
-@bot1.callback_query_handler(func=lambda callback: callback.data == 'ОтправленоАдмину')
+@bot13.callback_query_handler(func=lambda callback: callback.data == 'ОтправленоАдмину')
 def testmess_sendAd(callback):
     test = callback.message.message_id
     update_message_with_users_list(test)
 
  
-@bot1.callback_query_handler(func=lambda callback: callback.data.startswith('user_'))
+@bot13.callback_query_handler(func=lambda callback: callback.data.startswith('user_'))
 def testmess(callback):
     take_user_id = callback.data.split('_')[1]
     print('Идентификатор пользователя:', take_user_id)
@@ -771,12 +959,12 @@ def testmess(callback):
             markup.row(btn03)
         markup.row(btn02)
 
-        bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
+        bot13.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
         print("все произошло")
 
 
 
-@bot1.callback_query_handler(func=lambda callback: callback.data == 'Назад')
+@bot13.callback_query_handler(func=lambda callback: callback.data == 'Назад')
 def testmess_test(callback):
     message_id = callback.message.message_id
     conn = sqlite3.connect('applicationbase.sql')
@@ -797,7 +985,7 @@ def testmess_test(callback):
         markup.row(btn02)
         markup.row(btn01)
         
-        bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
+        bot13.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
     else:
 
         application = f'❌ Заявка закрыта\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</b> в {test2[4]}\n<b>·Вам на руки:</b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
@@ -807,14 +995,14 @@ def testmess_test(callback):
         btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='ОтправленоАдмину1', one_time_keyboard=True)
         markup.row(btn02)
 
-        bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
+        bot13.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
 
     # cursor.close()
     # conn.close()
 
 
 
-@bot1.callback_query_handler(func=lambda callback: callback.data == 'Назад1')
+@bot13.callback_query_handler(func=lambda callback: callback.data == 'Назад1')
 def testmess_test_test(callback):
     conn = sqlite3.connect('peoplebase.sql')
     cursor = conn.cursor()
@@ -847,7 +1035,7 @@ def testmess_test_test(callback):
         markup.row(btn02)
 
         
-        bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
+        bot13.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
         print("все произошло")
     cursor.close()
     conn.close()
@@ -855,7 +1043,7 @@ def testmess_test_test(callback):
 
 
 
-@bot1.callback_query_handler(func=lambda callback: callback.data == 'Подтвердить заказ') 
+@bot13.callback_query_handler(func=lambda callback: callback.data == 'Подтвердить заказ') 
 def callback_data_of_data_confirm(callback): 
     # global test123
 
@@ -886,7 +1074,7 @@ def callback_data_of_data_confirm(callback):
 
     cursor.execute("SELECT cityOfobj, countpeople, adress, whattodo, timetostart, salary, actualMess FROM orders WHERE adminMessageId = ('%s')" % (message_id))
     test2 = cursor.fetchone()
-    bot1.answer_callback_query(callback.id, "Подтверждение заказа выполнено")
+    bot13.answer_callback_query(callback.id, "Подтверждение заказа выполнено")
 
 
     if test2[6] == 'True':
@@ -901,7 +1089,7 @@ def callback_data_of_data_confirm(callback):
         markup.row(btn02)
         markup.row(btn01)
         
-        bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
+        bot13.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
     else:
 
         application = f'❌ Заявка закрыта\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</b> в {test2[4]}\n<b>·Вам на руки:</b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
@@ -911,12 +1099,12 @@ def callback_data_of_data_confirm(callback):
         btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='ОтправленоАдмину1', one_time_keyboard=True)
         markup.row(btn02)
 
-        bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
+        bot13.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
     
     # cursor.close()
     # conn.close()
 
-@bot1.callback_query_handler(func=lambda callback: callback.data == 'Заказ с браком') 
+@bot13.callback_query_handler(func=lambda callback: callback.data == 'Заказ с браком') 
 def callback_data_of_data_miss(callback): 
     # global test123
 
@@ -948,7 +1136,7 @@ def callback_data_of_data_miss(callback):
     cursor.execute("SELECT cityOfobj, countpeople, adress, whattodo, timetostart, salary, actualMess FROM orders WHERE adminMessageId = ('%s')" % (message_id))
     test2 = cursor.fetchone()
 
-    bot1.answer_callback_query(callback.id, "Заказ был выполнен с браком")
+    bot13.answer_callback_query(callback.id, "Заказ был выполнен с браком")
 
 
     if test2[6] == 'True':
@@ -963,7 +1151,7 @@ def callback_data_of_data_miss(callback):
         markup.row(btn02)
         markup.row(btn01)
         
-        bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
+        bot13.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
     else:
 
         application = f'❌ Заявка закрыта\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</b> в {test2[4]}\n<b>·Вам на руки:</b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
@@ -973,7 +1161,7 @@ def callback_data_of_data_miss(callback):
         btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='ОтправленоАдмину1', one_time_keyboard=True)
         markup.row(btn02)
 
-        bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
+        bot13.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
     
     # cursor.close()
     # conn.close()
@@ -982,7 +1170,7 @@ def callback_data_of_data_miss(callback):
 
 
 
-@bot1.callback_query_handler(func=lambda callback: callback.data == 'Отменить заказ') 
+@bot13.callback_query_handler(func=lambda callback: callback.data == 'Отменить заказ') 
 def callback_data_of_data_close(callback): 
     # global test123
 
@@ -1055,7 +1243,7 @@ def callback_data_of_data_close(callback):
     cursor.execute("SELECT cityOfobj, countpeople, adress, whattodo, timetostart, salary, actualMess FROM orders WHERE adminMessageId = ('%s')" % (message_id))
     test2 = cursor.fetchone()
 
-    bot1.answer_callback_query(callback.id, "Заказ отменен")
+    bot13.answer_callback_query(callback.id, "Заказ отменен")
 
 
     if test2[6] == 'True':
@@ -1070,7 +1258,7 @@ def callback_data_of_data_close(callback):
         markup.row(btn02)
         markup.row(btn01)
         
-        bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
+        bot13.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
     else:
 
         application = f'❌ Заявка закрыта\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</b> в {test2[4]}\n<b>·Вам на руки:</b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
@@ -1080,7 +1268,7 @@ def callback_data_of_data_close(callback):
         btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='ОтправленоАдмину1', one_time_keyboard=True)
         markup.row(btn02)
 
-        bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
+        bot13.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
     
     # cursor.close()
     # conn.close()
@@ -1089,7 +1277,7 @@ def callback_data_of_data_close(callback):
 
 
 
-@bot1.callback_query_handler(func=lambda callback: callback.data == '📊 Статистика заказов') 
+@bot13.callback_query_handler(func=lambda callback: callback.data == '📊 Статистика заказов') 
 def callback_data_of_data(callback): 
     global cityTrue
     global isOpenEdit
@@ -1144,24 +1332,24 @@ def callback_data_of_data(callback):
         markup.row(btn02)
 
         
-        bot1.edit_message_text(f'📊 Статистика заказов:\n• Взял: {orderCountTake}\n• Выполнил: {orderCountDone} ({percent_completed}%)\n• Брак: {orderCountMiss} ({percent_failed}%)', callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
+        bot13.edit_message_text(f'📊 Статистика заказов:\n• Взял: {orderCountTake}\n• Выполнил: {orderCountDone} ({percent_completed}%)\n• Брак: {orderCountMiss} ({percent_failed}%)', callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
 
 
 
 
 
-@bot1.message_handler(content_types=['text'])
+@bot13.message_handler(content_types=['text'])
 def check_callback_message_ready_order(message):          
         global state      
         if state == 'initial':         
-            bot1.edit_message_text(userCitizenRuText, message.chat.id, message.message_id-1)
-            bot1.send_message(message.chat.id, userCitizenRuError, parse_mode='html')
+            bot13.edit_message_text(userCitizenRuText, message.chat.id, message.message_id-1)
+            bot13.send_message(message.chat.id, userCitizenRuError, parse_mode='html')
             created_order(message)         
         elif state == 'citizenRU':
-            bot1.send_message(message.chat.id, orderSucsess, parse_mode='html')
+            bot13.send_message(message.chat.id, orderSucsess, parse_mode='html')
             import_into_database(message)
         else:
-            bot1.edit_message_text(userCitizenRuText, message.chat.id, message.message_id)
+            bot13.edit_message_text(userCitizenRuText, message.chat.id, message.message_id)
 
 def import_into_database(message):
     global state  
@@ -1177,12 +1365,12 @@ def import_into_database(message):
     markup.add(types.InlineKeyboardButton(f'{buttonResultName} {cityname}', url=f'https://t.me/{chatcity}'))
 
        
-    bot1.send_message(message.chat.id, alreadyRegistered, reply_markup=markup)
+    bot13.send_message(message.chat.id, alreadyRegistered, reply_markup=markup)
     
     state = 'citizenRU'
     # user_id = get_user_id()
     # print('новый юзер', user_id)
-    testMethod()
+    # testMethod() 
 
 
     start(message)
@@ -1202,10 +1390,10 @@ def show_database_orders(message):
         cur.close()
         conn.close()
 
-        bot1.send_message(message.chat.id, info)
+        bot13.send_message(message.chat.id, info)
         print(info)
     else:
-        bot1.send_message(message.chat.id, 'Введите логин и пароль прежде чем продолжить работу')
+        bot13.send_message(message.chat.id, 'Введите логин и пароль прежде чем продолжить работу')
         input_admin(message)
 
 
@@ -1227,10 +1415,10 @@ def show_database_users(message):
         cur.close()
         conn.close()
 
-        bot1.send_message(message.chat.id, info)
+        bot13.send_message(message.chat.id, info)
         print(info)
     else:
-        bot1.send_message(message.chat.id, 'Введите логин и пароль прежде чем продолжить работу')
+        bot13.send_message(message.chat.id, 'Введите логин и пароль прежде чем продолжить работу')
         input_admin(message)
 
 def show_database_userOrder(message):
@@ -1249,12 +1437,12 @@ def show_database_userOrder(message):
         conn.close()
         print("Info:", repr(info))  # Добавьте этот отладочный вывод
 
-        bot1.send_message(message.chat.id, info)
+        bot13.send_message(message.chat.id, info)
         print(info)
     else:
-        bot1.send_message(message.chat.id, 'Введите логин и пароль прежде чем продолжить работу')
+        bot13.send_message(message.chat.id, 'Введите логин и пароль прежде чем продолжить работу')
         input_admin(message)
 
 print('Bot started')
 
-bot1.polling(non_stop=True)
+bot13.polling(non_stop=True)

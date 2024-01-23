@@ -1,3 +1,3 @@
 name_of_base = 'custumers'
-createDatabase = 'CREATE TABLE IF NOT EXISTS custumers (id INTEGER PRIMARY KEY, DATETIME DEFAULT CURRENT_TIMESTAMP, phone varchar(50), city varchar(50), last_name varchar(50), firts_name varchar(50), middle_name varchar(50), user_id INTEGER, login varchar(50), password varchar(50))'
-insertIntoDatabase = "INSERT INTO custumers (phone, city, last_name, firts_name, middle_name, user_id, login, password) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')"
+createDatabase = 'CREATE TABLE IF NOT EXISTS custumers (id INTEGER PRIMARY KEY, DATETIME DEFAULT CURRENT_TIMESTAMP, phone varchar(50), city varchar(50), last_name varchar(50), firts_name varchar(50), middle_name varchar(50), user_id INTEGER, login varchar(50), password varchar(50), podpiska varchar(50))'
+insertIntoDatabase = "INSERT INTO custumers (phone, city, last_name, firts_name, middle_name, user_id, login, password, podpiska) VALUES ('%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s', '%s')"

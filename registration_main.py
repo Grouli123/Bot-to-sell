@@ -15,6 +15,7 @@ import registration_people_config.custumers_sqlBase as sqlBaseCustomer
 
 import citys.city_list as citys
 
+from OrdersAdmin import sendNewOvner
 
 botApiKey = API_key.botAPI
 
@@ -617,7 +618,7 @@ def import_into_database_order_admin(message):
     global state  
     conn = sqlite3.connect('custumers.sql')
     cur = conn.cursor()
-    cur.execute(insertIntoAdminOrderBase % (phoneOrder, cityOrder, lastnameOrder, firstnameOrder, middlenameOrder, user_id, loginOrder, passwordOrder)) 
+    cur.execute(insertIntoAdminOrderBase % (phoneOrder, cityOrder, lastnameOrder, firstnameOrder, middlenameOrder, user_id, loginOrder, passwordOrder, None)) 
    
     conn.commit()
     cur.close()
