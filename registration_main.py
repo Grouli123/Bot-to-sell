@@ -15,7 +15,7 @@ import registration_people_config.custumers_sqlBase as sqlBaseCustomer
 
 import citys.city_list as citys
 
-from OrdersAdmin import sendNewOvner
+from SendMessIntoAdmin import SendMessageintoHere
 
 botApiKey = API_key.botAPI
 
@@ -592,7 +592,7 @@ def city_check_for_chat(message):
     elif locationcity == 'Санкт-Петербург':
         chatcity = sanCity
         import_into_database(message)
-    else:
+    else: 
         bot.send_message(message.chat.id, 'К сожалению, мы не работаем по вашему городу')
 
 def import_into_database(message):
@@ -618,7 +618,7 @@ def import_into_database_order_admin(message):
     global state  
     conn = sqlite3.connect('custumers.sql')
     cur = conn.cursor()
-    cur.execute(insertIntoAdminOrderBase % (phoneOrder, cityOrder, lastnameOrder, firstnameOrder, middlenameOrder, user_id, loginOrder, passwordOrder, None)) 
+    cur.execute(insertIntoAdminOrderBase % (phoneOrder, cityOrder, lastnameOrder, firstnameOrder, middlenameOrder, user_id, loginOrder, passwordOrder, None, chatcity)) 
    
     conn.commit()
     cur.close()
@@ -630,6 +630,8 @@ def import_into_database_order_admin(message):
     bot.send_message(message.chat.id, alreadyRegistered, reply_markup=markup)
     
     state = 'citizenRU'
+    
+    SendMessageintoHere(6171671445)
 
 print('Bot started')
 
