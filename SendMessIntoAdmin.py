@@ -23,7 +23,7 @@ def SendMessageintoHere(chatcity):
         # Directly use chatcity to send the message, without iterating over phone numbers
         if chatcity != 'None':
             print("Заполненное значение botChatId:", chatcity)
-            bot13.send_message(chatcity, "✅\работает", parse_mode='html')
+            bot13.send_message(chatcity, f"✅\nработает {users[2]}", parse_mode='html')
 
         cur.close()
         conn.close()

@@ -141,7 +141,7 @@ users_who_clicked = []
 user_name = None
 
 take_user_id_id = None
-
+offset = 0
 
 test123 = None
 
@@ -154,6 +154,8 @@ def start(message):
     markup.row(btn4)    
     bot13.send_message(message.chat.id, startBotMessage,  reply_markup=markup)
     bot13.register_next_step_handler(message, city_of_obj)
+    send_customers_keyboard(message)
+
 
 @bot13.message_handler(commands=['start'])
 def input_admin(message):      
@@ -380,6 +382,41 @@ def city_of_obj(message):
     #         error_reported = True  # Устанавливаем флаг ошибки, чтобы сообщение выводилось только один раз
     
     #     conn.close()
+# Функция для отправки клавиатуры с фамилиями клиентов
+def send_customers_keyboard(message):
+    global offset
+    conn = sqlite3.connect('custumers.sql')
+    cursor = conn.cursor()
+    cursor.execute('SELECT last_name, firts_name, middle_name FROM custumers LIMIT 10 OFFSET ?', (offset,))
+    customers = cursor.fetchall()
+
+    keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
+    for customer in customers:
+        keyboard.add(f"{customer[0]} {customer[1]} {customer[2]}")
+
+    # Добавление кнопок "Назад", "Вперед" и "Закрыть"
+    control_buttons = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
+    control_buttons.row(telebot.types.KeyboardButton("Назад"), telebot.types.KeyboardButton("Вперед"), telebot.types.KeyboardButton("Закрыть"))
+    keyboard.add(control_buttons.row)
+
+    bot13.send_message(message.chat.id, "Выберите клиента:", reply_markup=keyboard)
+    conn.close()
+
+# Обработчик текстовых сообщений
+@bot13.message_handler(func=lambda message: True)
+def handle_text(message):
+    global offset
+    if message.text == 'Закрыть':
+        bot13.send_message(message.chat.id, "Закрытие базы данных...")
+        bot13.send_message(message.chat.id, "База данных успешно закрыта.")
+    elif message.text == 'Назад':
+        # Отправка предыдущих 10 записей
+        offset = max(0, offset - 10)
+        send_customers_keyboard(message)
+    elif message.text == 'Вперед':
+        # Отправка следующих 10 записей
+        offset += 10
+        send_customers_keyboard(message)
 
 @bot13.callback_query_handler(func=lambda callback: callback.data == orderSendTextCallbackData)
 @bot13.callback_query_handler(func=lambda callback: callback.data == orderDeleteCallbackData) 
