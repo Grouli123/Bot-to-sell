@@ -147,17 +147,54 @@ offset = 0
 
 test123 = None
 
-def start(message):    
-    markup = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-    btn2 = types.KeyboardButton(openBaseOrders)
-    btn3 = types.KeyboardButton(openBasePeople)
-    btn4 = types.KeyboardButton('Открыть базу данных админов')
-    btn5 = types.KeyboardButton('Отображение админов')
-    markup.row(btn2, btn3)    
-    markup.row(btn4, btn5)    
-    bot13.send_message(message.chat.id, startBotMessage,  reply_markup=markup)
-    bot13.register_next_step_handler(message, city_of_obj)
-    # send_customers_keyboard(message)
+# def start(message):    
+#     markup = types.InlineKeyboardMarkup(row_width=1)
+#     btn2 = types.InlineKeyboardButton(openBaseOrders, callback_data='open_orders')
+#     btn3 = types.InlineKeyboardButton(openBasePeople, callback_data='open_people')
+#     btn4 = types.InlineKeyboardButton('Открыть базу данных админов', callback_data='open_admin_db')
+#     btn5 = types.InlineKeyboardButton('Отображение админов', callback_data='display_admins')
+#     markup.add(btn2, btn3, btn4, btn5)
+#     bot13.send_message(message.chat.id, startBotMessage, reply_markup=markup)
+
+# def start(message):
+#     # Создаем клавиатуру
+#     markup = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True, one_time_keyboard=False)
+#     # Создаем кнопки
+#     btn2 = types.ReplyKeyboardMarkup(openBaseOrders, callback_data='open_orders')
+#     btn3 = types.ReplyKeyboardMarkup(openBasePeople, callback_data='open_people')
+#     btn4 = types.ReplyKeyboardMarkup('Открыть базу данных админов', callback_data='open_admin_db')
+#     btn5 = types.ReplyKeyboardMarkup('Отображение админов', callback_data='display_admins')
+#     # Добавляем кнопки в клавиатуру
+#     markup.row(btn2, btn3)  # Помещаем первые две кнопки в один ряд
+#     markup.row(btn4, btn5)  # Помещаем следующие две кнопки в другой ряд
+#     # Отправляем сообщение пользователю с клавиатурой
+#     bot13.send_message(message.chat.id, startBotMessage, reply_markup=markup)
+
+# def start(message):
+#     markup = types.InlineKeyboardMarkup(row_width=1)
+#     btn2 = types.InlineKeyboardButton(openBaseOrders, callback_data=openBaseOrders)
+#     btn3 = types.InlineKeyboardButton(openBasePeople, callback_data=openBasePeople)
+#     btn4 = types.InlineKeyboardButton('Открыть базу данных админов', callback_data='open_admin_db')
+#     btn5 = types.InlineKeyboardButton('Отображение админов', callback_data='Отображение админов')
+#     markup.add(btn2, btn3, btn4, btn5)
+#     bot13.send_message(message.chat.id, startBotMessage, reply_markup=markup)
+
+def start(message):
+    # Создаем клавиатуру
+    markup = types.InlineKeyboardMarkup(row_width=2)
+    # Создаем кнопки
+    btn2 = types.InlineKeyboardButton(openBaseOrders, callback_data='open_orders')
+    btn3 = types.InlineKeyboardButton(openBasePeople, callback_data='open_people')
+    btn4 = types.InlineKeyboardButton('Открыть базу данных админов', callback_data='open_admin_db')
+    btn5 = types.InlineKeyboardButton('Отображение админов', callback_data='display_admins')
+    # Добавляем кнопки в клавиатуру
+    markup.add(btn2, btn3)
+    markup.add(btn4, btn5)
+    # Отправляем сообщение пользователю с клавиатурой
+    bot13.send_message(message.chat.id, startBotMessage, reply_markup=markup)
+
+
+
 
 
 @bot13.message_handler(commands=['start'])
@@ -172,6 +209,10 @@ def input_admin(message):
         bot13.register_next_step_handler(message, admin_check)   
     else:
         start(message)
+
+# @bot13.message_handler(func=lambda message: message.text == 'Отображение админов')
+# def display_admins(message):
+#     send_customers_keyboard(message)
 
 def admin_check(message):
     if message.text is None:
@@ -211,58 +252,122 @@ def password_check(message):
                 bot13.send_message(message.from_user.id, 'Пароль не подходит')
                 input_password(message)
 
-def city_of_obj(message):
-    if loginin == True:
-        if message.text is None:
-            bot13.send_message(message.from_user.id, textOnly)
-            start(message) 
-        else:
-            if message.text == openBaseOrders:
-                bot13.send_message(message.chat.id, openBseOrdersMessage)
-                show_database_orders(message)
-                start(message)
-            elif message.text == openBasePeople:
-                bot13.send_message(message.chat.id, openBasePeopleMessage)
-                show_database_users(message)
-                start(message)
-            elif message.text == 'Открыть базу данных админов':
-                bot13.send_message(message.chat.id, 'Открыть базу данных админов')
-                show_database_userOrder(message)
-                start(message)
-            elif message.text == 'Отображение админов':
-                bot13.send_message(message.chat.id, 'Отображение админов')
-                send_customers_keyboard(message)
-                start(message)
-            else:
-                bot13.send_message(message.chat.id, chooseTruePointOfMenu)            
-                start(message)  
-    else:
-        bot13.send_message(message.chat.id, 'Введите логин и пароль прежде чем продолжить работу')
-        input_admin(message)
+# def city_of_obj(message):
+#     if loginin == True:
+#         if message.text is None:
+#             bot13.send_message(message.from_user.id, textOnly)
+#             start(message) 
+#         else:
+#             if message.text == openBaseOrders:
+#                 bot13.send_message(message.chat.id, openBseOrdersMessage)
+#                 show_database_orders(message)
+#                 start(message)
+#             elif message.text == openBasePeople:
+#                 bot13.send_message(message.chat.id, openBasePeopleMessage)
+#                 show_database_users(message)
+#                 start(message)
+#             elif message.text == 'open_admin_db':
+#                 bot13.send_message(message.chat.id, 'Открыть базу данных админов')
+#                 show_database_userOrder(message)
+#                 start(message)
+#             # elif message.text == 'Отображение админов':
+#             #     bot13.send_message(message.chat.id, 'Отображение админов')
+#             #     # send_customers_keyboard(message)
+                
+#             #     send_customers_keyboard(message)
+#             #     start(message)
+#             else:
+#                 bot13.send_message(message.chat.id, chooseTruePointOfMenu)            
+#                 start(message)  
+#     else:
+#         bot13.send_message(message.chat.id, 'Введите логин и пароль прежде чем продолжить работу')
+#         input_admin(message)
 
-# Функция для отправки клавиатуры с фамилиями клиентов
-def send_customers_keyboard(message):
-    global offset
+# @bot13.message_handler(func=lambda message: message.text == openBaseOrders)
+# def handle_open_base_orders(message):
+#     # Ваша логика для обработки открытия базы заказов
+#     bot13.send_message(message.chat.id, openBseOrdersMessage)
+#     show_database_orders(message)
+
+# @bot13.message_handler(func=lambda message: message.text == openBasePeople)
+# def handle_open_base_people(message):
+#     # Ваша логика для обработки открытия базы людей
+#     bot13.send_message(message.chat.id, openBasePeopleMessage)
+#     show_database_users(message)
+
+# @bot13.message_handler(func=lambda message: message.text == 'Открыть базу данных админов')
+# def handle_open_admin_db(message):
+#     # Ваша логика для открытия базы данных админов
+#     bot13.send_message(message.chat.id, 'Открыть базу данных админов')
+#     show_database_userOrder(message)
+
+# @bot13.message_handler(func=lambda message: message.text == 'Отображение админов')
+# def handle_display_admins(message):
+#     # Ваша логика для отображения админов
+#     send_customers_keyboard(message)
+@bot13.callback_query_handler(func=lambda call: call.data == 'open_orders')
+def handle_open_base_orders(call):
+    bot13.send_message(call.message.chat.id, openBseOrdersMessage)
+    show_database_orders(call.message)
+    bot13.answer_callback_query(call.id)
+
+@bot13.callback_query_handler(func=lambda call: call.data == 'open_people')
+def handle_open_base_people(call):
+    bot13.send_message(call.message.chat.id, openBasePeopleMessage)
+    show_database_users(call.message)
+    bot13.answer_callback_query(call.id)
+
+@bot13.callback_query_handler(func=lambda call: call.data == 'open_admin_db')
+def handle_open_admin_db(call):
+    bot13.send_message(call.message.chat.id, 'Открыть базу данных админов')
+    show_database_userOrder(call.message)
+    bot13.answer_callback_query(call.id)
+
+        
+@bot13.callback_query_handler(func=lambda call: call.data == 'display_admins')
+def display_admins(call):
+    send_customers_keyboard(call.message)
+    bot13.answer_callback_query(call.id)
+
+
+def send_customers_keyboard(message, page=0):
+
     conn = sqlite3.connect('custumers.sql')
     cursor = conn.cursor()
-    cursor.execute('SELECT last_name FROM custumers LIMIT 8 OFFSET ?', (offset,))
+    cursor.execute('SELECT last_name, firts_name, middle_name FROM custumers')
     customers = cursor.fetchall()
-
-    keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
-    for customer in customers:
-        keyboard.add(telebot.types.KeyboardButton(customer[0]))
-
-    # Добавление кнопок "Назад", "Вперед" и "Закрыть"
-    control_buttons = telebot.types.KeyboardButton("Закрыть")
-    if len(customers) == 8:
-        control_buttons = telebot.types.KeyboardButton("Назад"), telebot.types.KeyboardButton("Вперед"), telebot.types.KeyboardButton("Закрыть")
-    keyboard.add(control_buttons)  # добавляем ряд с кнопками "Назад", "Вперед" и "Закрыть"
-
-    if len(customers) == 0:
-        bot13.send_message(message.chat.id, "В базе данных нет админов")
-    else:
-        bot13.send_message(message.chat.id, "Вот админы:", reply_markup=keyboard)
     conn.close()
+
+    per_page = 10
+    start2 = page * per_page
+    end = start2 + per_page
+    paginated_customers = customers[start2:end]
+
+    keyboard = types.InlineKeyboardMarkup()
+
+    for customer in paginated_customers:
+        full_name = ' '.join(customer)
+        callback_data = f"show_customer_{customer[0]}"  # Предполагается, что у вас есть уникальный ID или фамилия в customer[0]
+        keyboard.add(types.InlineKeyboardButton(full_name, callback_data=callback_data))
+
+    if len(customers) > end:
+        keyboard.add(types.InlineKeyboardButton("Вперед", callback_data=f"page_{page+1}"))
+    if page > 0:
+        keyboard.add(types.InlineKeyboardButton("Назад", callback_data=f"page_{page-1}"))
+
+    bot13.send_message(message.chat.id, "Вот база:", reply_markup=keyboard)
+
+@bot13.callback_query_handler(func=lambda call: call.data.startswith('page_'))
+def page_callback(call):
+    page = int(call.data.split('_')[1])
+    send_customers_keyboard(call.message, page)
+    bot13.answer_callback_query(call.id)
+
+@bot13.callback_query_handler(func=lambda call: call.data.startswith('show_customer_'))
+def show_customer(call):
+    last_name = call.data.split('_')[2]
+    bot13.send_message(call.message.chat.id, f"Вы выбрали: {last_name}")
+    bot13.answer_callback_query(call.id)
 
 
 
