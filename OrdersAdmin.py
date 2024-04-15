@@ -331,23 +331,23 @@ def display_admins(call):
 
 
 def send_customers_keyboard(message, page=0):
-
     conn = sqlite3.connect('custumers.sql')
     cursor = conn.cursor()
-    cursor.execute('SELECT last_name, firts_name, middle_name FROM custumers')
+    cursor.execute('SELECT last_name, firts_name, middle_name, id, podpiska FROM custumers')  # Выборка состояния подписки
     customers = cursor.fetchall()
     conn.close()
 
     per_page = 10
-    start2 = page * per_page
-    end = start2 + per_page
-    paginated_customers = customers[start2:end]
+    start = page * per_page
+    end = start + per_page
+    paginated_customers = customers[start:end]
 
     keyboard = types.InlineKeyboardMarkup()
 
     for customer in paginated_customers:
-        full_name = ' '.join(customer)
-        callback_data = f"show_customer_{customer[0]}"  # Предполагается, что у вас есть уникальный ID или фамилия в customer[0]
+        full_name = ' '.join(customer[:3])
+        subscription_status = "Дезактивировать" if customer[4] == 'true' else "Активировать"
+        callback_data = f"customer_{customer[3]}_{subscription_status.lower()}"
         keyboard.add(types.InlineKeyboardButton(full_name, callback_data=callback_data))
 
     if len(customers) > end:
@@ -355,7 +355,36 @@ def send_customers_keyboard(message, page=0):
     if page > 0:
         keyboard.add(types.InlineKeyboardButton("Назад", callback_data=f"page_{page-1}"))
 
-    bot13.send_message(message.chat.id, "Вот база:", reply_markup=keyboard)
+    bot13.send_message(message.chat.id, "Выберите пользователя:", reply_markup=keyboard)
+
+@bot13.callback_query_handler(func=lambda call: call.data.startswith('customer_'))
+def toggle_subscription(call):
+    parts = call.data.split('_')
+    customer_id = parts[1]
+    action = parts[2]  # Убедитесь, что это 'activate' или 'deactivate'
+
+    conn = sqlite3.connect('custumers.sql')
+    cur = conn.cursor()
+    new_status = 'true' if action == "активировать" else 'false'
+    cur.execute('UPDATE custumers SET podpiska = ? WHERE id = ?', (new_status, customer_id))
+    conn.commit()
+    
+    # Обновляем данные пользователя и отправляем обратно
+    cur.execute('SELECT last_name, firts_name, middle_name, podpiska FROM custumers WHERE id = ?', (customer_id,))
+    customer = cur.fetchone()
+    conn.close()
+
+    full_name = ' '.join(customer[:3])
+    subscription_status = "Подписка активна" if customer[3] == 'true' else "Подписка не активна"
+    toggle_button_text = "Дезактивировать" if customer[3] == 'true' else "Активировать"
+
+    # Обновляем кнопки
+    keyboard = types.InlineKeyboardMarkup()
+    keyboard.add(types.InlineKeyboardButton(toggle_button_text, callback_data=f"customer_{customer_id}_{toggle_button_text.lower()}"))
+    bot13.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f"{full_name}\nСтатус: {subscription_status}", reply_markup=keyboard)
+    bot13.answer_callback_query(call.id)
+
+
 
 @bot13.callback_query_handler(func=lambda call: call.data.startswith('page_'))
 def page_callback(call):
@@ -363,11 +392,41 @@ def page_callback(call):
     send_customers_keyboard(call.message, page)
     bot13.answer_callback_query(call.id)
 
-@bot13.callback_query_handler(func=lambda call: call.data.startswith('show_customer_'))
-def show_customer(call):
-    last_name = call.data.split('_')[2]
-    bot13.send_message(call.message.chat.id, f"Вы выбрали: {last_name}")
-    bot13.answer_callback_query(call.id)
+# @bot13.callback_query_handler(func=lambda call: call.data.startswith('customer_'))
+# def show_customer(call):
+#     parts = call.data.split('_')
+#     customer_id = parts[1]
+#     action = parts[2]
+
+#     conn = sqlite3.connect('custumers.sql')
+#     cur = conn.cursor()
+#     if action == "активировать":
+#         cur.execute('UPDATE custumers SET podpiska = "true" WHERE id = ?', (customer_id,))
+#         new_status = "Дезактивировать"
+#     elif action == "дезактивировать":
+#         cur.execute('UPDATE custumers SET podpiska = "false" WHERE id = ?', (customer_id,))
+#         new_status = "Активировать"
+
+#     conn.commit()
+#     cur.execute('SELECT last_name, firts_name, middle_name, podpiska FROM custumers WHERE id = ?', (customer_id,))
+#     customer = cur.fetchone()
+#     conn.close()
+
+#     full_name = ' '.join(customer[:3])
+#     podpiska_status = "Активна" if customer[3] == 'true' else "Не активна"
+
+#     # Отправляем детали пользователя и кнопки для управления подпиской
+#     keyboard = types.InlineKeyboardMarkup()
+#     keyboard.add(types.InlineKeyboardButton(new_status, callback_data=f"customer_{customer_id}_{new_status.lower()}"))
+#     keyboard.add(types.InlineKeyboardButton("Назад", callback_data="back_to_list"))
+
+#     bot13.send_message(call.message.chat.id, f"{full_name}\nПодписка: {podpiska_status}", reply_markup=keyboard)
+#     bot13.answer_callback_query(call.id)
+
+@bot13.callback_query_handler(func=lambda call: call.data == 'back_to_list')
+def back_to_list(call):
+    send_customers_keyboard(call.message)
+
 
 
 
@@ -434,7 +493,7 @@ def show_database_userOrder(message):
 
             info = ''
             for el in users:
-                info += f'3:{el[2]} 4:{el[3]} 5:{el[4]} 6:{el[5]} 7:{el[6]} 8:{el[7]} 9:{el[8]} 10:{el[9]}\n\n'
+                info += f'3:{el[2]} 4:{el[3]} 5:{el[4]} 6:{el[5]} 7:{el[6]} 8:{el[7]} 9:{el[8]} 10:{el[9]}\n\n11:{el[10]}'
             cur.close()
             conn.close()
             print("Info:", repr(info))  # Добавьте этот отладочный вывод

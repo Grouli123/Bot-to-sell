@@ -618,7 +618,7 @@ def import_into_database_order_admin(message):
     global state  
     conn = sqlite3.connect('custumers.sql')
     cur = conn.cursor()
-    cur.execute(insertIntoAdminOrderBase % (phoneOrder, cityOrder, lastnameOrder, firstnameOrder, middlenameOrder, user_id, loginOrder, passwordOrder, None, chatcity)) 
+    cur.execute(insertIntoAdminOrderBase % (phoneOrder, cityOrder, lastnameOrder, firstnameOrder, middlenameOrder, user_id, loginOrder, passwordOrder, False, chatcity)) 
    
     conn.commit()
     cur.close()
