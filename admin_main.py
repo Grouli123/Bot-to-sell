@@ -167,27 +167,80 @@ def input_admin(message):
         start(message)
 
 
+def check_user_credentials(user_id):
+    """Извлекает логин, пароль и статус подписки пользователя из базы данных."""
+    conn = sqlite3.connect('custumers.sql')  # Путь к вашей базе данных
+    cursor = conn.cursor()
+    cursor.execute("SELECT login, password, podpiska FROM custumers WHERE user_id = ?", (user_id,))
+    user_data = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    return user_data if user_data else (None, None, None)
+
 def admin_check(message):
+    global loginin, login, password
     if message.text is None:
         bot1.send_message(message.from_user.id, textOnly)
         input_admin(message) 
     else:
-        if len(message.text.strip()) > maxSymbol1:
-            bot1.send_message(message.chat.id, adressError)
-            message.text.strip(None)
-            input_admin(message) 
+        user_login, user_password, subscription_status = check_user_credentials(message.from_user.id)
+        if user_login is None:
+            bot1.send_message(message.chat.id, 'Аккаунт не найден.')
+            input_admin(message)
         else:
+            login = user_login
+            password = user_password
             if login == message.text.strip():
-                input_password(message)
+                input_password(message, subscription_status)  # Передаем статус подписки в следующий шаг
             else:
-                bot1.send_message(message.from_user.id, 'Логин не найден')
+                bot1.send_message(message.chat.id, 'Логин не найден')
                 input_admin(message)
 
-
-
-def input_password(message):
+def input_password(message, subscription_status):
     bot1.send_message(message.chat.id, 'Введите пароль', parse_mode='html')
-    bot1.register_next_step_handler(message, password_check)   
+    bot1.register_next_step_handler(message, password_check, subscription_status)  # Передаем статус подписки далее
+
+def password_check(message, subscription_status):
+    global loginin
+    if message.text is None:
+        bot1.send_message(message.from_user.id, textOnly)
+        input_password(message, subscription_status) 
+    else:
+        if len(message.text.strip()) > maxSymbol1:
+            bot1.send_message(message.chat.id, adressError)
+            input_password(message, subscription_status)
+        else:
+            if password == message.text.strip():
+                if subscription_status == 'true':
+                    loginin = True
+                    start(message)
+                else:
+                    bot1.send_message(message.chat.id, 'Оплатите подписку, чтобы продолжить')
+            else:
+                bot1.send_message(message.from_user.id, 'Пароль не подходит')
+                input_password(message, subscription_status)
+
+# def admin_check(message):
+#     if message.text is None:
+#         bot1.send_message(message.from_user.id, textOnly)
+#         input_admin(message) 
+#     else:
+#         if len(message.text.strip()) > maxSymbol1:
+#             bot1.send_message(message.chat.id, adressError)
+#             message.text.strip(None)
+#             input_admin(message) 
+#         else:
+#             if login == message.text.strip():
+#                 input_password(message)
+#             else:
+#                 bot1.send_message(message.from_user.id, 'Логин не найден')
+#                 input_admin(message)
+
+
+
+# def input_password(message):
+#     bot1.send_message(message.chat.id, 'Введите пароль', parse_mode='html')
+#     bot1.register_next_step_handler(message, password_check)   
 
 # def password_check(message):
 #     global loginin
@@ -208,38 +261,38 @@ def input_password(message):
 #                 input_password(message)
 
 
-def check_subscription(user_id):
-    """Проверяет статус подписки пользователя в базе данных."""
-    conn = sqlite3.connect('custumers.sql')  # Путь к вашей базе данных
-    cursor = conn.cursor()
-    cursor.execute("SELECT podpiska FROM custumers WHERE user_id = ?", (user_id,))
-    subscription_status = cursor.fetchone()
-    cursor.close()
-    conn.close()
-    return subscription_status[0] if subscription_status else None
+# def check_subscription(user_id):
+#     """Проверяет статус подписки пользователя в базе данных."""
+#     conn = sqlite3.connect('custumers.sql')  # Путь к вашей базе данных
+#     cursor = conn.cursor()
+#     cursor.execute("SELECT podpiska FROM custumers WHERE user_id = ?", (user_id,))
+#     subscription_status = cursor.fetchone()
+#     cursor.close()
+#     conn.close()
+#     return subscription_status[0] if subscription_status else None
 
-def password_check(message):
-    global loginin
-    if message.text is None:
-        bot1.send_message(message.from_user.id, textOnly)
-        input_password(message)
-    else:
-        if len(message.text.strip()) > maxSymbol1:
-            bot1.send_message(message.chat.id, adressError)
-            message.text.strip(None)
-            input_password(message)
-        else:
-            if password == message.text.strip():
-                # Проверка подписки после успешного входа
-                subscription_status = check_subscription(message.from_user.id)
-                if subscription_status == 'true':
-                    loginin = True
-                    start(message)
-                else:
-                    bot1.send_message(message.chat.id, 'Оплатите подписку, чтобы продолжить')
-            else:
-                bot1.send_message(message.from_user.id, 'Пароль не подходит')
-                input_password(message)
+# def password_check(message):
+#     global loginin
+#     if message.text is None:
+#         bot1.send_message(message.from_user.id, textOnly)
+#         input_password(message)
+#     else:
+#         if len(message.text.strip()) > maxSymbol1:
+#             bot1.send_message(message.chat.id, adressError)
+#             message.text.strip(None)
+#             input_password(message)
+#         else:
+#             if password == message.text.strip():
+#                 # Проверка подписки после успешного входа
+#                 subscription_status = check_subscription(message.from_user.id)
+#                 if subscription_status == 'true':
+#                     loginin = True
+#                     start(message)
+#                 else:
+#                     bot1.send_message(message.chat.id, 'Оплатите подписку, чтобы продолжить')
+#             else:
+#                 bot1.send_message(message.from_user.id, 'Пароль не подходит')
+#                 input_password(message)
 
 # def city_check_for_chat(message):
 #     global chatcity
