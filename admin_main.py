@@ -179,6 +179,7 @@ def check_user_credentials(user_id):
 
 def admin_check(message):
     global loginin, login, password
+    global subscription_status
     if message.text is None:
         bot1.send_message(message.from_user.id, textOnly)
         input_admin(message) 
@@ -319,6 +320,15 @@ def password_check(message, subscription_status):
 #         bot1.send_message(message.chat.id, 'К сожалению, мы не работаем по вашему городу')
 #         city_of_obj(message)
 
+def check_subscription_status(user_id):
+    """Проверяет статус подписки пользователя."""
+    conn = sqlite3.connect('custumers.sql')  # Путь к вашей базе данных
+    cursor = conn.cursor()
+    cursor.execute("SELECT podpiska FROM custumers WHERE user_id = ?", (user_id,))
+    result = cursor.fetchone()
+    cursor.close()
+    conn.close()
+    return result[0] if result else None
 
 def city_of_obj(message):
     if loginin == True:
@@ -327,9 +337,13 @@ def city_of_obj(message):
             start(message) 
         else:
             if message.text == makeOrderButton:
-                bot1.send_message(message.chat.id, inputCityObject, reply_markup=types.ReplyKeyboardRemove())
-                bot1.register_next_step_handler(message, city_of_obj_check)
-
+                subscription_status = check_subscription_status(message.from_user.id)
+                if subscription_status == 'true':
+                    bot1.send_message(message.chat.id, inputCityObject, reply_markup=types.ReplyKeyboardRemove())
+                    bot1.register_next_step_handler(message, city_of_obj_check)
+                else:
+                    bot1.send_message(message.chat.id, 'Оплатите подписку, чтобы продолжить создание заказа')
+                    start(message)
             elif message.text == openBaseOrders:
                 bot1.send_message(message.chat.id, openBseOrdersMessage)
                 show_database_orders(message)
@@ -344,6 +358,34 @@ def city_of_obj(message):
     else:
         bot1.send_message(message.chat.id, 'Введите логин и пароль прежде чем продолжить работу')
         input_admin(message)
+
+# def city_of_obj(message):
+#     global subscription_status
+#     print('саб ' + subscription_status)
+#     if loginin == True:
+#         if message.text is None:
+#             bot1.send_message(message.from_user.id, textOnly)
+#             start(message) 
+#         else:
+#             if message.text == makeOrderButton:
+#                 if subscription_status == 'true':
+#                     bot1.send_message(message.chat.id, inputCityObject, reply_markup=types.ReplyKeyboardRemove())
+#                     bot1.register_next_step_handler(message, city_of_obj_check)
+
+#             elif message.text == openBaseOrders:
+#                 bot1.send_message(message.chat.id, openBseOrdersMessage)
+#                 show_database_orders(message)
+#                 start(message)
+#             elif message.text == openBasePeople:
+#                 bot1.send_message(message.chat.id, openBasePeopleMessage)
+#                 show_database_users(message)
+#                 start(message)
+#             else:
+#                 bot1.send_message(message.chat.id, chooseTruePointOfMenu)            
+#                 start(message)  
+#     else:
+#         bot1.send_message(message.chat.id, 'Введите логин и пароль прежде чем продолжить работу')
+#         input_admin(message)
 
 
 def city_of_obj_check(message):
