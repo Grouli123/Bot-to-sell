@@ -2,7 +2,8 @@ import telebot
 from telebot import types
 import sqlite3
 from geopy.geocoders import Nominatim
-from datetime import datetime
+
+from datetime import datetime, timedelta
 import time
 
 import re
@@ -11,6 +12,7 @@ import  get_orders_config.get_orders_API_key as API_key
 # import get_orders_config.get_orders_sqlBase as sqlBase
 import  get_orders_config.get_orders_config_message as config_message
 
+from apscheduler.schedulers.background import BackgroundScheduler
 # from admin_main import update_message_with_users_list
 
 botApiKey = API_key.botAPIArz
@@ -19,6 +21,8 @@ bot = telebot.TeleBot(botApiKey)
 
 bot1 = telebot.TeleBot('6489313384:AAFOdsE5ZTo1pdXL_JNl1lxF_QMRfZ9pE9A')
 
+scheduler = BackgroundScheduler()
+scheduler.start()
 # base = sqlBase.createDatabase
 # insertIntoBase = sqlBase.insertIntoDatabase
 # nameOfBase = sqlBase.name_of_base
@@ -936,6 +940,116 @@ def callback_data_of_data(callback):
 
     # if takeParam2:
     #     orderTakeTwo = takeParam2[0]
+
+        # Планирование отправки напоминания за час до начала работ
+        job_time = datetime.strptime(table_element[6], "%H:%M") - timedelta(hours=1)
+        job_time = job_time.replace(year=datetime.now().year, month=datetime.now().month, day=datetime.now().day)
+        if job_time < datetime.now():
+            job_time = job_time + timedelta(days=1)
+
+        scheduler.add_job(send_reminder, 'date', run_date=job_time, args=[callback.message.chat.id, user_id_mess])
+
+def send_reminder(chat_id, user_id_mess):
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text='Да', callback_data='yes'))
+    markup.add(types.InlineKeyboardButton(text='Отметить заказ', callback_data='close_order'))
+    bot.send_message(chat_id, f'Вы выехали на заказ {user_id_mess}?', reply_markup=markup)
+
+@bot.callback_query_handler(func=lambda call: call.data in ['yes', 'close_order'])
+def handle_reminder_response(call):
+    if call.data == 'yes':
+        bot.send_message(call.message.chat.id, 'Отлично! Желаем удачи на заказе.')
+        send_reminder_two(call.message)
+
+    elif call.data == 'close_order':
+        bot.send_message(call.message.chat.id, 'Заказ отменен.')
+
+
+def send_reminder_two(chat_id, user_id_mess):
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text='Да', callback_data='yes2'))
+    markup.add(types.InlineKeyboardButton(text='Отметить заказ', callback_data='close_order2'))
+    bot.send_message(chat_id, f'Вы в пути на заказ {user_id_mess}?', reply_markup=markup)
+
+@bot.callback_query_handler(func=lambda call: call.data in ['yes2', 'close_order2'])
+def handle_reminder_response_two(call):
+    if call.data == 'yes2':
+        bot.send_message(call.message.chat.id, 'Отлично! Желаем удачи на заказе.')
+        send_reminder_three(call.message)
+    elif call.data == 'close_order2':
+        bot.send_message(call.message.chat.id, 'Заказ отменен.')
+
+def send_reminder_three(chat_id, user_id_mess):
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text='Да', callback_data='yes3'))
+    markup.add(types.InlineKeyboardButton(text='Отметить заказ', callback_data='close_order_3'))
+    bot.send_message(chat_id, f'Вы приехали на заказ {user_id_mess}?', reply_markup=markup)
+
+@bot.callback_query_handler(func=lambda call: call.data in ['yes3', 'close_order3'])
+def handle_reminder_response_three(call):
+    if call.data == 'yes3':
+        bot.send_message(call.message.chat.id, 'Отлично! Желаем удачи на заказе.')
+        send_reminder_four(call.message)
+    elif call.data == 'close_order3':
+        bot.send_message(call.message.chat.id, 'Заказ отменен.')
+
+
+
+
+
+def send_reminder_four(chat_id, user_id_mess):
+    markup = types.InlineKeyboardMarkup()
+    markup.add(types.InlineKeyboardButton(text='Да', callback_data='yes4'))
+    markup.add(types.InlineKeyboardButton(text='Отметить заказ', callback_data='close_order_4'))
+    bot.send_message(chat_id, f'Вы завершили заказ {user_id_mess}?', reply_markup=markup)
+
+@bot.callback_query_handler(func=lambda call: call.data in ['yes4', 'close_order_4'])
+def handle_reminder_response_four(call):
+    user_id = call.from_user.id
+
+    if call.data == 'yes4':
+        # Открываем базу данных и обновляем записи
+        conn = sqlite3.connect('peoplebase.sql')
+        cursor = conn.cursor()
+        
+        # Получаем значение actualOrder
+        cursor.execute("SELECT actualOrder FROM users WHERE user_id = ?", (user_id,))
+        actual_order = cursor.fetchone()
+        
+        if actual_order and actual_order[0] not in [None, ""]:
+            # Обновляем orderDone и очищаем actualOrder
+            cursor.execute("UPDATE users SET orderDone = ?, actualOrder = '' WHERE user_id = ?", (actual_order[0], user_id))
+            conn.commit()
+            bot.send_message(call.message.chat.id, 'Отлично! Желаем удачи на заказе.')
+        else:
+            bot.send_message(call.message.chat.id, 'Нет текущих заказов для завершения.')
+
+        cursor.close()
+        conn.close()
+        
+        send_reminder_five(call.message)
+
+    elif call.data == 'close_order_4':
+        bot.send_message(call.message.chat.id, 'Заказ отменен.')
+
+def send_reminder_five(message):
+    bot.send_message(message.chat.id, 'Введите номер карты на которую перевести зарплату за заказ ', parse_mode='html')
+    bot.register_next_step_handler(message, send_money_message_admin)
+
+def send_money_message_admin(message):
+    global passwordOrder
+    if message.text is None:
+        bot.send_message(message.from_user.id, textOnly)
+    else:
+        if len(message.text.strip()) > maxSymbol:
+            bot.send_message(message.chat.id, firstnameError)
+            message.text.strip(None)
+        else:
+            passwordOrder = message.text.strip()
+            print(passwordOrder, ' pawwword')
+
+
+
 
 
 @bot.callback_query_handler(func=lambda callback: callback.data == 'Едем в 2') 
