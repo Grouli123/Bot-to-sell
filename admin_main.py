@@ -1006,7 +1006,7 @@ def import_into_database(message):
     global state  
     conn = sqlite3.connect('applicationbase.sql')
     cur = conn.cursor()
-    cur.execute(insertIntoBase1 % (cityname, countPeople, adress, whattodo, timetostart, orderTime, salary, adminChatId, sent_message_id, '', 'True', '', '', '', '', workTime)) 
+    cur.execute(insertIntoBase1 % (cityname, countPeople, adress, whattodo, timetostart, orderTime, salary, adminChatId, sent_message_id, '', 'True', '', '', '', '', workTime, '')) 
 
     conn.commit()
     cur.close()

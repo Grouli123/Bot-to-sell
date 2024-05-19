@@ -20,6 +20,8 @@ import citys.city_list as citys
 
 from SendMessIntoAdmin import SendMessageintoHere
 
+from get_orders_main import sendNotyfiMessage
+
 # admin_main.py
 # from observable import Observable
 
@@ -154,10 +156,13 @@ def start(message):
     btn2 = types.InlineKeyboardButton(openBaseOrders, callback_data='open_orders')
     btn3 = types.InlineKeyboardButton(openBasePeople, callback_data='open_people')
     btn4 = types.InlineKeyboardButton('Открыть базу данных админов', callback_data='open_admin_db')
-    btn5 = types.InlineKeyboardButton('Отображение админов', callback_data='display_admins')
+    btn5 = types.InlineKeyboardButton('Отображение админов', callback_data='display_admins')    
+    btn6 = types.InlineKeyboardButton('Ввести сообщение', callback_data='input_message')  # Новая кнопка
+
     
     markup.add(btn2, btn3)
     markup.add(btn4, btn5)
+    markup.add(btn6)
     bot13.send_message(message.chat.id, startBotMessage, reply_markup=markup)
 
 
@@ -235,6 +240,77 @@ def handle_open_admin_db(call):
 def display_admins(call):
     send_customers_keyboard(call.message)
     bot13.answer_callback_query(call.id)
+
+
+
+
+
+
+
+
+
+
+@bot13.callback_query_handler(func=lambda call: call.data == 'input_message')
+def input_message(call):
+    bot13.send_message(call.message.chat.id, 'Введите сообщение:', parse_mode='html')
+    bot13.register_next_step_handler(call.message, get_message)
+
+def get_message(message):
+    user_message_ids[message.chat.id] = message.text
+    markup = types.InlineKeyboardMarkup(row_width=2)
+    btn_send = types.InlineKeyboardButton('Отправить', callback_data='send_message')
+    btn_cancel = types.InlineKeyboardButton('Отменить', callback_data='cancel_message')
+    markup.add(btn_send, btn_cancel)
+    bot13.send_message(message.chat.id, f'Ваше сообщение: {message.text}', reply_markup=markup)
+
+@bot13.callback_query_handler(func=lambda call: call.data == 'send_message')
+def send_message(call):
+    user_message = user_message_ids.get(call.message.chat.id)
+    if user_message:
+        # Отправка сообщения в админский чат
+        bot13.send_message(adminChatId, f'Сообщение от пользователя: {user_message}')
+
+        # Запись сообщения в базу данных
+        conn = sqlite3.connect('applicationbase.sql')
+        cur = conn.cursor()
+        try:
+            # Предположим, что сообщение сохраняется в самой последней записи orders
+            cur.execute("SELECT id FROM orders ORDER BY id DESC LIMIT 1")
+            order_id = cur.fetchone()[0]
+            cur.execute("UPDATE orders SET notifyMessageWorkers = ? WHERE id = ?", (user_message, order_id))
+            conn.commit()
+            
+            sendNotyfiMessage();
+            bot13.send_message(call.message.chat.id, 'Сообщение отправлено')
+        except sqlite3.Error as e:
+            print(f"Ошибка записи в базу данных: {e}")
+        finally:
+            cur.close()
+            conn.close()
+
+        # Удаление кнопок после отправки сообщения
+        bot13.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=None)
+        
+        del user_message_ids[call.message.chat.id]
+
+    bot13.answer_callback_query(call.id)
+
+@bot13.callback_query_handler(func=lambda call: call.data == 'cancel_message')
+def cancel_message(call):
+    bot13.send_message(call.message.chat.id, 'Сообщение отменено')
+    if call.message.chat.id in user_message_ids:
+        del user_message_ids[call.message.chat.id]
+        bot13.edit_message_reply_markup(call.message.chat.id, call.message.message_id, reply_markup=None)
+        
+    bot13.answer_callback_query(call.id)
+
+
+
+
+
+
+
+
 
 
 def send_customers_keyboard(message, page=0):

@@ -575,6 +575,127 @@ def testMethod():
         conn.close()
 
 
+
+def sendNotyfiMessage():
+    global check_mess_already_send
+    global check_user_id
+    global last_sent_message
+
+    global humanCount
+    global needText
+    global last_message_id
+    global error_reported
+    global user_last_message_ids
+    global user_message_ids
+
+    global user_chat_ids
+    global data_called
+    global user_id_mess
+    data_called = False
+
+    conn5 = sqlite3.connect('peoplebase.sql')
+    cur5 = conn5.cursor()
+    cur5.execute("SELECT botChatId FROM users")
+    
+    results = cur5.fetchall()
+
+    conn = sqlite3.connect('applicationbase.sql')
+    cur = conn.cursor()
+
+    try:
+        cur.execute("SELECT * FROM orders ORDER BY id DESC LIMIT 1")
+        users = cur.fetchone()         
+        
+        if users is not None:                       
+                
+            order_info = f'{users[18]}'
+                
+                
+            if order_info != last_sent_message:
+                    
+                print('работает елсе')
+                # conn = sqlite3.connect('applicationbase.sql')
+                # cursor = conn.cursor()
+
+                # Получаем ID пользователя
+                user_id_mess = users[0]
+                print(user_id_mess)
+                # Получаем текущий список message_id из базы данных
+                cur.execute("SELECT orderMessageId FROM orders WHERE id = ('%s')" % (user_id_mess))
+                current_message_ids_str = cur.fetchone()[0]
+                    
+                # Преобразуем текущую строку в список (если она не пуста)
+                current_message_ids = current_message_ids_str.split(',') if current_message_ids_str else []
+                
+                for result in results:
+                    botChatIdw = result[0]  # Получаем значение botChatId из результата
+                    if botChatIdw != 'None':
+                        print("Заполненное значение botChatId:", botChatIdw)
+
+                # messageChatId = message.chat.id
+                        sent_message = bot.send_message(botChatIdw, order_info, parse_mode='html')
+                        last_message_id = sent_message.message_id  
+
+
+                        user_chat_id_str = user_chat_ids.get(user_id_mess, "")
+                        if user_chat_id_str:
+                            user_chat_id_str += ","
+                        user_chat_id_str += str(botChatIdw)
+                        user_chat_ids[user_id_mess] = user_chat_id_str
+
+                        user_message_id_list = user_message_ids.get(user_id_mess, [])
+                        # Добавляем новый message_id
+                        user_message_id_list.append(last_message_id)
+                        # Сохраняем обновленный список в словаре
+                        user_message_ids[user_id_mess] = user_message_id_list
+                        # Добавляем новый message_id
+                        last_message_id_str = str(last_message_id)
+                        current_message_ids.append(last_message_id_str)
+                            
+                        # Преобразуем обновленный список в строку
+                        updated_message_ids_str = ','.join(current_message_ids)
+                cur5.close()
+                conn5.close()   
+
+                    
+
+                
+                for user_id_mess, message_id_list in user_message_ids.items():
+                    updated_message_ids_str = ','.join(map(str, message_id_list))
+                    sql_query = "UPDATE orders SET orderMessageId = ('%s'), orderChatId = ('%s') WHERE id = ('%s')"
+                    cur.execute(sql_query % (updated_message_ids_str, user_chat_id_str, user_id_mess))
+
+                # Коммит изменений в базу данных
+                conn.commit()
+                last_sent_message = order_info
+                check_mess_already_send = False
+
+
+
+                    
+            else:
+                print('Нет новых сообщений')
+                print(user_last_message_ids)
+
+        else:                
+            print('Заказов пока нет, но скоро будут')
+       
+
+       
+        cur.close()
+        conn.close()
+        time.sleep(3)
+    except sqlite3.Error as e:
+        # Обработка ошибки, если таблицы нет или произошла другая ошибка
+        if not error_reported:
+                
+            print('Заказов пока нет, но скоро будут')
+            error_reported = True  # Устанавливаем флаг ошибки, чтобы сообщение выводилось только один раз
+    
+        # Закрытие соединения с базой данных
+        conn.close()
+
+
 # def update_message_with_users_list(chat_id, message_id, test, user_id, users_who_clicked):
 #     conn3 = sqlite3.connect('applicationbase.sql')
 #     cur3 = conn3.cursor()
