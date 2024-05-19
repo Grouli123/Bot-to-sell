@@ -793,6 +793,16 @@ def callback_data_of_data(callback):
         user_id = callback.from_user.id
         conn = sqlite3.connect('peoplebase.sql')
         cursor = conn.cursor()
+
+        # Проверка actualOrder
+        cursor.execute("SELECT actualOrder FROM users WHERE user_id = ?", (user_id,))
+        actual_order = cursor.fetchone()
+
+        if actual_order and actual_order[0] not in [None, ""]:
+            bot.send_message(callback.message.chat.id, "Вы уже записаны на заказ")
+            conn.close()
+            return
+
         cursor.execute("SELECT * FROM users WHERE user_id = ('%s')" % (user_id))
         takeParam2 = cursor.fetchone() # Получение первой соответствующей строки
         print('юзер айди ',user_id)
@@ -944,6 +954,16 @@ def callback_data_of_data_two(callback):
         user_id = callback.from_user.id
         conn = sqlite3.connect('peoplebase.sql')
         cursor = conn.cursor()
+
+        # Проверка actualOrder
+        cursor.execute("SELECT actualOrder FROM users WHERE user_id = ?", (user_id,))
+        actual_order = cursor.fetchone()
+
+        if actual_order and actual_order[0] not in [None, ""]:
+            bot.send_message(callback.message.chat.id, "Вы уже записаны на заказ")
+            conn.close()
+            return
+
         cursor.execute("SELECT * FROM users WHERE user_id = ('%s')" % (user_id))
         takeParam2 = cursor.fetchone() # Получение первой соответствующей строки
         print('юзер айди ',user_id)
@@ -1030,6 +1050,16 @@ def callback_data_of_data_three(callback):
         user_id = callback.from_user.id
         conn = sqlite3.connect('peoplebase.sql')
         cursor = conn.cursor()
+
+        # Проверка actualOrder
+        cursor.execute("SELECT actualOrder FROM users WHERE user_id = ?", (user_id,))
+        actual_order = cursor.fetchone()
+
+        if actual_order and actual_order[0] not in [None, ""]:
+            bot.send_message(callback.message.chat.id, "Вы уже записаны на заказ")
+            conn.close()
+            return
+
         cursor.execute("SELECT * FROM users WHERE user_id = ('%s')" % (user_id))
         takeParam2 = cursor.fetchone() # Получение первой соответствующей строки
         print('юзер айди ',user_id)
@@ -1120,6 +1150,16 @@ def callback_data_of_data_four(callback):
         user_id = callback.from_user.id
         conn = sqlite3.connect('peoplebase.sql')
         cursor = conn.cursor()
+
+        # Проверка actualOrder
+        cursor.execute("SELECT actualOrder FROM users WHERE user_id = ?", (user_id,))
+        actual_order = cursor.fetchone()
+
+        if actual_order and actual_order[0] not in [None, ""]:
+            bot.send_message(callback.message.chat.id, "Вы уже записаны на заказ")
+            conn.close()
+            return
+
         cursor.execute("SELECT * FROM users WHERE user_id = ('%s')" % (user_id))
         takeParam2 = cursor.fetchone() # Получение первой соответствующей строки
         print('юзер айди ',user_id)
