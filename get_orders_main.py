@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 import time
 
 import re
+import SendCloseMessage
 
 import  get_orders_config.get_orders_API_key as API_key
 # import get_orders_config.get_orders_sqlBase as sqlBase
@@ -1026,7 +1027,7 @@ def handle_reminder_response_four(call):
 
         cursor.close()
         conn.close()
-        
+        SendCloseMessage()
         send_reminder_five(call.message)
 
     elif call.data == 'close_order_4':

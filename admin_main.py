@@ -440,6 +440,16 @@ def created_order(message):
     # start(message)
     sent_message_id = sent_message.message_id
 
+
+
+
+
+
+
+
+
+
+
 @bot1.callback_query_handler(func=lambda callback: callback.data == orderSendTextCallbackData)
 @bot1.callback_query_handler(func=lambda callback: callback.data == orderDeleteCallbackData) 
 def callback_message_created_order(callback):  
