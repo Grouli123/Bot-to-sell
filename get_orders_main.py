@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 import time
 
 import re
-import SendCloseMessage
+from SendCloseMessage import SendCloseMessage
 
 import  get_orders_config.get_orders_API_key as API_key
 # import get_orders_config.get_orders_sqlBase as sqlBase
@@ -943,7 +943,7 @@ def callback_data_of_data(callback):
     #     orderTakeTwo = takeParam2[0]
 
         # Планирование отправки напоминания за час до начала работ
-        job_time = datetime.strptime(table_element[6], "%H:%M") - timedelta(hours=1)
+        job_time = datetime.strptime(table_element[6], "%H") - timedelta(minutes=1)
         job_time = job_time.replace(year=datetime.now().year, month=datetime.now().month, day=datetime.now().day)
         if job_time < datetime.now():
             job_time = job_time + timedelta(days=1)
@@ -960,7 +960,7 @@ def send_reminder(chat_id, user_id_mess):
 def handle_reminder_response(call):
     if call.data == 'yes':
         bot.send_message(call.message.chat.id, 'Отлично! Желаем удачи на заказе.')
-        send_reminder_two(call.message)
+        send_reminder_two(call.message.chat.id, user_id_mess)
 
     elif call.data == 'close_order':
         bot.send_message(call.message.chat.id, 'Заказ отменен.')
@@ -976,7 +976,7 @@ def send_reminder_two(chat_id, user_id_mess):
 def handle_reminder_response_two(call):
     if call.data == 'yes2':
         bot.send_message(call.message.chat.id, 'Отлично! Желаем удачи на заказе.')
-        send_reminder_three(call.message)
+        send_reminder_three(call.message.chat.id, user_id_mess)
     elif call.data == 'close_order2':
         bot.send_message(call.message.chat.id, 'Заказ отменен.')
 
@@ -990,7 +990,7 @@ def send_reminder_three(chat_id, user_id_mess):
 def handle_reminder_response_three(call):
     if call.data == 'yes3':
         bot.send_message(call.message.chat.id, 'Отлично! Желаем удачи на заказе.')
-        send_reminder_four(call.message)
+        send_reminder_four(call.message.chat.id, user_id_mess)
     elif call.data == 'close_order3':
         bot.send_message(call.message.chat.id, 'Заказ отменен.')
 
@@ -1007,7 +1007,7 @@ def send_reminder_four(chat_id, user_id_mess):
 @bot.callback_query_handler(func=lambda call: call.data in ['yes4', 'close_order_4'])
 def handle_reminder_response_four(call):
     user_id = call.from_user.id
-
+    test = call.message.chat.id
     if call.data == 'yes4':
         # Открываем базу данных и обновляем записи
         conn = sqlite3.connect('peoplebase.sql')
@@ -1027,8 +1027,19 @@ def handle_reminder_response_four(call):
 
         cursor.close()
         conn.close()
-        SendCloseMessage()
-        send_reminder_five(call.message)
+        conn = sqlite3.connect('applicationbase.sql')
+        cursor = conn.cursor()
+        
+        # # Получаем значение actualOrder
+        cursor.execute("SELECT adminChatId FROM orders WHERE orderChatId = ?", (test,))
+        actual_order_admin = cursor.fetchone()
+        print(f'актуал ордер админ {actual_order_admin[0]}')
+        
+
+        cursor.close()
+        conn.close()
+        SendCloseMessage(int(actual_order_admin[0]))
+        send_reminder_five(call.message.chat.id)
 
     elif call.data == 'close_order_4':
         bot.send_message(call.message.chat.id, 'Заказ отменен.')
