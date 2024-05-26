@@ -92,6 +92,8 @@ arzCity = citys.arzamas
 ekaCity = citys.ekaterenburg
 sanCity = citys.sankt_peterburg
 
+adminchatcity = 'AdGraeBot'
+
 chatcity = None
 
 cityTrue = 'False'
@@ -625,7 +627,7 @@ def import_into_database_order_admin(message):
     conn.close()
 
     markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton(f'{buttonResultName} {locationcity}', callback_data=nameOfBase, url=f'https://t.me/{chatcity}'))
+    markup.add(types.InlineKeyboardButton(f'{buttonResultName} для создания заказов', callback_data=nameOfBase, url=f'https://t.me/{adminchatcity}'))
        
     bot.send_message(message.chat.id, alreadyRegistered, reply_markup=markup)
     

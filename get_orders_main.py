@@ -165,7 +165,7 @@ test = None
 users_who_clicked = []
 
 takeParam2 = None
-
+cardNumber = None
 
 @bot.message_handler(commands=['start'])
 def registration(message):
@@ -930,7 +930,7 @@ def callback_data_of_data(callback):
                 else:
                     needText = 'Нужен'
 
-            order_info = f'✅\n<b>•{table_element[2]}: </b>{needText} {table_element[3]} {humanCount}\n<b>•Адрес:</b>👉 {table_element[4]}\n<b>•Что делать:</b> {table_element[5]}\n<b>•Начало работ:</b> в {table_element[6]}\n<b>•Вам на руки:</b> <u>{table_element[8]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
+            order_info = f'✅\n<b>•{table_element[2]}: </b>{needText} {table_element[3]} {humanCount}\n<b>•Адрес:</b>👉 {table_element[4]}\n<b>•Что делать:</b> {table_element[5]}\n<b>•Начало работ:</b> в {table_element[6]}:00\n<b>•Рабочее время</b> {table_element[17]}:00\n<b>•Вам на руки:</b> <u>{table_element[8]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
 
             bot.edit_message_text(order_info, callback.message.chat.id, callback.message.message_id, parse_mode='html')
 
@@ -943,7 +943,7 @@ def callback_data_of_data(callback):
     #     orderTakeTwo = takeParam2[0]
 
         # Планирование отправки напоминания за час до начала работ
-        job_time = datetime.strptime(table_element[6], "%H") - timedelta(minutes=1)
+        job_time = datetime.strptime(table_element[6], "%H") - timedelta(minutes=27)
         job_time = job_time.replace(year=datetime.now().year, month=datetime.now().month, day=datetime.now().day)
         if job_time < datetime.now():
             job_time = job_time + timedelta(days=1)
@@ -1010,36 +1010,36 @@ def handle_reminder_response_four(call):
     test = call.message.chat.id
     if call.data == 'yes4':
         # Открываем базу данных и обновляем записи
-        conn = sqlite3.connect('peoplebase.sql')
-        cursor = conn.cursor()
-        
-        # Получаем значение actualOrder
-        cursor.execute("SELECT actualOrder FROM users WHERE user_id = ?", (user_id,))
-        actual_order = cursor.fetchone()
-        
-        if actual_order and actual_order[0] not in [None, ""]:
-            # Обновляем orderDone и очищаем actualOrder
-            cursor.execute("UPDATE users SET orderDone = ?, actualOrder = '' WHERE user_id = ?", (actual_order[0], user_id))
-            conn.commit()
-            bot.send_message(call.message.chat.id, 'Отлично! Желаем удачи на заказе.')
-        else:
-            bot.send_message(call.message.chat.id, 'Нет текущих заказов для завершения.')
-
-        cursor.close()
-        conn.close()
-        conn = sqlite3.connect('applicationbase.sql')
-        cursor = conn.cursor()
+        # conn = sqlite3.connect('peoplebase.sql')
+        # cursor = conn.cursor()
         
         # # Получаем значение actualOrder
-        cursor.execute("SELECT adminChatId FROM orders WHERE orderChatId = ?", (test,))
-        actual_order_admin = cursor.fetchone()
-        print(f'актуал ордер админ {actual_order_admin[0]}')
+        # cursor.execute("SELECT actualOrder FROM users WHERE user_id = ?", (user_id,))
+        # actual_order = cursor.fetchone()
+        
+        # if actual_order and actual_order[0] not in [None, ""]:
+        #     # Обновляем orderDone и очищаем actualOrder
+        #     cursor.execute("UPDATE users SET orderDone = ?, actualOrder = '' WHERE user_id = ?", (actual_order[0], user_id))
+        #     conn.commit()
+        #     bot.send_message(call.message.chat.id, 'Отлично! Желаем удачи на заказе.')
+        # else:
+        #     bot.send_message(call.message.chat.id, 'Нет текущих заказов для завершения.')
+
+        # cursor.close()
+        # conn.close()
+        # conn = sqlite3.connect('applicationbase.sql')
+        # cursor = conn.cursor()
+        
+        # # # Получаем значение actualOrder
+        # cursor.execute("SELECT adminChatId FROM orders WHERE orderChatId = ?", (test,))
+        # actual_order_admin = cursor.fetchone()
+        # print(f'актуал ордер админ {actual_order_admin[0]}')
         
 
-        cursor.close()
-        conn.close()
-        SendCloseMessage(int(actual_order_admin[0]))
-        send_reminder_five(call.message.chat.id)
+        # cursor.close()
+        # conn.close()
+        # SendCloseMessage(int(actual_order_admin[0]))
+        send_reminder_five(call.message)
 
     elif call.data == 'close_order_4':
         bot.send_message(call.message.chat.id, 'Заказ отменен.')
@@ -1049,7 +1049,8 @@ def send_reminder_five(message):
     bot.register_next_step_handler(message, send_money_message_admin)
 
 def send_money_message_admin(message):
-    global passwordOrder
+    global cardNumber
+    test = message.chat.id
     if message.text is None:
         bot.send_message(message.from_user.id, textOnly)
     else:
@@ -1057,8 +1058,37 @@ def send_money_message_admin(message):
             bot.send_message(message.chat.id, firstnameError)
             message.text.strip(None)
         else:
-            passwordOrder = message.text.strip()
-            print(passwordOrder, ' pawwword')
+            cardNumber = message.text.strip()
+            conn = sqlite3.connect('peoplebase.sql')
+            cursor = conn.cursor()
+            
+            # Получаем значение actualOrder
+            cursor.execute("SELECT actualOrder FROM users WHERE user_id = ?", (user_id,))
+            actual_order = cursor.fetchone()
+            
+            if actual_order and actual_order[0] not in [None, ""]:
+                # Обновляем orderDone и очищаем actualOrder
+                cursor.execute("UPDATE users SET orderDone = ?, actualOrder = '' WHERE user_id = ?", (actual_order[0], user_id))
+                conn.commit()
+                bot.send_message(message.chat.id, 'Отлично! Желаем удачи на заказе.')
+            else:
+                bot.send_message(message.chat.id, 'Нет текущих заказов для завершения.')
+
+            cursor.close()
+            conn.close()
+            conn = sqlite3.connect('applicationbase.sql')
+            cursor = conn.cursor()
+            
+            # # Получаем значение actualOrder
+            cursor.execute("SELECT adminChatId FROM orders WHERE orderChatId = ?", (test,))
+            actual_order_admin = cursor.fetchone()
+            print(f'актуал ордер админ {actual_order_admin[0]}')
+            
+
+            cursor.close()
+            conn.close()
+            SendCloseMessage(int(actual_order_admin[0]), cardNumber)
+            print(cardNumber, ' card')
 
 
 
@@ -1149,7 +1179,7 @@ def callback_data_of_data_two(callback):
             else:
                 needText = 'Нужен'
 
-        order_info = f'✅\n<b>•{table_element[2]}: </b>{needText} {table_element[3]} {humanCount}\n<b>•Адрес:</b>👉 {table_element[4]}\n<b>•Что делать:</b> {table_element[5]}\n<b>•Начало работ:</b> в {table_element[6]}\n<b>•Вам на руки:</b> <u>{table_element[7]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
+        order_info = f'✅\n<b>•{table_element[2]}: </b>{needText} {table_element[3]} {humanCount}\n<b>•Адрес:</b>👉 {table_element[4]}\n<b>•Что делать:</b> {table_element[5]}\n<b>•Начало работ:</b> в {table_element[6]}:00\n<b>•Рабочее время</b> {table_element[17]}:00\n<b>•Вам на руки:</b> <u>{table_element[8]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
 
         bot.edit_message_text(order_info, callback.message.chat.id, callback.message.message_id, parse_mode='html')
 
@@ -1248,7 +1278,7 @@ def callback_data_of_data_three(callback):
             else:
                 needText = 'Нужен'
 
-        order_info = f'✅\n<b>•{table_element[2]}: </b>{needText} {table_element[3]} {humanCount}\n<b>•Адрес:</b>👉 {table_element[4]}\n<b>•Что делать:</b> {table_element[5]}\n<b>•Начало работ:</b> в {table_element[6]}\n<b>•Вам на руки:</b> <u>{table_element[7]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
+        order_info = f'✅\n<b>•{table_element[2]}: </b>{needText} {table_element[3]} {humanCount}\n<b>•Адрес:</b>👉 {table_element[4]}\n<b>•Что делать:</b> {table_element[5]}\n<b>•Начало работ:</b> в {table_element[6]}:00\n<b>•Рабочее время</b> {table_element[17]}:00\n<b>•Вам на руки:</b> <u>{table_element[8]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
 
         bot.edit_message_text(order_info, callback.message.chat.id, callback.message.message_id, parse_mode='html')
 
@@ -1349,7 +1379,7 @@ def callback_data_of_data_four(callback):
             else:
                 needText = 'Нужен'
 
-        order_info = f'✅\n<b>•{table_element[2]}: </b>{needText} {table_element[3]} {humanCount}\n<b>•Адрес:</b>👉 {table_element[4]}\n<b>•Что делать:</b> {table_element[5]}\n<b>•Начало работ:</b> в {table_element[6]}\n<b>•Вам на руки:</b> <u>{table_element[7]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
+        order_info = f'✅\n<b>•{table_element[2]}: </b>{needText} {table_element[3]} {humanCount}\n<b>•Адрес:</b>👉 {table_element[4]}\n<b>•Что делать:</b> {table_element[5]}\n<b>•Начало работ:</b> в {table_element[6]}:00\n<b>•Рабочее время</b> {table_element[17]}:00\n<b>•Вам на руки:</b> <u>{table_element[8]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
 
         bot.edit_message_text(order_info, callback.message.chat.id, callback.message.message_id, parse_mode='html')
 

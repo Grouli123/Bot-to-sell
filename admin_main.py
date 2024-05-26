@@ -436,7 +436,7 @@ def created_order(message):
     btn2 = types.InlineKeyboardButton(orderSendText, callback_data=orderSendTextCallbackData, one_time_keyboard=True)
     btn3 = types.InlineKeyboardButton(orderDeleteText, callback_data=orderDeleteCallbackData, one_time_keyboard=True)
     markup.row(btn2, btn3)    
-    sent_message = bot1.send_message(message.chat.id, f'✅\n<b>·{cityname}: </b>{needText} {countPeople} {humanCount}\n<b>·Адрес:</b>👉 {adress}\n<b>·Что делать:</b> {whattodo}\n<b>·Начало работ:</b> в {timetostart}\n<b>·Рабочее время:</b> {workTime}\n<b>·Вам на руки:</b> <u>{salary}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>', parse_mode='html', reply_markup=markup)  
+    sent_message = bot1.send_message(message.chat.id, f'✅\n<b>·{cityname}: </b>{needText} {countPeople} {humanCount}\n<b>·Адрес:</b>👉 {adress}\n<b>·Что делать:</b> {whattodo}\n<b>·Начало работ:</b> в {timetostart}:00\n<b>·Рабочее время:</b> {workTime}:00\n<b>·Вам на руки:</b> <u>{salary}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>', parse_mode='html', reply_markup=markup)  
     # start(message)
     sent_message_id = sent_message.message_id
 
@@ -459,7 +459,7 @@ def callback_message_created_order(callback):
     if callback.data == orderSendTextCallbackData:
         feedback = orderSendText     
 
-        application = f'✅\n<b>·{cityname}: </b>{needText} {countPeople} {humanCount}\n<b>·Адрес:</b>👉 {adress}\n<b>·Что делать:</b> {whattodo}\n<b>·Начало работ:</b> в {timetostart}\n<b>·Рабочее время:</b> {workTime}\n<b>·Вам на руки:</b> <u>{salary}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
+        application = f'✅\n<b>·{cityname}: </b>{needText} {countPeople} {humanCount}\n<b>·Адрес:</b>👉 {adress}\n<b>·Что делать:</b> {whattodo}\n<b>·Начало работ:</b> в {timetostart}:00\n<b>·Рабочее время:</b> {workTime}:00\n<b>·Вам на руки:</b> <u>{salary}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
         
         markup1 = types.InlineKeyboardMarkup()
         btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='❌ Закрыть заявку', one_time_keyboard=True)
@@ -1022,11 +1022,11 @@ def import_into_database(message):
     cur.close()
     conn.close()    
 
-    markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton(f'{buttonResultName} {cityname}', url=f'https://t.me/{chatcity}'))
+    # markup = types.InlineKeyboardMarkup()
+    # markup.add(types.InlineKeyboardButton(f'{buttonResultName} {cityname}', url=f'https://t.me/{chatcity}'))
 
        
-    bot1.send_message(message.chat.id, alreadyRegistered, reply_markup=markup)
+    bot1.send_message(message.chat.id, 'Заявка отправлена')
     
     state = 'citizenRU'
     # user_id = get_user_id()

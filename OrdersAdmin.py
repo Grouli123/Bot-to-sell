@@ -348,13 +348,14 @@ def toggle_subscription(call):
 
     conn = sqlite3.connect('custumers.sql')
     cur = conn.cursor()
-    new_status = 'true' if action == "активировать" else 'false'
-    cur.execute('UPDATE custumers SET podpiska = ? WHERE id = ?', (new_status, customer_id))
-    conn.commit()
     
     # Обновляем данные пользователя и отправляем обратно
     cur.execute('SELECT last_name, firts_name, middle_name, podpiska FROM custumers WHERE id = ?', (customer_id,))
     customer = cur.fetchone()
+    
+    new_status = 'true' if action == "активировать" else 'false'
+    cur.execute('UPDATE custumers SET podpiska = ? WHERE id = ?', (new_status, customer_id))
+    conn.commit()
     conn.close()
 
     full_name = ' '.join(customer[:3])

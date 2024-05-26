@@ -6,7 +6,7 @@ import time
 botApiKey13 = '6489313384:AAFOdsE5ZTo1pdXL_JNl1lxF_QMRfZ9pE9A'
 bot13 = telebot.TeleBot(botApiKey13)
 
-def SendCloseMessage(chatcity):
+def SendCloseMessage(chatcity, messageCard):
     print('itWork')
     conn = sqlite3.connect('custumers.sql')
     cur = conn.cursor()
@@ -23,7 +23,7 @@ def SendCloseMessage(chatcity):
         # Directly use chatcity to send the message, without iterating over phone numbers
         if chatcity != 'None':
             print("Заполненное значение botChatId:", chatcity)
-            bot13.send_message(chatcity, f"{users[4]} {users[5]} {users[6]} завершил заказ", parse_mode='html')
+            bot13.send_message(chatcity, f"{users[4]} {users[5]} {users[6]} завершил заказ, номер карты для перевода зп {messageCard}", parse_mode='html')
 
         cur.close()
         conn.close()
