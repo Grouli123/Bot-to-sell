@@ -6,14 +6,14 @@ import time
 botApiKey13 = '6433261921:AAEmTi8RVvhuSdYSlxB2uq0x3tP0X4wMRBE'
 bot13 = telebot.TeleBot(botApiKey13)
 
-def SendMessageintoHere(chatcity):
+def SendMessageintoHere(chatcity, user_id):
     print('itWork')
     conn = sqlite3.connect('custumers.sql')
     cur = conn.cursor()
 
     try:
         # Fetch the last customer's ID, but we don't use it here
-        cur.execute("SELECT * FROM custumers ORDER BY id DESC LIMIT 1")
+        cur.execute("SELECT * FROM custumers WHERE user_id = ?", (user_id,))
         users = cur.fetchone() 
 
         if users:
@@ -23,7 +23,7 @@ def SendMessageintoHere(chatcity):
         # Directly use chatcity to send the message, without iterating over phone numbers
         if chatcity != 'None':
             print("Заполненное значение botChatId:", chatcity)
-            bot13.send_message(chatcity, f"✅\nработает {users[2]}", parse_mode='html')
+            bot13.send_message(chatcity, f"✅\nПользователь {users[4]} {users[5]} {users[6]}  с номером телефона {users[2]} зарегистрировался, в качестве заказчика", parse_mode='html')
 
         cur.close()
         conn.close()

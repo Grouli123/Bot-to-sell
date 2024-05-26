@@ -6,14 +6,14 @@ import time
 botApiKey13 = '6489313384:AAFOdsE5ZTo1pdXL_JNl1lxF_QMRfZ9pE9A'
 bot13 = telebot.TeleBot(botApiKey13)
 
-def SendCloseMessage(chatcity, messageCard):
+def SendCloseMessage(chatcity, messageCard, user_id):
     print('itWork')
-    conn = sqlite3.connect('custumers.sql')
+    conn = sqlite3.connect('peoplebase.sql')
     cur = conn.cursor()
 
     try:
         # Fetch the last customer's ID, but we don't use it here
-        cur.execute("SELECT * FROM custumers ORDER BY id DESC LIMIT 1")
+        cur.execute("SELECT * FROM users WHERE user_id = ?", (user_id,))
         users = cur.fetchone() 
 
         if users:

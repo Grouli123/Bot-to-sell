@@ -492,7 +492,7 @@ def testMethod():
                 markup2.row(btn52) 
             
                 
-            order_info = f'✅\n<b>•{users[2]}: </b>{needText} {users[3]} {humanCount}\n<b>•Адрес:</b>👉 {users[4]}\n<b>•Что делать:</b> {users[5]}\n<b>•Начало работ:</b> в {users[6]}\n<b>·Рабочее время:</b> {users[17]}\n<b>•Вам на руки:</b> <u>{users[8]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
+            order_info = f'✅\n<b>•{users[2]}: </b>{needText} {users[3]} {humanCount}\n<b>•Адрес:</b>👉 {users[4]}\n<b>•Что делать:</b> {users[5]}\n<b>•Начало работ:</b> в {users[6]}:00\n<b>·Рабочее время:</b> {users[17]}:00\n<b>•Вам на руки:</b> <u>{users[8]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
                 
                 
             if order_info != last_sent_message:
@@ -943,7 +943,7 @@ def callback_data_of_data(callback):
     #     orderTakeTwo = takeParam2[0]
 
         # Планирование отправки напоминания за час до начала работ
-        job_time = datetime.strptime(table_element[6], "%H") - timedelta(minutes=27)
+        job_time = datetime.strptime(table_element[6], "%H") - timedelta(minutes=15)
         job_time = job_time.replace(year=datetime.now().year, month=datetime.now().month, day=datetime.now().day)
         if job_time < datetime.now():
             job_time = job_time + timedelta(days=1)
@@ -1087,7 +1087,7 @@ def send_money_message_admin(message):
 
             cursor.close()
             conn.close()
-            SendCloseMessage(int(actual_order_admin[0]), cardNumber)
+            SendCloseMessage(int(actual_order_admin[0]), cardNumber, user_id)
             print(cardNumber, ' card')
 
 
@@ -2002,7 +2002,7 @@ def orders(message):
         users = cur.fetchall()
         info = ''
         for el in users:
-            info += f'Вы взяли заказ номер: {el[0]}\n<b>•Город:</b> {el[2]}\n<b>•Адрес:</b>👉 {el[4]}\n<b>•Что делать:</b> {el[5]}\n<b>•Начало работ:</b> в {el[6]}\n<b>•Вам на руки:</b> <u>{el[7]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
+            info += f'Вы взяли заказ номер: {el[0]}\n<b>•Город:</b> {el[2]}\n<b>•Адрес:</b>👉 {el[4]}\n<b>•Что делать:</b> {el[5]}\n<b>•Начало работ:</b> в {el[6]}:00\n<b>•Рабочее время</b> {el[17]}:00\n<b>•Вам на руки:</b> <u>{el[7]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
         cur.close()
         conn.close()
 
