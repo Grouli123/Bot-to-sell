@@ -178,20 +178,20 @@ def geolocation(message):
     global phone
     try:
         phone = message.contact.phone_number
-        # if phone.startswith('+7') or phone.startswith('7'):
-        global geolocator
-        keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-        button_geo = types.KeyboardButton(text=geolocationButtonText, request_location=True)
-        keyboard.add(button_geo)
-        bot.send_message(message.chat.id, geolocationMessageText, reply_markup=keyboard)
-        bot.register_next_step_handler(message, location)
-        geolocator = Nominatim(user_agent = geolocationNameApp)    
-        # else:
-        #     keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-        #     button_phone = types.KeyboardButton(text=phoneButtonText, request_contact=True)
-        #     keyboard.add(button_phone)
-        #     bot.send_message(message.chat.id, f"Недопустимый номер {phone}.\n\nПривет!\n\nДавай пройдём короткую регистрацию🤝Для начала - поделись номером телефона!👇👇👇👇👇", reply_markup=keyboard, parse_mode='html')
-        #     bot.register_next_step_handler(message, geolocation)   
+        if phone.startswith('+7') or phone.startswith('7'):
+            global geolocator
+            keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+            button_geo = types.KeyboardButton(text=geolocationButtonText, request_location=True)
+            keyboard.add(button_geo)
+            bot.send_message(message.chat.id, geolocationMessageText, reply_markup=keyboard)
+            bot.register_next_step_handler(message, location)
+            geolocator = Nominatim(user_agent = geolocationNameApp)    
+        else:
+            keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+            button_phone = types.KeyboardButton(text=phoneButtonText, request_contact=True)
+            keyboard.add(button_phone)
+            bot.send_message(message.chat.id, f"Недопустимый номер {phone}.\n\nПривет!\n\nДавай пройдём короткую регистрацию🤝Для начала - поделись номером телефона!👇👇👇👇👇", reply_markup=keyboard, parse_mode='html')
+            bot.register_next_step_handler(message, geolocation)   
         
     except Exception:        
         bot.send_message(message.chat.id, phoneError, parse_mode='html')
@@ -329,16 +329,16 @@ def number_check(message):
     global phoneOrder 
     try:
         phoneOrder = message.contact.phone_number
-        # if phoneOrder.startswith('+7') or phoneOrder.startswith('7'):
-        bot.send_message(message.chat.id, f'Отлично, осталось немного', reply_markup=types.ReplyKeyboardRemove()) 
-        input_lastname_order(message)
+        if phoneOrder.startswith('+7') or phoneOrder.startswith('7'):
+            bot.send_message(message.chat.id, f'Отлично, осталось немного', reply_markup=types.ReplyKeyboardRemove()) 
+            input_lastname_order(message)
 
-        # else:
-        #     keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-        #     button_phone = types.KeyboardButton(text=phoneButtonText, request_contact=True)
-        #     keyboard.add(button_phone)
-        #     bot.send_message(message.chat.id, f"Недопустимый номер {phoneOrder}.\n\nПривет!\n\nДавай пройдём короткую регистрацию🤝Для начала - поделись номером телефона!👇👇👇👇👇", reply_markup=keyboard, parse_mode='html')
-        #     bot.register_next_step_handler(message, number_check)   
+        else:
+            keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+            button_phone = types.KeyboardButton(text=phoneButtonText, request_contact=True)
+            keyboard.add(button_phone)
+            bot.send_message(message.chat.id, f"Недопустимый номер {phoneOrder}.\n\nПривет!\n\nДавай пройдём короткую регистрацию🤝Для начала - поделись номером телефона!👇👇👇👇👇", reply_markup=keyboard, parse_mode='html')
+            bot.register_next_step_handler(message, number_check)   
     except Exception:        
         bot.send_message(message.chat.id, phoneError, parse_mode='html')
         bot.register_next_step_handler(message, number_check)   
