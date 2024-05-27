@@ -2,42 +2,21 @@ import telebot
 from telebot import types
 import sqlite3
 import json
-
 import admin_config.admin_API_key as API_key_one
 import admin_config.admin_sqlBase as sqlBase_one
 import admin_config.admin_config_message as config_message_one
-
 import get_orders_config.get_orders_API_key as API_key_Test
-
-
-
 import get_orders_config.get_orders_config_message as config_message_bot_order
-
-
 import citys.city_list as citys
-
-# admin_main.py
-# from observable import Observable
-
-# admin_bot = Observable()
-
-
-
 from get_orders_main import testMethod
 
 botApiKey = API_key_one.botAPI
 
 arzamasBot = API_key_Test.botAPIArz
-# ekaterinburgBot = API_key_Test.botAPIEka
-# sankt_peterburgBot = API_key_Test.botAPISan
-
 
 bot_to_send = None
-
 bot1 = telebot.TeleBot(botApiKey)
 bot2 = telebot.TeleBot(arzamasBot)
-# bot3 = telebot.TeleBot(ekaterinburgBot)
-# bot4 = telebot.TeleBot(sankt_peterburgBot)
 
 base1 = sqlBase_one.createDatabase
 insertIntoBase1 = sqlBase_one.insertIntoDatabase
@@ -88,16 +67,11 @@ inputSumInHour = config_message_one.input_sum_in_hour
 
 inputNumbers = config_message_one.input_numbers
 
-
-
 citizenRuButtonYesTextOne = config_message_bot_order.citizen_ru_button_yes
 citizenRuButtonYesTextCallbackDataOne = config_message_bot_order.citizen_ru_button_yes_callback_data
 
 citizenRuButtonNoTextOne = config_message_bot_order.citizen_ru_button_no
 citizenRuButtonNoTextCallbackDataOne = config_message_bot_order.citizen_ru_button_no_callback_data
-
-
-
 
 adress = None
 whattodo = None
@@ -113,14 +87,12 @@ state = 'initial'
 humanCount = None
 needText = None
 
-
 arzCity = citys.arzamas
 ekaCity = citys.ekaterenburg
 sanCity = citys.sankt_peterburg
 mosCity = citys.moskow
 
 chatcity = None
-
 
 login = 'admin'
 password = 'admin123'
@@ -141,7 +113,6 @@ user_name = None
 
 take_user_id_id = None
 
-
 test123 = None
 
 def start(message):    
@@ -157,16 +128,13 @@ def start(message):
 @bot1.message_handler(commands=['start'])
 def input_admin(message):      
     global adminChatId
-    adminChatId = message.chat.id  # Получаем chat_id из сообщения
-
+    adminChatId = message.chat.id  
     print(loginin)
-
     if loginin == False:
         bot1.send_message(message.chat.id, 'Введите логин', parse_mode='html')
         bot1.register_next_step_handler(message, admin_check)   
     else:
         start(message)
-
 
 def check_user_credentials(user_id):
     """Извлекает логин, пароль и статус подписки пользователя из базы данных."""
@@ -193,14 +161,14 @@ def admin_check(message):
             login = user_login
             password = user_password
             if login == message.text.strip():
-                input_password(message, subscription_status)  # Передаем статус подписки в следующий шаг
+                input_password(message, subscription_status)  
             else:
                 bot1.send_message(message.chat.id, 'Логин не найден')
                 input_admin(message)
 
 def input_password(message, subscription_status):
     bot1.send_message(message.chat.id, 'Введите пароль', parse_mode='html')
-    bot1.register_next_step_handler(message, password_check, subscription_status)  # Передаем статус подписки далее
+    bot1.register_next_step_handler(message, password_check, subscription_status)  
 
 def password_check(message, subscription_status):
     global loginin
@@ -224,7 +192,7 @@ def password_check(message, subscription_status):
 
 def check_subscription_status(user_id):
     """Проверяет статус подписки пользователя."""
-    conn = sqlite3.connect('custumers.sql')  # Путь к вашей базе данных
+    conn = sqlite3.connect('custumers.sql') 
     cursor = conn.cursor()
     cursor.execute("SELECT podpiska FROM custumers WHERE user_id = ?", (user_id,))
     result = cursor.fetchone()
@@ -246,14 +214,6 @@ def city_of_obj(message):
                 else:
                     bot1.send_message(message.chat.id, 'Оплатите подписку, чтобы продолжить создание заказа')
                     start(message)
-            # elif message.text == openBaseOrders:
-            #     bot1.send_message(message.chat.id, openBseOrdersMessage)
-            #     show_database_orders(message)
-            #     start(message)
-            # elif message.text == openBasePeople:
-            #     bot1.send_message(message.chat.id, openBasePeopleMessage)
-            #     show_database_users(message)
-            #     start(message)
             else:
                 bot1.send_message(message.chat.id, chooseTruePointOfMenu)            
                 start(message)  
@@ -263,9 +223,6 @@ def city_of_obj(message):
 
 def city_of_obj_check(message):
     global cityname
-
-    
-
     if message.text is None:
         bot1.send_message(message.from_user.id, textOnly)
         city_of_obj(message) 
@@ -276,14 +233,12 @@ def city_of_obj_check(message):
             city_of_obj(message) 
         else:
             cityname = message.text.strip() 
-            
             print(cityname)           
             people_need_count(message)
 
 def people_need_count(message):
     conn = sqlite3.connect('applicationbase.sql')
     cur = conn.cursor()
-
     cur.execute(base1)
     conn.commit() 
     cur.close()
@@ -310,7 +265,6 @@ def people_need_count_check(message):
                 bot1.send_message(message.from_user.id, inputNumber)
                 people_need_count(message)
             
-        
 def input_adress(message):
     bot1.send_message(message.chat.id, adressText, parse_mode='html')
     bot1.register_next_step_handler(message, adress_check)   
@@ -415,8 +369,7 @@ def wokr_time_check(message):
             except ValueError:
                 bot1.send_message(message.from_user.id, inputNumbers)
                 input_wokr_time(message)
-
-            
+   
 def created_order(message):
     global countPeople
     global humanCount
@@ -426,46 +379,29 @@ def created_order(message):
         humanCount = 'человек'
     else:
         humanCount = 'человека'
-    
     if int(countPeople) > 1:
         needText = 'Нужно'
     else:
         needText = 'Нужен'
-
     markup = types.InlineKeyboardMarkup()
     btn2 = types.InlineKeyboardButton(orderSendText, callback_data=orderSendTextCallbackData, one_time_keyboard=True)
     btn3 = types.InlineKeyboardButton(orderDeleteText, callback_data=orderDeleteCallbackData, one_time_keyboard=True)
     markup.row(btn2, btn3)    
     sent_message = bot1.send_message(message.chat.id, f'✅\n<b>·{cityname}: </b>{needText} {countPeople} {humanCount}\n<b>·Адрес:</b>👉 {adress}\n<b>·Что делать:</b> {whattodo}\n<b>·Начало работ:</b> в {timetostart}:00\n<b>·Рабочее время:</b> {workTime}:00\n<b>·Вам на руки:</b> <u>{salary}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>', parse_mode='html', reply_markup=markup)  
-    # start(message)
     sent_message_id = sent_message.message_id
-
-
-
-
-
-
-
-
-
-
 
 @bot1.callback_query_handler(func=lambda callback: callback.data == orderSendTextCallbackData)
 @bot1.callback_query_handler(func=lambda callback: callback.data == orderDeleteCallbackData) 
 def callback_message_created_order(callback):  
     global feedback 
     global chatcity
-    
     if callback.data == orderSendTextCallbackData:
         feedback = orderSendText     
-
         application = f'✅\n<b>·{cityname}: </b>{needText} {countPeople} {humanCount}\n<b>·Адрес:</b>👉 {adress}\n<b>·Что делать:</b> {whattodo}\n<b>·Начало работ:</b> в {timetostart}:00\n<b>·Рабочее время:</b> {workTime}:00\n<b>·Вам на руки:</b> <u>{salary}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
-        
         markup1 = types.InlineKeyboardMarkup()
         btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='❌ Закрыть заявку', one_time_keyboard=True)
         markup1.row(btn01)
         bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, reply_markup=markup1, parse_mode='html')
-
         print(sent_message_id)
         if cityname == 'Арзамас':
             chatcity = arzCity
@@ -478,49 +414,29 @@ def callback_message_created_order(callback):
     else:          
         feedback = orderDeleteText
         bot1.delete_message(callback.message.chat.id, callback.message.message_id)
-    
     import_into_database(callback.message)
-
-
 
 @bot1.callback_query_handler(func=lambda callback: callback.data == '❌ Закрыть заявку')
 def callback_message_created_order(callback):  
     if callback.data == '❌ Закрыть заявку':
         conn = sqlite3.connect('applicationbase.sql')
         cursor = conn.cursor()
-        # sent_message = bot.send_message(message.chat.id, order_info, reply_markup=markup2, parse_mode='html')
-        # last_message_id = sent_message.message_id  
-        
-        # users = cursor.fetchone()
-        
         message_id = callback.message.message_id
         sql_query = "UPDATE orders SET actualMess = ('%s') WHERE adminMessageId = ('%s')"
         cursor.execute(sql_query % ('False' , message_id))
-
         cursor.execute("SELECT cityOfobj, countpeople, adress, whattodo, timetostart, salary, workTime FROM orders WHERE adminMessageId = ('%s')" % (message_id))
         test2 = cursor.fetchone()
-                    # Коммит изменений в базу данных
         conn.commit()
-
-                    # Закрытие соединения с базой данных
         conn.close()
         application = f'❌ Заявка закрыта\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</b> в {test2[4]}\n<b>·Рабочее время:</b> {test2[6]}\n<b>·Вам на руки:</b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
-
-
         markup = types.InlineKeyboardMarkup()
         btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='ОтправленоАдмину1', one_time_keyboard=True)
         markup.row(btn02)
-
-        
         bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
         print("все произошло")
-
         conn = sqlite3.connect('applicationbase.sql')
         cur = conn.cursor()
-        
-        # cur.execute('SELECT * FROM orders ORDER BY id DESC LIMIT 1')
         cur.execute("SELECT cityOfobj, countpeople, adress, whattodo, timetostart, salary, orderMessageId, orderChatId, workTime FROM orders WHERE adminMessageId = ('%s')" % (message_id))
-
         users = cur.fetchone() 
         order_info_close = f'❌ Заявка закрыта\n<b>•{users[0]}: </b>{needText} {users[1]} {humanCount}\n<b>•Адрес:</b>👉 {users[2]}\n<b>•Что делать:</b> {users[3]}\n<b>•Начало работ:</b> в {users[4]}\n<b>·Рабочее время:</b>{users[8]}\n<b>•Вам на руки:</b> <u>{users[5]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
         user_message_ids = users[6]
@@ -530,7 +446,6 @@ def callback_message_created_order(callback):
         for chat_id, message_id in zip(chat_id_list, message_id_list):
             print('Чат id: ',chat_id)
             print('Месседж id: ', message_id)
-
             bot2.edit_message_text(order_info_close, chat_id, message_id, parse_mode='html')
 
 def update_message_with_users_list_test(test):
@@ -539,23 +454,18 @@ def update_message_with_users_list_test(test):
     cur3 = conn3.cursor()
     cur3.execute("SELECT adminChatId, adminMessageId, whoTakeId FROM orders")
     rows = cur3.fetchall()
-
     for row in rows:
         admin_chat_id = row[0]
         admin_message_id = row[1]
-        who_take_ids = row[2].split(',') if row[2] else []  # Разбиваем whoTakeId на отдельные идентификаторы
-
+        who_take_ids = row[2].split(',') if row[2] else []  
         if str(test) in admin_message_id:
             markup = types.InlineKeyboardMarkup()
             for take_user_id in who_take_ids:
                 user_name = get_user_name_from_database(take_user_id)
                 if user_name is not None:
                     btn = types.InlineKeyboardButton(str(user_name), callback_data=f'user_{take_user_id}')
-                    markup.row(btn)
-                    
+                    markup.row(btn) 
             btn02 = types.InlineKeyboardButton('Свернуть', callback_data='Свернуть1', one_time_keyboard=True)
-
-
             markup.row(btn02)
             bot1.edit_message_reply_markup(chat_id=admin_chat_id, message_id=admin_message_id, reply_markup=markup)
        
@@ -564,12 +474,10 @@ def update_message_with_users_list(test):
     cur3 = conn3.cursor()
     cur3.execute("SELECT adminChatId, adminMessageId, whoTakeId FROM orders")
     rows = cur3.fetchall()
-    
     for row in rows:
         admin_chat_id = row[0]
         admin_message_id = row[1]
         who_take_ids = row[2].split(',') if row[2] else []
-
         if str(test) in admin_message_id:
             markup = types.InlineKeyboardMarkup()
             for take_user_id in who_take_ids:
@@ -580,7 +488,6 @@ def update_message_with_users_list(test):
 
             btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='❌ Закрыть заявку', one_time_keyboard=True)
             btn02 = types.InlineKeyboardButton('Свернуть', callback_data='Свернуть', one_time_keyboard=True)
-
             markup.row(btn01)
             markup.row(btn02)
             bot1.edit_message_reply_markup(chat_id=admin_chat_id, message_id=admin_message_id, reply_markup=markup)
@@ -607,8 +514,6 @@ def testmess_close_one(callback):
     btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='ОтправленоАдмину1', one_time_keyboard=True)
     markup.row(btn02)
     bot1.edit_message_reply_markup(chat_id=callback.message.chat.id, message_id=callback.message.message_id, reply_markup=markup)
-    
-
 
 @bot1.callback_query_handler(func=lambda callback: callback.data == 'Свернуть')
 def testmess_close(callback):
@@ -619,30 +524,24 @@ def testmess_close(callback):
     markup.row(btn01)
     bot1.edit_message_reply_markup(chat_id=callback.message.chat.id, message_id=callback.message.message_id, reply_markup=markup)
 
-    
 @bot1.callback_query_handler(func=lambda callback: callback.data == 'ОтправленоАдмину1')
 def testmess_sendAdOne(callback):
     test = callback.message.message_id
     update_message_with_users_list_test(test)
 
-
 @bot1.callback_query_handler(func=lambda callback: callback.data == 'ОтправленоАдмину')
 def testmess_sendAd(callback):
     test = callback.message.message_id
     update_message_with_users_list(test)
-
  
 @bot1.callback_query_handler(func=lambda callback: callback.data.startswith('user_'))
 def testmess(callback):
     take_user_id = callback.data.split('_')[1]
     print('Идентификатор пользователя:', take_user_id)
-
     conn = sqlite3.connect('peoplebase.sql')
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM users WHERE id = ('%s')" % (take_user_id))
     takeParam2 = cursor.fetchone()
-    
-
     if takeParam2:
         user_lastname = takeParam2[4]
         user_firstname = takeParam2[5]
@@ -650,67 +549,46 @@ def testmess(callback):
         user_name = user_lastname + ' ' + user_firstname + ' ' + user_middlename
         print('тут это', user_name)
         print('в админке работает все ', user_name)
-
         cursor.close()
         conn.close()
         application = f'📞 Телефон: +{takeParam2[2]}\n👤 ФИО: {takeParam2[4]} {takeParam2[5]} {takeParam2[6]}\n📅 Дата рождения: {takeParam2[7]}\n🇷🇺 Гражданство РФ: {takeParam2[8]}\n🤝 Самозанятый: {takeParam2[10]} \n🏙 Город(а): {takeParam2[3]}'
-
         markup = types.InlineKeyboardMarkup()
         btn01 = types.InlineKeyboardButton('📊 Статистика заказов', callback_data='📊 Статистика заказов', one_time_keyboard=True)
         btn02 = types.InlineKeyboardButton('Назад', callback_data='Назад', one_time_keyboard=True)
         btn03 = types.InlineKeyboardButton('Отменить заказ', callback_data='Отменить заказ', one_time_keyboard=True)
         btn04 = types.InlineKeyboardButton('Подтвердить выполнение заказа', callback_data='Подтвердить заказ', one_time_keyboard=True)
         btn05 = types.InlineKeyboardButton('Заказ выполнен с браком', callback_data='Заказ с браком', one_time_keyboard=True)
-
         markup.row(btn01)
         if takeParam2[15] != '':
             markup.row(btn04)
             markup.row(btn05)
             markup.row(btn03)
         markup.row(btn02)
-
         bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
         print("все произошло")
-
-
 
 @bot1.callback_query_handler(func=lambda callback: callback.data == 'Назад')
 def testmess_test(callback):
     message_id = callback.message.message_id
     conn = sqlite3.connect('applicationbase.sql')
     cursor = conn.cursor()
-
     cursor.execute("SELECT cityOfobj, countpeople, adress, whattodo, timetostart, salary, actualMess, workTime FROM orders WHERE adminMessageId = ('%s')" % (message_id))
     test2 = cursor.fetchone()
-
     if test2[6] == 'True':
-
         conn.close()
         application = f'✅\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</b> в {test2[4]}\n<b>·Рабочее время:</b>{test2[7]}\n<b>·Вам на руки:</b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
-
-
         markup = types.InlineKeyboardMarkup()
         btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='ОтправленоАдмину', one_time_keyboard=True)
         btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='❌ Закрыть заявку', one_time_keyboard=True)
         markup.row(btn02)
         markup.row(btn01)
-        
         bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
     else:
-
         application = f'❌ Заявка закрыта\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</b> в {test2[4]}\n<b>·Рабочее время:</b>{test2[7]}\n<b>·Вам на руки:</b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
-
-
         markup = types.InlineKeyboardMarkup()
         btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='ОтправленоАдмину1', one_time_keyboard=True)
         markup.row(btn02)
-
         bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
-
-    # cursor.close()
-    # conn.close()
-
-
 
 @bot1.callback_query_handler(func=lambda callback: callback.data == 'Назад1')
 def testmess_test_test(callback):
@@ -722,264 +600,159 @@ def testmess_test_test(callback):
         user_lastname = takeParam2[4]
         user_firstname = takeParam2[5] 
         user_middlename = takeParam2[6]
-        user_name = user_lastname + ' ' + user_firstname + ' ' + user_middlename# Предположим, что имя пользователя находится во второй колонке
+        user_name = user_lastname + ' ' + user_firstname + ' ' + user_middlename
         print('тут это', user_name)
         print('в админке работает все ', user_name)      
-          
-        
         application = f'📞 Телефон: +{takeParam2[2]}\n👤 ФИО: {takeParam2[4]} {takeParam2[5]} {takeParam2[6]}\n📅 Дата рождения: {takeParam2[7]}\n🇷🇺 Гражданство РФ: {takeParam2[8]}\n🤝 Самозанятый: {takeParam2[10]} \n🏙 Город(а): {takeParam2[3]}' 
-
-
         markup = types.InlineKeyboardMarkup()
         btn01 = types.InlineKeyboardButton('📊 Статистика заказов', callback_data='📊 Статистика заказов', one_time_keyboard=True)
         btn02 = types.InlineKeyboardButton('Назад', callback_data='Назад', one_time_keyboard=True)
         btn03 = types.InlineKeyboardButton('Отменить заказ', callback_data='Отменить заказ', one_time_keyboard=True)
         btn04 = types.InlineKeyboardButton('Подтвердить выполнение заказа', callback_data='Подтвердить заказ', one_time_keyboard=True)
         btn05 = types.InlineKeyboardButton('Заказ выполнен с браком', callback_data='Заказ с браком', one_time_keyboard=True)
-
         markup.row(btn01)
         if takeParam2[15] != '':
             markup.row(btn04)
             markup.row(btn05)
             markup.row(btn03)
         markup.row(btn02)
-
-        
         bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
         print("все произошло")
     cursor.close()
     conn.close()
 
-
-
-
 @bot1.callback_query_handler(func=lambda callback: callback.data == 'Подтвердить заказ') 
 def callback_data_of_data_confirm(callback): 
-    # global test123
-
     conn2 = sqlite3.connect('peoplebase.sql')
     cursor2 = conn2.cursor()
-    
     cursor2.execute("SELECT actualOrder, orderDone FROM users WHERE id = ('%s')" % (take_user_id))
     takeOrderTake = cursor2.fetchone()
-
     test_test = takeOrderTake[0]
-    
     current_orderId = takeOrderTake[1] if takeOrderTake[1] else ""
-
-
     new_orderId = current_orderId + "," + test_test if current_orderId else test_test
     print(new_orderId, 'ТУТ АЛЕ')
-
     cursor2.execute("UPDATE users SET actualOrder = '%s', orderDone = '%s' WHERE id = '%s'" % ("",  new_orderId, take_user_id))
-
-            
-            
-
     conn2.commit()
-
     message_id = callback.message.message_id
     conn = sqlite3.connect('applicationbase.sql')
     cursor = conn.cursor()
-
     cursor.execute("SELECT cityOfobj, countpeople, adress, whattodo, timetostart, salary, actualMess, workTime FROM orders WHERE adminMessageId = ('%s')" % (message_id))
     test2 = cursor.fetchone()
     bot1.answer_callback_query(callback.id, "Подтверждение заказа выполнено")
-
-
     if test2[6] == 'True':
-
         conn.close()
         application = f'✅\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</b> в {test2[4]}\n<b>·Рабочее время:</b>{test2[6]}\n<b>·Вам на руки:</b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
-
-
         markup = types.InlineKeyboardMarkup()
         btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='ОтправленоАдмину', one_time_keyboard=True)
         btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='❌ Закрыть заявку', one_time_keyboard=True)
         markup.row(btn02)
         markup.row(btn01)
-        
         bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
     else:
-
         application = f'❌ Заявка закрыта\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</b> в {test2[4]}\n·Рабочее время:</b>{test2[6]}\n<b>·Вам на руки:</b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
-
-
         markup = types.InlineKeyboardMarkup()
         btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='ОтправленоАдмину1', one_time_keyboard=True)
         markup.row(btn02)
-
         bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
     
-    # cursor.close()
-    # conn.close()
-
 @bot1.callback_query_handler(func=lambda callback: callback.data == 'Заказ с браком') 
 def callback_data_of_data_miss(callback): 
-    # global test123
-
     conn2 = sqlite3.connect('peoplebase.sql')
     cursor2 = conn2.cursor()
-    
     cursor2.execute("SELECT actualOrder, orderMiss FROM users WHERE id = ('%s')" % (take_user_id))
     takeOrderTake = cursor2.fetchone()
-
     test_test = takeOrderTake[0]
-    
     current_orderId = takeOrderTake[1] if takeOrderTake[1] else ""
-
-
     new_orderId = current_orderId + "," + test_test if current_orderId else test_test
     print(new_orderId, 'ТУТ АЛЕ')
-
     cursor2.execute("UPDATE users SET actualOrder = '%s', orderMiss = '%s' WHERE id = '%s'" % ("",  new_orderId, take_user_id))
-
-            
-            
-
     conn2.commit()
-
     message_id = callback.message.message_id
     conn = sqlite3.connect('applicationbase.sql')
     cursor = conn.cursor()
-
     cursor.execute("SELECT cityOfobj, countpeople, adress, whattodo, timetostart, salary, actualMess, workTime FROM orders WHERE adminMessageId = ('%s')" % (message_id))
     test2 = cursor.fetchone()
-
     bot1.answer_callback_query(callback.id, "Заказ был выполнен с браком")
-
-
     if test2[6] == 'True':
-
         conn.close()
         application = f'✅\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</b> в {test2[4]}\n·Рабочее время:</b>{test2[7]}\n<b>·Вам на руки:</b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
-
-
         markup = types.InlineKeyboardMarkup()
         btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='ОтправленоАдмину', one_time_keyboard=True)
         btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='❌ Закрыть заявку', one_time_keyboard=True)
         markup.row(btn02)
         markup.row(btn01)
-        
         bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
     else:
-
         application = f'❌ Заявка закрыта\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</b> в {test2[4]}\n·Рабочее время:</b>{test2[7]}\n<b>·Вам на руки:</b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
-
-
         markup = types.InlineKeyboardMarkup()
         btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='ОтправленоАдмину1', one_time_keyboard=True)
         markup.row(btn02)
-
         bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
-    
-    # cursor.close()
-    # conn.close()
-    
-
-
-
 
 @bot1.callback_query_handler(func=lambda callback: callback.data == 'Отменить заказ') 
 def callback_data_of_data_close(callback): 
     message_id = callback.message.message_id
-
-
-    
     conn_applicationbase = sqlite3.connect('applicationbase.sql')
     cur_applicationbase = conn_applicationbase.cursor()
-
-    user_name_to_remove = callback.from_user.first_name  # Используйте last_name или другие поля, если нужно
-
-    # Поиск соответствующей записи в базе данных applicationbase
+    user_name_to_remove = callback.from_user.first_name 
     cur_applicationbase.execute("SELECT adminChatId, adminMessageId, whoTakeId FROM orders WHERE adminMessageId = ('%s')" % (message_id))
     order_info = cur_applicationbase.fetchone()
-
     if order_info:
         admin_chat_id, admin_message_id, who_take_ids_str = order_info
         who_take_ids = who_take_ids_str.split(',') if who_take_ids_str else []
-
-        # Удаление имени пользователя из списка who_take_ids
         if user_name_to_remove in who_take_ids:
             who_take_ids.remove(user_name_to_remove)
-
         print('Я не знаю', who_take_ids)
         cur_applicationbase.execute("UPDATE orders SET whoTakeId = ('%s') WHERE adminMessageId = ('%s')" % (user_name_to_remove, admin_message_id))
         conn_applicationbase.commit()
-
     conn_applicationbase.close()
     conn = sqlite3.connect('applicationbase.sql')
     cursor = conn.cursor()
-
     cursor.execute("SELECT cityOfobj, countpeople, adress, whattodo, timetostart, salary, actualMess, workTime FROM orders WHERE adminMessageId = ('%s')" % (message_id))
     test2 = cursor.fetchone()
-
     bot1.answer_callback_query(callback.id, "Заказ отменен")
-
-
     if test2[6] == 'True':
-
         conn.close()
         application = f'✅\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</b> в {test2[4]}\n·Рабочее время:</b>{test2[7]}\n<b>·Вам на руки:</b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
-
-
         markup = types.InlineKeyboardMarkup()
         btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='ОтправленоАдмину', one_time_keyboard=True)
         btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='❌ Закрыть заявку', one_time_keyboard=True)
         markup.row(btn02)
         markup.row(btn01)
-        
         bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
     else:
-
         application = f'❌ Заявка закрыта\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</b> в {test2[4]}\n·Рабочее время:</b>{test2[7]}\n<b>·Вам на руки:</b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
-
-
         markup = types.InlineKeyboardMarkup()
         btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='ОтправленоАдмину1', one_time_keyboard=True)
         markup.row(btn02)
-
+        
         bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
- 
 @bot1.callback_query_handler(func=lambda callback: callback.data == '📊 Статистика заказов') 
 def callback_data_of_data(callback): 
     global cityTrue
     global isOpenEdit
     global data_called
     global samozanYorN
-
     global percent_completed
     global percent_failed
-
     if callback.data == '📊 Статистика заказов':  
         data_called = False         
         conn = sqlite3.connect('peoplebase.sql')
         c = conn.cursor()
-
-        # Выполнение SQL-запроса
-        # c.execute("SELECT orderTake, orderDone, orderMiss FROM users")
         c.execute("SELECT * FROM users WHERE id = '%s'" % (take_user_id))
         test2 = c.fetchone()
-            # Получение данных
         orderDataTake = test2[16]
         orderDataDone = test2[17]
         orderDataMiss = test2[18] 
-
-        # Разделение данных по запятым и подсчет количества записей
         recordsTake = orderDataTake.split(',')
         orderCountTake = len(recordsTake)
-
         recordsDone = orderDataDone.split(',')
         orderCountDone = len(recordsDone) - 1
-
         recordsMiss = orderDataMiss.split(',')
         orderCountMiss = len(recordsMiss) - 1
-
         print(f"Количество записей: {orderCountTake}")
         print(f"Количество записей: {orderCountDone}")
         print(f"Количество записей: {orderCountMiss}")
-
-        # Закрытие соединения с базой данных
         conn.close()
         try:
             percent_completed = (orderCountDone / (orderCountTake)) * 100
@@ -988,16 +761,10 @@ def callback_data_of_data(callback):
             percent_completed = 0
             percent_failed = 0
             print('на ноль делить нельзя')
-
-
         markup = types.InlineKeyboardMarkup()
         btn02 = types.InlineKeyboardButton('Назад', callback_data='Назад1', one_time_keyboard=True)
-
         markup.row(btn02)
-
-        
         bot1.edit_message_text(f'📊 Статистика заказов:\n• Взял: {orderCountTake}\n• Выполнил: {orderCountDone} ({percent_completed}%)\n• Брак: {orderCountMiss} ({percent_failed}%)', callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
-
 
 @bot1.message_handler(content_types=['text'])
 def check_callback_message_ready_order(message):          
@@ -1017,70 +784,13 @@ def import_into_database(message):
     conn = sqlite3.connect('applicationbase.sql')
     cur = conn.cursor()
     cur.execute(insertIntoBase1 % (cityname, countPeople, adress, whattodo, timetostart, orderTime, salary, adminChatId, sent_message_id, '', 'True', '', '', '', '', workTime, '')) 
-
     conn.commit()
     cur.close()
     conn.close()    
-
-    # markup = types.InlineKeyboardMarkup()
-    # markup.add(types.InlineKeyboardButton(f'{buttonResultName} {cityname}', url=f'https://t.me/{chatcity}'))
-
-       
     bot1.send_message(message.chat.id, 'Заявка отправлена')
-    
     state = 'citizenRU'
-    # user_id = get_user_id()
-    # print('новый юзер', user_id)
     testMethod()
-
-
     start(message)
-
-# def show_database_orders(message):
-#     print(loginin)
-#     if loginin == True:
-
-#         conn = sqlite3.connect('applicationbase.sql')
-#         cur = conn.cursor()
-#         cur.execute('SELECT * FROM orders')
-#         users = cur.fetchall()
-
-#         info = ''
-#         for el in users:
-#             info += f'тут:{el[14]} Чат id: {el[9]}\nЗаявка номер: {el[0]}, Дата создания: {el[1]}, Город: {el[2]}, Количество людей: {el[3]}, Адрес: {el[4]}, Что делать: {el[5]}, Начало работ: {el[6]}, Вам на руки: {el[8]}, Сообщение админки: {el[10]}, Сообщение ордера: {el[11]}, Id чатов: {el[13]}, записался id: {el[14]}, номера телефонов друзей: {el[15]}, ФИО друзей: {el[16]}\n\n'
-#         cur.close()
-#         conn.close()
-
-#         bot1.send_message(message.chat.id, info)
-#         print(info)
-#     else:
-#         bot1.send_message(message.chat.id, 'Введите логин и пароль прежде чем продолжить работу')
-#         input_admin(message)
-
-
-# def show_database_users(message):
-#     print(loginin)
-
-#     if loginin == True:
-
-#         conn = sqlite3.connect('peoplebase.sql')
-#         cur = conn.cursor()
-
-#         cur.execute('SELECT * FROM users')
-#         users = cur.fetchall()
-
-#         info = ''
-#         for el in users:
-#             info += f'Актуальный ордер:{el[15]} и {el[16]} и {el[17]} и {el[18]} \nюзер айди {el[9]}\nПользователь номер: {el[0]}, Дата регистрации: {el[1]}, Номер телефона: +{el[2]}, Город: {el[3]}, Фамилия: {el[4]}, Имя: {el[5]}, Отчество: {el[6]}, Дата рождения: {el[7]}, Гражданство РФ: {el[8]}, Cамозанятость: {el[10]}, Аккаунт подтвержден: {el[11]}, Паспорт: {el[12]}, взял заказ номер: {el[15]} tot {el[17]} \n\n'
-
-#         cur.close()
-#         conn.close()
-
-#         bot1.send_message(message.chat.id, info)
-#         print(info)
-#     else:
-#         bot1.send_message(message.chat.id, 'Введите логин и пароль прежде чем продолжить работу')
-#         input_admin(message)
 
 print('Bot started')
 
