@@ -943,105 +943,195 @@ def callback_data_of_data(callback):
     #     orderTakeTwo = takeParam2[0]
 
         # Планирование отправки напоминания за час до начала работ
-        job_time = datetime.strptime(table_element[6], "%H") - timedelta(minutes=15)
+        job_time = datetime.strptime(table_element[6], "%H") - timedelta(minutes=20)
         job_time = job_time.replace(year=datetime.now().year, month=datetime.now().month, day=datetime.now().day)
         if job_time < datetime.now():
             job_time = job_time + timedelta(days=1)
 
         scheduler.add_job(send_reminder, 'date', run_date=job_time, args=[callback.message.chat.id, user_id_mess])
-
 def send_reminder(chat_id, user_id_mess):
     markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton(text='Да', callback_data='yes'))
-    markup.add(types.InlineKeyboardButton(text='Отметить заказ', callback_data='close_order'))
+    markup.add(types.InlineKeyboardButton(text='Да', callback_data=f'yes_{user_id_mess}'))
+    markup.add(types.InlineKeyboardButton(text='Отменить заказ', callback_data=f'close_order_{user_id_mess}'))
     bot.send_message(chat_id, f'Вы выехали на заказ {user_id_mess}?', reply_markup=markup)
 
-@bot.callback_query_handler(func=lambda call: call.data in ['yes', 'close_order'])
+@bot.callback_query_handler(func=lambda call: call.data.startswith('yes_') or call.data.startswith('close_order_'))
 def handle_reminder_response(call):
-    if call.data == 'yes':
-        bot.send_message(call.message.chat.id, 'Отлично! Желаем удачи на заказе.')
+    user_id_mess = call.data.split('_')[1]
+
+    if call.data.startswith('yes_'):
+        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f'Вы выехали на заказ {user_id_mess}?')
         send_reminder_two(call.message.chat.id, user_id_mess)
 
-    elif call.data == 'close_order':
-        bot.send_message(call.message.chat.id, 'Заказ отменен.')
+    elif call.data.startswith('close_order_'):
+        # Удаление actualOrder в базе данных peoplebase.sql
+        conn = sqlite3.connect('peoplebase.sql')
+        cursor = conn.cursor()
+        cursor.execute("UPDATE users SET actualOrder = '' WHERE user_id = ?", (call.from_user.id,))
+        conn.commit()
+        cursor.close()
+        conn.close()
 
+        # Обновление whoTakeId в базе данных applicationbase.sql
+        conn = sqlite3.connect('applicationbase.sql')
+        cursor = conn.cursor()
+        cursor.execute("SELECT whoTakeId FROM orders WHERE orderChatId LIKE ?", (f"%{call.message.chat.id}%",))
+        result = cursor.fetchone()
+        if result:
+            who_take_id = result[0]
+            updated_who_take_id = ','.join([id for id in who_take_id.split(',') if id != user_id_mess])
+            cursor.execute("UPDATE orders SET whoTakeId = ? WHERE orderChatId LIKE ?", (updated_who_take_id, f"%{call.message.chat.id}%"))
+            conn.commit()
+        cursor.close()
+        conn.close()
+
+        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f'Вы выехали на заказ {user_id_mess}?')
+        bot.send_message(call.message.chat.id, 'Заказ отменен.')
 
 def send_reminder_two(chat_id, user_id_mess):
     markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton(text='Да', callback_data='yes2'))
-    markup.add(types.InlineKeyboardButton(text='Отметить заказ', callback_data='close_order2'))
+    markup.add(types.InlineKeyboardButton(text='Да', callback_data=f'yes2_{user_id_mess}'))
+    markup.add(types.InlineKeyboardButton(text='Отменить заказ', callback_data=f'close_order2_{user_id_mess}'))
     bot.send_message(chat_id, f'Вы в пути на заказ {user_id_mess}?', reply_markup=markup)
 
-@bot.callback_query_handler(func=lambda call: call.data in ['yes2', 'close_order2'])
+@bot.callback_query_handler(func=lambda call: call.data.startswith('yes2_') or call.data.startswith('close_order2_'))
 def handle_reminder_response_two(call):
-    if call.data == 'yes2':
-        bot.send_message(call.message.chat.id, 'Отлично! Желаем удачи на заказе.')
+    user_id_mess = call.data.split('_')[1]
+
+    if call.data.startswith('yes2_'):
+        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f'Вы в пути на заказ {user_id_mess}?')
         send_reminder_three(call.message.chat.id, user_id_mess)
-    elif call.data == 'close_order2':
+
+    elif call.data.startswith('close_order2_'):
+        # Удаление actualOrder в базе данных peoplebase.sql
+        conn = sqlite3.connect('peoplebase.sql')
+        cursor = conn.cursor()
+        cursor.execute("UPDATE users SET actualOrder = '' WHERE user_id = ?", (call.from_user.id,))
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        # Обновление whoTakeId в базе данных applicationbase.sql
+        conn = sqlite3.connect('applicationbase.sql')
+        cursor = conn.cursor()
+        cursor.execute("SELECT whoTakeId FROM orders WHERE orderChatId LIKE ?", (f"%{call.message.chat.id}%",))
+        result = cursor.fetchone()
+        if result:
+            who_take_id = result[0]
+            updated_who_take_id = ','.join([id for id in who_take_id.split(',') if id != user_id_mess])
+            cursor.execute("UPDATE orders SET whoTakeId = ? WHERE orderChatId LIKE ?", (updated_who_take_id, f"%{call.message.chat.id}%"))
+            conn.commit()
+        cursor.close()
+        conn.close()
+
+        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f'Вы в пути на заказ {user_id_mess}?')
         bot.send_message(call.message.chat.id, 'Заказ отменен.')
 
 def send_reminder_three(chat_id, user_id_mess):
     markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton(text='Да', callback_data='yes3'))
-    markup.add(types.InlineKeyboardButton(text='Отметить заказ', callback_data='close_order_3'))
+    markup.add(types.InlineKeyboardButton(text='Да', callback_data=f'yes3_{user_id_mess}'))
+    markup.add(types.InlineKeyboardButton(text='Отменить заказ', callback_data=f'close_order3_{user_id_mess}'))
     bot.send_message(chat_id, f'Вы приехали на заказ {user_id_mess}?', reply_markup=markup)
 
-@bot.callback_query_handler(func=lambda call: call.data in ['yes3', 'close_order3'])
+@bot.callback_query_handler(func=lambda call: call.data.startswith('yes3_') or call.data.startswith('close_order3_'))
 def handle_reminder_response_three(call):
-    if call.data == 'yes3':
-        bot.send_message(call.message.chat.id, 'Отлично! Желаем удачи на заказе.')
+    user_id_mess = call.data.split('_')[1]
+
+    if call.data.startswith('yes3_'):
+        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f'Вы приехали на заказ {user_id_mess}?')
         send_reminder_four(call.message.chat.id, user_id_mess)
-    elif call.data == 'close_order3':
+
+    elif call.data.startswith('close_order3_'):
+        # Удаление actualOrder в базе данных peoplebase.sql
+        conn = sqlite3.connect('peoplebase.sql')
+        cursor = conn.cursor()
+        cursor.execute("UPDATE users SET actualOrder = '' WHERE user_id = ?", (call.from_user.id,))
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        # Обновление whoTakeId в базе данных applicationbase.sql
+        conn = sqlite3.connect('applicationbase.sql')
+        cursor = conn.cursor()
+        cursor.execute("SELECT whoTakeId FROM orders WHERE orderChatId LIKE ?", (f"%{call.message.chat.id}%",))
+        result = cursor.fetchone()
+        if result:
+            who_take_id = result[0]
+            updated_who_take_id = ','.join([id for id in who_take_id.split(',') if id != user_id_mess])
+            cursor.execute("UPDATE orders SET whoTakeId = ? WHERE orderChatId LIKE ?", (updated_who_take_id, f"%{call.message.chat.id}%"))
+            conn.commit()
+        cursor.close()
+        conn.close()
+
+        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f'Вы приехали на заказ {user_id_mess}?')
         bot.send_message(call.message.chat.id, 'Заказ отменен.')
-
-
-
-
 
 def send_reminder_four(chat_id, user_id_mess):
     markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton(text='Да', callback_data='yes4'))
-    markup.add(types.InlineKeyboardButton(text='Отметить заказ', callback_data='close_order_4'))
+    markup.add(types.InlineKeyboardButton(text='Да', callback_data=f'yes4_{user_id_mess}'))
+    markup.add(types.InlineKeyboardButton(text='Отменить заказ', callback_data=f'close_order4_{user_id_mess}'))
     bot.send_message(chat_id, f'Вы завершили заказ {user_id_mess}?', reply_markup=markup)
 
-@bot.callback_query_handler(func=lambda call: call.data in ['yes4', 'close_order_4'])
+@bot.callback_query_handler(func=lambda call: call.data.startswith('yes4_') or call.data.startswith('close_order4_'))
 def handle_reminder_response_four(call):
-    user_id = call.from_user.id
-    test = call.message.chat.id
-    if call.data == 'yes4':
-        # Открываем базу данных и обновляем записи
-        # conn = sqlite3.connect('peoplebase.sql')
-        # cursor = conn.cursor()
-        
-        # # Получаем значение actualOrder
-        # cursor.execute("SELECT actualOrder FROM users WHERE user_id = ?", (user_id,))
-        # actual_order = cursor.fetchone()
-        
-        # if actual_order and actual_order[0] not in [None, ""]:
-        #     # Обновляем orderDone и очищаем actualOrder
-        #     cursor.execute("UPDATE users SET orderDone = ?, actualOrder = '' WHERE user_id = ?", (actual_order[0], user_id))
-        #     conn.commit()
-        #     bot.send_message(call.message.chat.id, 'Отлично! Желаем удачи на заказе.')
-        # else:
-        #     bot.send_message(call.message.chat.id, 'Нет текущих заказов для завершения.')
+    user_id_mess = call.data.split('_')[1]
 
-        # cursor.close()
-        # conn.close()
-        # conn = sqlite3.connect('applicationbase.sql')
-        # cursor = conn.cursor()
-        
-        # # # Получаем значение actualOrder
-        # cursor.execute("SELECT adminChatId FROM orders WHERE orderChatId = ?", (test,))
-        # actual_order_admin = cursor.fetchone()
-        # print(f'актуал ордер админ {actual_order_admin[0]}')
-        
+    if call.data.startswith('yes4_'):
+        # Удаление actualOrder и обновление orderDone в базе данных peoplebase.sql
+        conn = sqlite3.connect('peoplebase.sql')
+        cursor = conn.cursor()
+        cursor.execute("SELECT actualOrder FROM users WHERE user_id = ?", (call.from_user.id,))
+        actual_order = cursor.fetchone()
 
-        # cursor.close()
-        # conn.close()
-        # SendCloseMessage(int(actual_order_admin[0]))
+        if actual_order and actual_order[0] not in [None, ""]:
+            cursor.execute("UPDATE users SET orderDone = ?, actualOrder = '' WHERE user_id = ?", (actual_order[0], call.from_user.id))
+            conn.commit()
+            bot.send_message(call.message.chat.id, 'Отлично! Желаем удачи на заказе.')
+        else:
+            bot.send_message(call.message.chat.id, 'Нет текущих заказов для завершения.')
+
+        cursor.close()
+        conn.close()
+
+        # Обновление whoTakeId в базе данных applicationbase.sql
+        conn = sqlite3.connect('applicationbase.sql')
+        cursor = conn.cursor()
+        cursor.execute("SELECT whoTakeId FROM orders WHERE orderChatId LIKE ?", (f"%{call.message.chat.id}%",))
+        result = cursor.fetchone()
+        if result:
+            who_take_id = result[0]
+            updated_who_take_id = ','.join([id for id in who_take_id.split(',') if id != user_id_mess])
+            cursor.execute("UPDATE orders SET whoTakeId = ? WHERE orderChatId LIKE ?", (updated_who_take_id, f"%{call.message.chat.id}%"))
+            conn.commit()
+        cursor.close()
+        conn.close()
+
+        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f'Вы завершили заказ {user_id_mess}?')
         send_reminder_five(call.message)
 
-    elif call.data == 'close_order_4':
+    elif call.data.startswith('close_order4_'):
+        # Удаление actualOrder в базе данных peoplebase.sql
+        conn = sqlite3.connect('peoplebase.sql')
+        cursor = conn.cursor()
+        cursor.execute("UPDATE users SET actualOrder = '' WHERE user_id = ?", (call.from_user.id,))
+        conn.commit()
+        cursor.close()
+        conn.close()
+
+        # Обновление whoTakeId в базе данных applicationbase.sql
+        conn = sqlite3.connect('applicationbase.sql')
+        cursor = conn.cursor()
+        cursor.execute("SELECT whoTakeId FROM orders WHERE orderChatId LIKE ?", (f"%{call.message.chat.id}%",))
+        result = cursor.fetchone()
+        if result:
+            who_take_id = result[0]
+            updated_who_take_id = ','.join([id for id in who_take_id.split(',') if id != user_id_mess])
+            cursor.execute("UPDATE orders SET whoTakeId = ? WHERE orderChatId LIKE ?", (updated_who_take_id, f"%{call.message.chat.id}%"))
+            conn.commit()
+        cursor.close()
+        conn.close()
+
+        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f'Вы завершили заказ {user_id_mess}?')
         bot.send_message(call.message.chat.id, 'Заказ отменен.')
 
 def send_reminder_five(message):
@@ -1052,43 +1142,39 @@ def send_money_message_admin(message):
     global cardNumber
     test = message.chat.id
     if message.text is None:
-        bot.send_message(message.from_user.id, textOnly)
+        bot.send_message(message.from_user.id, "Пожалуйста, введите текстовое сообщение.")
     else:
-        if len(message.text.strip()) > maxSymbol:
-            bot.send_message(message.chat.id, firstnameError)
-            message.text.strip(None)
+        if len(message.text.strip()) > 20:  # Установите соответствующее ограничение на длину номера карты
+            bot.send_message(message.chat.id, "Длина номера карты превышает допустимую.")
         else:
             cardNumber = message.text.strip()
             conn = sqlite3.connect('peoplebase.sql')
             cursor = conn.cursor()
-            
-            # Получаем значение actualOrder
-            cursor.execute("SELECT actualOrder FROM users WHERE user_id = ?", (user_id,))
+
+            cursor.execute("SELECT actualOrder FROM users WHERE user_id = ?", (message.from_user.id,))
             actual_order = cursor.fetchone()
-            
-            if actual_order and actual_order[0] not in [None, ""]:
-                # Обновляем orderDone и очищаем actualOrder
-                cursor.execute("UPDATE users SET orderDone = ?, actualOrder = '' WHERE user_id = ?", (actual_order[0], user_id))
-                conn.commit()
-                bot.send_message(message.chat.id, 'Отлично! Желаем удачи на заказе.')
-            else:
-                bot.send_message(message.chat.id, 'Нет текущих заказов для завершения.')
+
+            cursor.execute("UPDATE users SET orderDone = ?, actualOrder = '' WHERE user_id = ?", (actual_order[0], message.from_user.id))
+            conn.commit()
+            bot.send_message(message.chat.id, 'Отлично! Желаем удачи на заказе.')
 
             cursor.close()
             conn.close()
+
             conn = sqlite3.connect('applicationbase.sql')
             cursor = conn.cursor()
-            
-            # # Получаем значение actualOrder
-            cursor.execute("SELECT adminChatId FROM orders WHERE orderChatId = ?", (test,))
+            cursor.execute("SELECT adminChatId FROM orders WHERE orderChatId LIKE ?", (f"%{test}%",))
             actual_order_admin = cursor.fetchone()
-            print(f'актуал ордер админ {actual_order_admin[0]}')
             
-
+            print(actual_order_admin, ' actual order admin')
+            
+            print(actual_order_admin[0], ' actual order admin0')
+            if actual_order_admin:
+                SendCloseMessage(int(actual_order_admin[0]), cardNumber, message.from_user.id)
             cursor.close()
             conn.close()
-            SendCloseMessage(int(actual_order_admin[0]), cardNumber, user_id)
             print(cardNumber, ' card')
+
 
 
 

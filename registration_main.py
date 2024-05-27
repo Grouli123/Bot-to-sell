@@ -178,20 +178,20 @@ def geolocation(message):
     global phone
     try:
         phone = message.contact.phone_number
-        if phone.startswith('+7') or phone.startswith('7'):
-            global geolocator
-            keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-            button_geo = types.KeyboardButton(text=geolocationButtonText, request_location=True)
-            keyboard.add(button_geo)
-            bot.send_message(message.chat.id, geolocationMessageText, reply_markup=keyboard)
-            bot.register_next_step_handler(message, location)
-            geolocator = Nominatim(user_agent = geolocationNameApp)    
-        else:
-            keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-            button_phone = types.KeyboardButton(text=phoneButtonText, request_contact=True)
-            keyboard.add(button_phone)
-            bot.send_message(message.chat.id, f"Недопустимый номер {phone}.\n\nПривет!\n\nДавай пройдём короткую регистрацию🤝Для начала - поделись номером телефона!👇👇👇👇👇", reply_markup=keyboard, parse_mode='html')
-            bot.register_next_step_handler(message, geolocation)   
+        # if phone.startswith('+7') or phone.startswith('7'):
+        global geolocator
+        keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+        button_geo = types.KeyboardButton(text=geolocationButtonText, request_location=True)
+        keyboard.add(button_geo)
+        bot.send_message(message.chat.id, geolocationMessageText, reply_markup=keyboard)
+        bot.register_next_step_handler(message, location)
+        geolocator = Nominatim(user_agent = geolocationNameApp)    
+        # else:
+        #     keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+        #     button_phone = types.KeyboardButton(text=phoneButtonText, request_contact=True)
+        #     keyboard.add(button_phone)
+        #     bot.send_message(message.chat.id, f"Недопустимый номер {phone}.\n\nПривет!\n\nДавай пройдём короткую регистрацию🤝Для начала - поделись номером телефона!👇👇👇👇👇", reply_markup=keyboard, parse_mode='html')
+        #     bot.register_next_step_handler(message, geolocation)   
         
     except Exception:        
         bot.send_message(message.chat.id, phoneError, parse_mode='html')
@@ -329,16 +329,16 @@ def number_check(message):
     global phoneOrder 
     try:
         phoneOrder = message.contact.phone_number
-        if phoneOrder.startswith('+7') or phoneOrder.startswith('7'):
-            bot.send_message(message.chat.id, f'Отлично, осталось немного', reply_markup=types.ReplyKeyboardRemove()) 
-            input_lastname_order(message)
+        # if phoneOrder.startswith('+7') or phoneOrder.startswith('7'):
+        bot.send_message(message.chat.id, f'Отлично, осталось немного', reply_markup=types.ReplyKeyboardRemove()) 
+        input_lastname_order(message)
 
-        else:
-            keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-            button_phone = types.KeyboardButton(text=phoneButtonText, request_contact=True)
-            keyboard.add(button_phone)
-            bot.send_message(message.chat.id, f"Недопустимый номер {phoneOrder}.\n\nПривет!\n\nДавай пройдём короткую регистрацию🤝Для начала - поделись номером телефона!👇👇👇👇👇", reply_markup=keyboard, parse_mode='html')
-            bot.register_next_step_handler(message, number_check)   
+        # else:
+        #     keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+        #     button_phone = types.KeyboardButton(text=phoneButtonText, request_contact=True)
+        #     keyboard.add(button_phone)
+        #     bot.send_message(message.chat.id, f"Недопустимый номер {phoneOrder}.\n\nПривет!\n\nДавай пройдём короткую регистрацию🤝Для начала - поделись номером телефона!👇👇👇👇👇", reply_markup=keyboard, parse_mode='html')
+        #     bot.register_next_step_handler(message, number_check)   
     except Exception:        
         bot.send_message(message.chat.id, phoneError, parse_mode='html')
         bot.register_next_step_handler(message, number_check)   
@@ -454,7 +454,7 @@ def sendMoney(message):
     markup1 = types.InlineKeyboardMarkup()
     btn01 = types.InlineKeyboardButton('💵 Оплатить', url='https://t.me/Grouli123', one_time_keyboard=True)
     markup1.row(btn01)
-    bot.send_message(message.from_user.id, f'Стоимость месячной подписки 5.000 рублей\nОплатить можно переводом по номеру +79965638345 ТОЛЬКО НА (ОЗОН БАНК)\nПо кнопке ниже вы перейдете на нашего менеджера.\nОтправьте ему в чат:\n\n1.ФИО от кого вы отправили перевод\n2.Скриншот перевода\n\nПосле поступления денежных средств на счет, ваша подписка будет активирована и вы сможете выставлять заказы\n\nЗа ошибки в номере телефона или банке при совершении оплаты мы ответственности не несем.\nПеревод строго по указанному номеру и на указанный банк!', reply_markup= markup1)
+    bot.send_message(message.from_user.id, f'Стоимость месячной подписки 5.000 рублей\nОплатить можно переводом по номеру +79965638345 ТОЛЬКО НА (ОЗОН БАНК)\nПо кнопке ниже вы перейдете на нашего менеджера.\nОтправьте ему в чат:\n\n1.ФИО от кого вы отправили перевод\n2.Скриншот перевода\ 3.ФИО зарегистрированного заказчика для активации\n\nПосле поступления денежных средств на счет, ваша подписка будет активирована и вы сможете выставлять заказы\n\nЗа ошибки в номере телефона или банке при совершении оплаты мы ответственности не несем.\nПеревод строго по указанному номеру и на указанный банк!', reply_markup= markup1)
 
 
 
