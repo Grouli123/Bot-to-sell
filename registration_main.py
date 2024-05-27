@@ -560,4 +560,3 @@ def import_into_database_order_admin(message):
 print('Bot started')
 
 bot.polling(non_stop=True)
-
