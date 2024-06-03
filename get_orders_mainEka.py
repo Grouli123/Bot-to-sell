@@ -151,24 +151,38 @@ def registration(message):
     global user_chat_ids
     global data_called
     global messageChatId
+
     data_called = False
     messageChatId = message.chat.id
     print(messageChatId)
     user_id = message.from_user.id
     print(user_id)
-    conn = sqlite3.connect('peoplebase.sql')
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM users WHERE user_id = ('%s')" % (user_id))
-    takeParam = cursor.fetchone() 
-    if takeParam:
-        check_user_id = takeParam[9]
-    else:
+
+    try:
+        conn = sqlite3.connect('peoplebase.sql')
+        cursor = conn.cursor()
+    except sqlite3.Error as e:
+        bot.send_message(message.chat.id, 'Пользователь не найден')
+        return
+
+    try:
+        cursor.execute("SELECT * FROM users WHERE user_id = ?", (user_id,))
+        takeParam = cursor.fetchone()
+        if takeParam:
+            check_user_id = takeParam[9]
+        else:
+            check_user_id = None
+
+        cursor.execute("UPDATE users SET botChatId = ? WHERE user_id = ?", (messageChatId, user_id))
+        conn.commit()
+    except sqlite3.Error as e:
+        bot.send_message(message.chat.id, 'Ошибка работы с базой данных.')
         check_user_id = None
-    cursor.execute("UPDATE users SET botChatId = ('%s') WHERE user_id = ('%s')" % (messageChatId, user_id))
-    conn.commit()
-    cursor.close()
-    conn.close()
-    if check_user_id is not None or user_id is not None:
+    finally:
+        cursor.close()
+        conn.close()
+
+    if check_user_id:
         bot.send_message(message.chat.id, f'Поздравляем с успешной регистрацией✅\nОжидай появления новых заявок!\nПринять заявку можно, нажам на активные кнопки под заявкой.\n\nℹ️Если хочешь видеть все заявки и иметь преимущество в назначении на заявку - подтверди свой аккаунт (это можно сделать в любой момент). Для этого нажми на кнопку "👤Мои данные" на твоей клавиатуре внизу, затем нажми "✅Подтвердить аккаунт"👇👇👇', parse_mode='html')
         userCitizenRuText = f'👉Пока можешь почитать отзывы о нашей организации'
         markup = types.InlineKeyboardMarkup()
@@ -181,7 +195,7 @@ def registration(message):
         markup = types.InlineKeyboardMarkup()
         btn2 = types.InlineKeyboardButton('👉 Перейти к боту регистрации', url='https://t.me/GraeYeBot', one_time_keyboard=True)
         markup.row(btn2)          
-        bot.send_message(message.chat.id, f'Для регистрации перейдите к боту по кнопке!\n\n👇👇👇👇👇', parse_mode='html', reply_markup=markup)
+        bot.send_message(message.chat.id, 'Вы не зарегистрированы, пройдите регистрацию, перейдя к боту по кнопке!\n\n👇👇👇👇👇', parse_mode='html', reply_markup=markup)
 
 def testMethod():
     global check_mess_already_send
