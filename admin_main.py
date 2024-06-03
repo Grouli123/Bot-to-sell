@@ -192,7 +192,7 @@ def password_check(message, subscription_status):
 
 def check_subscription_status(user_id):
     """Проверяет статус подписки пользователя."""
-    conn = sqlite3.connect('custumers.sql') 
+    conn = sqlite3.connect('custumers.sql')
     cursor = conn.cursor()
     cursor.execute("SELECT podpiska FROM custumers WHERE user_id = ?", (user_id,))
     result = cursor.fetchone()
@@ -201,40 +201,43 @@ def check_subscription_status(user_id):
     return result[0] if result else None
 
 def city_of_obj(message):
-    if loginin == True:
+    if loginin:
         if message.text is None:
             bot1.send_message(message.from_user.id, textOnly)
-            start(message) 
+            start(message)
         else:
             if message.text == makeOrderButton:
                 subscription_status = check_subscription_status(message.from_user.id)
                 if subscription_status == 'true':
-                    bot1.send_message(message.chat.id, inputCityObject, reply_markup=types.ReplyKeyboardRemove())
+                    markup = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
+                    markup.add('Арзамас', 'Москва и область', 'Екатеринбург', 'Санкт-Петербург')
+                    bot1.send_message(message.chat.id, inputCityObject, reply_markup=markup)
                     bot1.register_next_step_handler(message, city_of_obj_check)
                 else:
                     bot1.send_message(message.chat.id, 'Оплатите подписку, чтобы продолжить создание заказа')
                     start(message)
             else:
-                bot1.send_message(message.chat.id, chooseTruePointOfMenu)            
-                start(message)  
+                bot1.send_message(message.chat.id, chooseTruePointOfMenu)
+                start(message)
     else:
         bot1.send_message(message.chat.id, 'Введите логин и пароль прежде чем продолжить работу')
         input_admin(message)
 
 def city_of_obj_check(message):
     global cityname
+    valid_cities = ['Арзамас', 'Москва и область', 'Екатеринбург', 'Санкт-Петербург']
     if message.text is None:
         bot1.send_message(message.from_user.id, textOnly)
-        city_of_obj(message) 
+        city_of_obj(message)
     else:
-        if len(message.text.strip()) > maxSymbol1:
-            bot1.send_message(message.chat.id, adressError)
-            message.text.strip(None)
-            city_of_obj(message) 
-        else:
-            cityname = message.text.strip() 
-            print(cityname)           
+        city_input = message.text.strip()
+        if city_input in valid_cities:
+            cityname = city_input
+            print(cityname)
             people_need_count(message)
+        else:
+            bot1.send_message(message.chat.id, 'К сожалению, мы пока не работаем в этом городе')
+            city_of_obj(message)
 
 def people_need_count(message):
     conn = sqlite3.connect('applicationbase.sql')

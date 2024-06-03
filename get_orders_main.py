@@ -1189,7 +1189,6 @@ def data(message):
     global city
     global cityTrue
     global nuberPhone
-    global city
     global lastname
     global firstname
     global middlename
@@ -1206,17 +1205,24 @@ def data(message):
     global orderMiss
     global percent_completed
     global percent_failed    
+
     user_id = message.from_user.id
-    if not data_called:  
-        conn = sqlite3.connect('peoplebase.sql')
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM users WHERE user_id = ('%s')" % (user_id))
-        takeParam = cursor.fetchone() 
-        if takeParam:
-            check_user_id = takeParam[9]
-        else:
-            check_user_id = None
-        conn.close()
+
+    if not data_called:
+        try:
+            conn = sqlite3.connect('peoplebase.sql')
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM users WHERE user_id = ?", (user_id,))
+            takeParam = cursor.fetchone() 
+            if takeParam:
+                check_user_id = takeParam[9]
+            else:
+                check_user_id = None
+            conn.close()
+        except sqlite3.Error as e:
+            bot.send_message(message.chat.id, "Вы еще не взяли ни одного заказа")
+            return
+
         if takeParam:
             id_nubmer_list = takeParam[0]
             nuberPhone = takeParam[2]
@@ -1233,23 +1239,24 @@ def data(message):
             orderDone = takeParam[16]
             orderMiss = takeParam[17]
         else:
-            print('Значение не найдено') 
-        conn.close()
+            bot.send_message(message.chat.id, "Пользователь не найден в базе данных.")
+            return
+
         if nalogacc == 'Нет':
             samozanYorN = 'Нет'
         elif passport != 'Нет':
             samozanYorN = f'Да\n💰 Р/С: {nalogacc}\n🪪 Паспорт: {passport}'
         else:
             samozanYorN = f'Да\n💰 Р/С: {nalogacc}'
+
         if check_user_id is not None or user_id is not None:
-            if  cityTrue == 'False':
+            if cityTrue == 'False':
                 markup = types.InlineKeyboardMarkup()
                 btn2 = types.InlineKeyboardButton('🖌Редактировать город', callback_data='🖌Редактировать город', one_time_keyboard=True)
                 btn3 = types.InlineKeyboardButton('✅Подтвердить', callback_data='✅Подтвердить', one_time_keyboard=True)
                 markup.row(btn2)  
                 markup.row(btn3)  
                 bot.send_message(message.chat.id, f'📞 Телефон: +{nuberPhone}\n👤 ФИО: {lastname} {firstname} {middlename}\n📅 Дата рождения: {dataOfBirth}\n🇷🇺 Гражданство РФ: {citizenRF}\n🤝 Самозанятый: {samozanYorN} \n🏙 Город(а): {city}\n\nℹ️ Чтобы выйти из этого меню нажмите ✅Подтвердить', reply_markup=markup)
-                print('первый иф',check_user_id, 'продолжение', user_id)
             else:
                 markup = types.InlineKeyboardMarkup()
                 btn1 = types.InlineKeyboardButton('📝Редактировать данные', callback_data='📝Редактировать данные', one_time_keyboard=True)
@@ -1266,13 +1273,12 @@ def data(message):
                     btn4 = types.InlineKeyboardButton('✅Самозанятость', callback_data='✅Самозанятость', one_time_keyboard=True)
                     markup.row(btn4)  
                 bot.send_message(message.chat.id, messageInformation, reply_markup=markup)
-                print('первый элс',check_user_id, 'продолжение', user_id)
         else:
-            print('второй иф',check_user_id, 'продолжение', user_id)
             markup = types.InlineKeyboardMarkup()
             btn2 = types.InlineKeyboardButton('👉 Перейти к боту регистрации', url='https://t.me/GraeYeBot', one_time_keyboard=True)
             markup.row(btn2)          
             bot.send_message(message.chat.id, f'Для регистрации перейдите к боту по кнопке!\n\n👇👇👇👇👇', parse_mode='html', reply_markup=markup)
+
         data_called = True  
     else:
         bot.send_message(message.chat.id, 'Функция data уже была вызвана. Повторный вызов невозможен.')
@@ -1283,31 +1289,50 @@ def orders(message):
     global data_called
     data_called = False    
     user_id = message.from_user.id
-    conn = sqlite3.connect('peoplebase.sql')
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM users WHERE user_id = ('%s')" % (user_id))
-    takeParam = cursor.fetchone() 
-    if takeParam:
-        check_user_id = takeParam[9]
-    else:
-        check_user_id = None
-    conn.close()
-    if check_user_id is not None or user_id is not None:
-        conn = sqlite3.connect('applicationbase.sql')
-        cur = conn.cursor()
-        cur.execute("SELECT * FROM orders WHERE id = ('%s')" % (user_id_mess))
-        users = cur.fetchall()
-        info = ''
-        for el in users:
-            info += f'Вы взяли заказ номер: {el[0]}\n<b>•Город:</b> {el[2]}\n<b>•Адрес:</b>👉 {el[4]}\n<b>•Что делать:</b> {el[5]}\n<b>•Начало работ:</b> в {el[6]}:00\n<b>•Рабочее время</b> {el[17]}:00\n<b>•Вам на руки:</b> <u>{el[7]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
-        cur.close()
+
+    try:
+        conn = sqlite3.connect('peoplebase.sql')
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM users WHERE user_id = ?", (user_id,))
+        takeParam = cursor.fetchone() 
+        if takeParam:
+            check_user_id = takeParam[9]
+        else:
+            check_user_id = None
         conn.close()
-        bot.send_message(message.chat.id, info, parse_mode='html')
+    except sqlite3.Error as e:
+        bot.send_message(message.chat.id, "Пользователь не найден ")
+        return
+
+    if check_user_id is not None or user_id is not None:
+        try:
+            conn = sqlite3.connect('applicationbase.sql')
+            cur = conn.cursor()
+            cur.execute("SELECT * FROM orders WHERE id = ?", (user_id,))
+            users = cur.fetchall()
+            if users:
+                info = ''
+                for el in users:
+                    info += (f'Вы взяли заказ номер: {el[0]}\n'
+                             f'<b>•Город:</b> {el[2]}\n'
+                             f'<b>•Адрес:</b>👉 {el[4]}\n'
+                             f'<b>•Что делать:</b> {el[5]}\n'
+                             f'<b>•Начало работ:</b> в {el[6]}:00\n'
+                             f'<b>•Рабочее время</b> {el[17]}:00\n'
+                             f'<b>•Вам на руки:</b> <u>{el[8]}.00</u> р./час, минималка 2 часа\n'
+                             f'<b>•Приоритет самозанятым</b>')
+                bot.send_message(message.chat.id, info, parse_mode='html')
+            else:
+                bot.send_message(message.chat.id, "Заказы не найдены.")
+            cur.close()
+            conn.close()
+        except sqlite3.Error as e:
+            bot.send_message(message.chat.id, "Вы еще не взяли ни одного заказа")
     else:
         markup = types.InlineKeyboardMarkup()
         btn2 = types.InlineKeyboardButton('👉 Перейти к боту регистрации', url='https://t.me/GraeYeBot', one_time_keyboard=True)
         markup.row(btn2)          
-        bot.send_message(message.chat.id, f'Для регистрации перейдите к боту по кнопке!\n\n👇👇👇👇👇', parse_mode='html', reply_markup=markup)
+        bot.send_message(message.chat.id, 'Для регистрации перейдите к боту по кнопке!\n\n👇👇👇👇👇', parse_mode='html', reply_markup=markup)
 
 def input_birtgday(message):
     if isOpenEdit == True:

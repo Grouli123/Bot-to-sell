@@ -81,6 +81,7 @@ registered = False
 arzCity = citys.arzamas
 ekaCity = citys.ekaterenburg
 sanCity = citys.sankt_peterburg
+mosCity = citys.moskow
 
 adminchatcity = 'AdGraeBot'
 
@@ -527,6 +528,8 @@ def city_check_for_chat(message):
     elif locationcity == 'Санкт-Петербург':
         chatcity = sanCity
         import_into_database(message)
+    elif locationcity == 'Москва':
+        chatcity = mosCity
     else: 
         bot.send_message(message.chat.id, 'К сожалению, мы не работаем по вашему городу')
 
