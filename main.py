@@ -3,14 +3,12 @@ import subprocess
 # Список путей к скриптам, которые нужно запустить
 script_paths = [
     'admin_main.py',
-    'get_orders_main.py',
+    'get_orders_mainArzamas.py',
     'registration_main.py',
-    'OrdersAdmin.py'
-    # 'openTest.py',
-    # 'observable.py',
-    # 'observer.py'
-    # 'test.py',
-    # 'moskow_get_orders_main.py'
+    'OrdersAdmin.py',
+    'get_orders_mainSPB.py',
+    'get_orders_mainMoskow.py',
+    'get_orders_mainEka.py'
 ]
 
 # Список для хранения процессов

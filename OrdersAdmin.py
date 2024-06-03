@@ -8,7 +8,7 @@ import admin_config.admin_config_message as config_message_one
 import get_orders_config.get_orders_config_message as config_message_bot_order
 import citys.city_list as citys
 from SendMessIntoAdmin import SendMessageintoHere
-from get_orders_main import sendNotyfiMessage
+from get_orders_mainArzamas import sendNotyfiMessage
 
 botApiKey13 = '6433261921:AAEmTi8RVvhuSdYSlxB2uq0x3tP0X4wMRBE'
 bot_to_send = None
