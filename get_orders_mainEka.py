@@ -210,6 +210,7 @@ def testMethod():
     global user_chat_ids
     global data_called
     global user_id_mess
+
     data_called = False
     conn5 = sqlite3.connect('peoplebase.sql')
     cur5 = conn5.cursor()
@@ -217,11 +218,11 @@ def testMethod():
     results = cur5.fetchall()
     conn = sqlite3.connect('applicationbase.sql')
     cur = conn.cursor()
-    print('А тут?', messageChatId)
+    
     try:
         cur.execute("SELECT * FROM orders ORDER BY id DESC LIMIT 1")
         users = cur.fetchone() 
-        if users is not None:
+        if users is not None and "Екатеринбург" in users[2]:
             if (int(users[3]) <= 1) or (int(users[3]) >= 5):
                 humanCount = 'человек'
             else:
@@ -268,16 +269,13 @@ def testMethod():
                 markup2.row(btn52)            
             order_info = f'✅\n<b>•{users[2]}: </b>{needText} {users[3]} {humanCount}\n<b>•Адрес:</b>👉 {users[4]}\n<b>•Что делать:</b> {users[5]}\n<b>•Начало работ:</b> в {users[6]}:00\n<b>·Рабочее время:</b> {users[17]}:00\n<b>•Вам на руки:</b> <u>{users[8]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
             if order_info != last_sent_message:                    
-                print('работает елсе')
                 user_id_mess = users[0]
-                print(user_id_mess)
                 cur.execute("SELECT orderMessageId FROM orders WHERE id = ('%s')" % (user_id_mess))
                 current_message_ids_str = cur.fetchone()[0]
                 current_message_ids = current_message_ids_str.split(',') if current_message_ids_str else []
                 for result in results:
                     botChatIdw = result[0]  
                     if botChatIdw != 'None':
-                        print("Заполненное значение botChatId:", botChatIdw)
                         sent_message = bot.send_message(botChatIdw, order_info, reply_markup=markup2, parse_mode='html')
                         last_message_id = sent_message.message_id  
                         user_chat_id_str = user_chat_ids.get(user_id_mess, "")

@@ -398,49 +398,61 @@ def created_order(message):
     sent_message_id = sent_message.message_id
 
 @bot1.callback_query_handler(func=lambda callback: callback.data == orderSendTextCallbackData)
-@bot1.callback_query_handler(func=lambda callback: callback.data == orderDeleteCallbackData) 
-def callback_message_created_order(callback):  
-    global feedback 
+@bot1.callback_query_handler(func=lambda callback: callback.data == orderDeleteCallbackData)
+def callback_message_created_order(callback):
+    global feedback
     global chatcity
     global bot2
     if callback.data == orderSendTextCallbackData:
-        feedback = orderSendText     
-        application = f'✅\n<b>·{cityname}: </b>{needText} {countPeople} {humanCount}\n<b>·Адрес:</b>👉 {adress}\n<b>·Что делать:</b> {whattodo}\n<b>·Начало работ:</b> в {timetostart}:00\n<b>·Рабочее время:</b> {workTime}:00\n<b>·Вам на руки:</b> <u>{salary}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
+        feedback = orderSendText
+        application = f'✅\n<b>·{cityname}: </b>{needText} {countPeople} {humanCount}\n<b>·Адрес:</b>👉 {adress}\n<b>·Что делать:</b> {whattodo}\n<b>·Начало работ:</b> в {timetostart}:00\n<b>·Рабочее время:</b> {workTime}:00\n<b>·Вам на руки:</b> <u>{salary}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>'
         markup1 = types.InlineKeyboardMarkup()
         btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='❌ Закрыть заявку', one_time_keyboard=True)
         markup1.row(btn01)
         bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, reply_markup=markup1, parse_mode='html')
         print(sent_message_id)
+
+        # Выбор бота в зависимости от города
         if cityname == 'Арзамас':
-            chatcity = arzCity            
+            chatcity = arzCity
             bot2 = telebot.TeleBot(arzamasBot)
-        elif cityname == 'Екатеринбург':                    
+        elif cityname == 'Екатеринбург':
             chatcity = ekaCity
             bot2 = telebot.TeleBot(EkaBot)
-        elif cityname == 'Санкт-Петербург':                    
-            chatcity = sanCity           
+        elif cityname == 'Санкт-Петербург':
+            chatcity = sanCity
             bot2 = telebot.TeleBot(SPBBot)
-        elif cityname == 'Москва':
+        elif cityname == 'Москва и область':
             chatcity = mosCity
             bot2 = telebot.TeleBot(MoskowBot)
-    else:          
+
+        # Отладочная информация
+        print(f"cityname: {cityname}")
+        print(f"chatcity: {chatcity}")
+
+        try:
+            bot2.send_message(chatcity, application, parse_mode='html', reply_markup=markup1)
+        except Exception as e:
+            print(f"Error sending message: {e}")
+
+    else:
         feedback = orderDeleteText
         bot1.delete_message(callback.message.chat.id, callback.message.message_id)
     import_into_database(callback.message)
 
 @bot1.callback_query_handler(func=lambda callback: callback.data == '❌ Закрыть заявку')
-def callback_message_created_order(callback):  
+def callback_message_created_order(callback):
     if callback.data == '❌ Закрыть заявку':
         conn = sqlite3.connect('applicationbase.sql')
         cursor = conn.cursor()
         message_id = callback.message.message_id
-        sql_query = "UPDATE orders SET actualMess = ('%s') WHERE adminMessageId = ('%s')"
-        cursor.execute(sql_query % ('False' , message_id))
-        cursor.execute("SELECT cityOfobj, countpeople, adress, whattodo, timetostart, salary, workTime FROM orders WHERE adminMessageId = ('%s')" % (message_id))
+        sql_query = "UPDATE orders SET actualMess = ? WHERE adminMessageId = ?"
+        cursor.execute(sql_query, ('False', message_id))
+        cursor.execute("SELECT cityOfobj, countpeople, adress, whattodo, timetostart, salary, workTime FROM orders WHERE adminMessageId = ?", (message_id,))
         test2 = cursor.fetchone()
         conn.commit()
         conn.close()
-        application = f'❌ Заявка закрыта\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</b> в {test2[4]}\n<b>·Рабочее время:</b> {test2[6]}\n<b>·Вам на руки:</b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
+        application = f'❌ Заявка закрыта\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</b> в {test2[4]}\n<b>Рабочее время:</b> {test2[6]}\n<b>·Вам на руки:</b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>'
         markup = types.InlineKeyboardMarkup()
         btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='ОтправленоАдмину1', one_time_keyboard=True)
         markup.row(btn02)
@@ -448,15 +460,15 @@ def callback_message_created_order(callback):
         print("все произошло")
         conn = sqlite3.connect('applicationbase.sql')
         cur = conn.cursor()
-        cur.execute("SELECT cityOfobj, countpeople, adress, whattodo, timetostart, salary, orderMessageId, orderChatId, workTime FROM orders WHERE adminMessageId = ('%s')" % (message_id))
-        users = cur.fetchone() 
-        order_info_close = f'❌ Заявка закрыта\n<b>•{users[0]}: </b>{needText} {users[1]} {humanCount}\n<b>•Адрес:</b>👉 {users[2]}\n<b>•Что делать:</b> {users[3]}\n<b>•Начало работ:</b> в {users[4]}\n<b>·Рабочее время:</b>{users[8]}\n<b>•Вам на руки:</b> <u>{users[5]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
+        cur.execute("SELECT cityOfobj, countpeople, adress, whattodo, timetostart, salary, orderMessageId, orderChatId, workTime FROM orders WHERE adminMessageId = ?", (message_id,))
+        users = cur.fetchone()
+        order_info_close = f'❌ Заявка закрыта\n<b>•{users[0]}: </b>{needText} {users[1]} {humanCount}\n<b>•Адрес:</b>👉 {users[2]}\n<b>•Что делать:</b> {users[3]}\n<b>•Начало работ:</b> в {users[4]}\n<b>Рабочее время:</b>{users[8]}\n<b>•Вам на руки:</b> <u>{users[5]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
         user_message_ids = users[6]
         chat_id_list = users[7].split(',') if users[7] else []
         message_id_list = user_message_ids.split(',') if user_message_ids else []
         conn.close()
         for chat_id, message_id in zip(chat_id_list, message_id_list):
-            print('Чат id: ',chat_id)
+            print('Чат id: ', chat_id)
             print('Месседж id: ', message_id)
             bot2.edit_message_text(order_info_close, chat_id, message_id, parse_mode='html')
 
