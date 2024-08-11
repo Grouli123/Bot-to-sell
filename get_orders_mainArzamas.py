@@ -1308,7 +1308,7 @@ def orders(message):
         cursor.execute("SELECT * FROM users WHERE user_id = ?", (user_id,))
         takeParam = cursor.fetchone() 
         if takeParam:
-            check_user_id = takeParam[9]
+            check_user_id = takeParam[15]
         else:
             check_user_id = None
         conn.close()
@@ -1320,7 +1320,7 @@ def orders(message):
         try:
             conn = sqlite3.connect('applicationbase.sql')
             cur = conn.cursor()
-            cur.execute("SELECT * FROM orders WHERE id = ?", (user_id,))
+            cur.execute("SELECT * FROM orders WHERE id = ?", (check_user_id,))
             users = cur.fetchall()
             if users:
                 info = ''
@@ -1969,4 +1969,4 @@ def callback_message_citizen(callback):
         
 if __name__ == '__main__':
     print('Bot started')
-    bot.polling(non_stop=True)
+    bot.polling(non_stop=True, interval=0, timeout=60, long_polling_timeout=30)

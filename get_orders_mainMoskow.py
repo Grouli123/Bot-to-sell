@@ -1970,4 +1970,4 @@ def callback_message_citizen(callback):
         
 if __name__ == '__main__':
     print('Bot started')
-    bot.polling(non_stop=True)
+    bot.polling(non_stop=True, interval=0, timeout=60, long_polling_timeout=30)

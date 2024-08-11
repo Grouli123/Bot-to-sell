@@ -818,4 +818,5 @@ def import_into_database(message):
 
 print('Bot started')
 
-bot1.polling(non_stop=True)
+
+bot1.polling(non_stop=True, interval=0, timeout=60, long_polling_timeout=30)

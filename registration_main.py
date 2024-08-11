@@ -108,68 +108,146 @@ baseCustomer = sqlBaseCustomer.createDatabase
 
 nameOfBaseCustomer = sqlBaseCustomer.name_of_base
 
+customerBaseName = 'custumers.sql'
+workersBaseName = 'peoplebase.sql'
+
+current_user_id  = None
+
+# Создаем соединение с базой данных для хранения состояний пользователей
+def init_db():
+    conn = sqlite3.connect('states.sql')
+    cursor = conn.cursor()
+    cursor.execute('''CREATE TABLE IF NOT EXISTS user_states (
+                      user_id INTEGER PRIMARY KEY,
+                      state TEXT)''')
+    conn.commit()
+    conn.close()
+
+
+# Функция для обновления состояния пользователя
+def update_state(user_id, state):
+    conn = sqlite3.connect('states.sql')
+    cursor = conn.cursor()
+    cursor.execute('REPLACE INTO user_states (user_id, state) VALUES (?, ?)', (user_id, state))
+    conn.commit()
+    conn.close()
+
+# Функция для получения текущего состояния пользователя
+def get_state(user_id):
+    conn = sqlite3.connect('states.sql')
+    cursor = conn.cursor()
+    cursor.execute('SELECT state FROM user_states WHERE user_id = ?', (user_id,))
+    result = cursor.fetchone()
+    conn.close()
+    return result[0] if result else None
+
+def insert_user_data(database_name, column, data, user_id):
+    conn = sqlite3.connect(database_name)
+    cursor = conn.cursor()
+    
+    # Проверяем, существует ли уже пользователь с данным user_id
+    cursor.execute("SELECT 1 FROM users WHERE user_id = ?", (user_id,))
+    exists = cursor.fetchone()
+    
+    if exists:
+        # Если пользователь существует, обновляем данные
+        cursor.execute(f"UPDATE users SET {column} = ? WHERE user_id = ?", (data, user_id))
+    else:
+        # Если пользователя нет, вставляем новую строку с user_id и указанной колонкой
+        cursor.execute(f"INSERT INTO users (user_id, {column}) VALUES (?, ?)", (user_id, data))
+    
+    conn.commit()
+    conn.close()
+
 @bot.message_handler(commands=['start'])
 def registration(message):
-    global user_id 
-    user_id = message.from_user.id
-    print(user_id)
-    markup = types.InlineKeyboardMarkup()
-    btn2 = types.InlineKeyboardButton('Я заказчик', callback_data='Заказчик', one_time_keyboard=True)
-    btn3 = types.InlineKeyboardButton('Я рабочий', callback_data='Рабочий', one_time_keyboard=True)
-    markup.row(btn2, btn3)    
-    bot.send_message(message.chat.id, f'Выберите пункт:', parse_mode='html', reply_markup=markup)  
+    # global user_id    
+    global current_user_id
+    current_user_id = message.from_user.id
+    print(f'Start - ваш ID: {current_user_id}')  # Отладка
+    init_db()
+    current_state = get_state(current_user_id)
+    
+    if current_state is None:  # Если состояние не установлено
+        update_state(current_user_id, 'registration')
+        markup = types.InlineKeyboardMarkup()
+        btn2 = types.InlineKeyboardButton('Я заказчик', callback_data='Заказчик', one_time_keyboard=True)
+        btn3 = types.InlineKeyboardButton('Я рабочий', callback_data='Рабочий', one_time_keyboard=True)
+        markup.row(btn2, btn3)
+        bot.send_message(message.chat.id, f'Выберите пункт:', parse_mode='html', reply_markup=markup)
+    else: 
+        handle_state(current_user_id, message)
+   
 
-def numberPhoneInput(message):
+def numberPhoneInput(message, user_id=None):
+    if user_id is None:
+        user_id = current_user_id  # Используем сохраненный user_id, если не передан
+    
+    print(f'numberPhoneInput - ваш ID: {user_id}')  # Отладка
+
     conn = sqlite3.connect('peoplebase.sql')
     cur = conn.cursor()
     cur.execute(base)
-    conn.commit() 
-    cur.execute("SELECT * FROM users WHERE user_id = ('%s')" % (user_id))
+    conn.commit()
+    
+    cur.execute("SELECT * FROM users WHERE user_id = ?", (user_id,))
     existing_user = cur.fetchone()
-    cur.close()
-    conn.close()
-    print(user_id)
+    
     if existing_user is None:
+        # Если пользователь не найден, добавляем его в базу данных
+        cur.execute("INSERT INTO users (user_id) VALUES (?)", (user_id,))
+        conn.commit()
+        update_state(user_id, 'numberPhoneInput')
+        
         keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
         button_phone = types.KeyboardButton(text=phoneButtonText, request_contact=True)
         keyboard.add(button_phone)
+        
         bot.send_message(message.chat.id, phoneMessageText, reply_markup=keyboard, parse_mode='html')
-        bot.register_next_step_handler(message, geolocation)   
+        bot.register_next_step_handler(message, lambda msg: geolocation(msg, user_id))
     else:
-        conn = sqlite3.connect('peoplebase.sql')
-        cur = conn.cursor()
-        cur.execute("SELECT botchatname, city FROM users WHERE user_id = ('%s')" % (user_id))
+        cur.execute("SELECT botchatname, city FROM users WHERE user_id = ?", (user_id,))
         result = cur.fetchone()
         chatcity = result[0]
         locationcity = result[1]
-        print(chatcity)
-        cur.close()
-        conn.close()
+        
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton(f'{buttonResultName} {locationcity}', callback_data=nameOfBase, url=f'https://t.me/{chatcity}'))
+        
         bot.send_message(message.chat.id, alreadyRegistered, reply_markup=markup)
+    
+    cur.close()
+    conn.close()
 
-def geolocation(message):    
+
+def geolocation(message, user_id=None):
     global phone
+    if user_id is None:
+        user_id = current_user_id # Используем user_id из сообщения, если не передан
+    
     try:
         phone = message.contact.phone_number
         if phone.startswith('+7') or phone.startswith('7'):
             global geolocator
+            update_state(user_id, 'geolocation')
             keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
             button_geo = types.KeyboardButton(text=geolocationButtonText, request_location=True)
             keyboard.add(button_geo)
             bot.send_message(message.chat.id, geolocationMessageText, reply_markup=keyboard)
-            bot.register_next_step_handler(message, location)
-            geolocator = Nominatim(user_agent = geolocationNameApp)    
+            bot.register_next_step_handler(message, lambda msg: location(msg))
+            geolocator = Nominatim(user_agent = geolocationNameApp)  
+            
+            insert_user_data(workersBaseName, 'phone', phone, user_id)  
         else:
             keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
             button_phone = types.KeyboardButton(text=phoneButtonText, request_contact=True)
             keyboard.add(button_phone)
             bot.send_message(message.chat.id, f"Недопустимый номер {phone}.\n\nПривет!\n\nДавай пройдём короткую регистрацию🤝Для начала - поделись номером телефона!👇👇👇👇👇", reply_markup=keyboard, parse_mode='html')
-            bot.register_next_step_handler(message, geolocation)   
+            bot.register_next_step_handler(message, lambda msg: geolocation(msg, user_id))   
     except Exception:        
         bot.send_message(message.chat.id, phoneError, parse_mode='html')
-        bot.register_next_step_handler(message, geolocation)   
+        bot.register_next_step_handler(message, lambda msg: geolocation(msg, user_id))
+
 
 def city_check(coord):
     location = geolocator.reverse(coord, exactly_one=True)
@@ -181,24 +259,33 @@ def city_check(coord):
     if city == '':
         city = town  
     return city
+
 def location(message):
     global locationcity
+    user_id = message.from_user.id  # Получаем user_id из сообщения
+    
     if message.location is not None:           
         a = [message.location.latitude, message.location.longitude]         
         city_name = city_check(a)
         locationcity = city_name
+        print(f"Записываем {locationcity} для user_id {user_id}")  # Отладочная информация
+        insert_user_data(workersBaseName, 'city', locationcity, user_id)
         bot.send_message(message.chat.id, f'{foundedCity} {locationcity}', reply_markup=types.ReplyKeyboardRemove())
         input_lastname(message)   
     else:        
         bot.send_message(message.chat.id, geolocationError, parse_mode='html')
-        bot.register_next_step_handler(message, location)   
+        bot.register_next_step_handler(message, location)
+
         
 def input_lastname(message):
+    user_id = message.from_user.id
+    update_state(user_id, 'input_lastname')
     bot.send_message(message.chat.id, lastnameText, parse_mode='html')
     bot.register_next_step_handler(message, lastneme_check)   
 
 def lastneme_check(message):
     global lastname
+    user_id = message.from_user.id 
     if message.text is None:
         bot.send_message(message.from_user.id, textOnly)
         input_lastname(message) 
@@ -210,14 +297,20 @@ def lastneme_check(message):
         else:
             lastname = message.text.strip()
             print(lastname)
+            
+            insert_user_data(workersBaseName, 'last_name', lastname, user_id)  
             input_firstname(message)
 
+
 def input_firstname(message):
+    user_id = message.from_user.id
+    update_state(user_id, 'input_firstname')
     bot.send_message(message.chat.id, firstnameText, parse_mode='html')
     bot.register_next_step_handler(message, firstname_check)
 
 def firstname_check(message):       
     global firstname
+    user_id = message.from_user.id 
     if message.text is None:
         bot.send_message(message.from_user.id, textOnly)
         input_firstname(message)
@@ -229,14 +322,19 @@ def firstname_check(message):
         else:                  
             firstname = message.text.strip()    
             print(firstname_check)
+            
+            insert_user_data(workersBaseName, 'firts_name', firstname, user_id) 
             input_middlename(message)
         
 def input_middlename(message):
+    user_id = message.from_user.id
+    update_state(user_id, 'input_middlename')
     bot.send_message(message.chat.id, middlenameText, parse_mode='html')
     bot.register_next_step_handler(message, middlename_check)
 
 def middlename_check(message):      
     global middlename
+    user_id = message.from_user.id 
     if message.text is None:
         bot.send_message(message.from_user.id, textOnly)
         input_middlename(message)
@@ -248,37 +346,37 @@ def middlename_check(message):
         else:     
             middlename = message.text.strip()
             print(middlename_check)
+            insert_user_data(workersBaseName, 'middle_name', middlename, user_id) 
             input_birtgday(message)
 
 def numberPhoneInput_order(message):
+    user_id = message.from_user.id
     conn = sqlite3.connect('custumers.sql')
     cur = conn.cursor()
     cur.execute(baseCustomer)
-    conn.commit() 
-    print('юзер ордер', user_id)
-    cur.execute("SELECT * FROM custumers WHERE user_id = ('%s')" % (user_id))
+    conn.commit()
+    cur.execute("SELECT * FROM custumers WHERE user_id = ?", (user_id,))
     existing_user = cur.fetchone()
-    cur.close()
-    conn.close()
     if existing_user is None:
+        # Если пользователь не найден, добавляем его в базу данных
+        cur.execute("INSERT INTO custumers (user_id) VALUES (?)", (user_id,))
+        conn.commit()
+        update_state(user_id, 'numberPhoneInput_order')
         keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
         button_phone = types.KeyboardButton(text=phoneButtonText, request_contact=True)
         keyboard.add(button_phone)
         bot.send_message(message.chat.id, phoneMessageText, reply_markup=keyboard, parse_mode='html')
-        bot.register_next_step_handler(message, number_check)   
+        bot.register_next_step_handler(message, number_check)
     else:
-        conn = sqlite3.connect('custumers.sql')
-        cur = conn.cursor()
-        cur.execute("SELECT botchatname, city FROM custumers WHERE user_id = ('%s')" % (user_id))
+        cur.execute("SELECT botchatname, city FROM custumers WHERE user_id = ?", (user_id,))
         result = cur.fetchone()
         chatcity = result[0]
         locationcity = result[1]
-        print(chatcity)
-        cur.close()
-        conn.close()
         markup = types.InlineKeyboardMarkup()
         markup.add(types.InlineKeyboardButton(f'{buttonResultName} {locationcity}', callback_data=nameOfBaseCustomer, url=f'https://t.me/{chatcity}'))
         bot.send_message(message.chat.id, alreadyRegistered, reply_markup=markup)
+    cur.close()
+    conn.close()
 
 def number_check(message):    
     global phoneOrder 
@@ -298,6 +396,8 @@ def number_check(message):
         bot.register_next_step_handler(message, number_check)   
 
 def input_lastname_order(message):
+    user_id = message.from_user.id
+    update_state(user_id, 'input_lastname_order')
     bot.send_message(message.chat.id, lastnameText, parse_mode='html')
     bot.register_next_step_handler(message, lastneme_check_order)   
 
@@ -316,6 +416,8 @@ def lastneme_check_order(message):
             input_firstname_order(message)
 
 def input_firstname_order(message):
+    user_id = message.from_user.id
+    update_state(user_id, 'input_firstname_order')
     bot.send_message(message.chat.id, firstnameText, parse_mode='html')
     bot.register_next_step_handler(message, firstname_check_order)
 
@@ -334,6 +436,8 @@ def firstname_check_order(message):
             input_middlename_order(message)
         
 def input_middlename_order(message):
+    user_id = message.from_user.id
+    update_state(user_id, 'input_middlename_order')
     bot.send_message(message.chat.id, middlenameText, parse_mode='html')
     bot.register_next_step_handler(message, middlename_check_order)
 
@@ -362,6 +466,8 @@ def city_order(message):
     bot.send_message(message.chat.id, f'Выберите пункт:', parse_mode='html', reply_markup=markup)  
 
 def input_login_order(message):
+    user_id = message.from_user.id
+    update_state(user_id, 'input_login_order')
     bot.send_message(message.chat.id, 'Введите ВАШ будущий логин: ', parse_mode='html')
     bot.register_next_step_handler(message, login_check_order)
 
@@ -381,6 +487,8 @@ def login_check_order(message):
             input_password_order(message)
 
 def input_password_order(message):
+    user_id = message.from_user.id
+    update_state(user_id, 'input_password_order')
     bot.send_message(message.chat.id, 'Введите ВАШ будущий пароль: ', parse_mode='html')
     bot.register_next_step_handler(message, password_check_order)
 
@@ -407,6 +515,8 @@ def sendMoney(message):
     bot.send_message(message.from_user.id, f'Стоимость месячной подписки 5.000 рублей\nОплатить можно переводом по номеру +79965638345 ТОЛЬКО НА (ОЗОН БАНК)\nПо кнопке ниже вы перейдете на нашего менеджера.\nОтправьте ему в чат:\n\n1.ФИО от кого вы отправили перевод\n2.Скриншот перевода\ 3.ФИО зарегистрированного заказчика для активации\n\nПосле поступления денежных средств на счет, ваша подписка будет активирована и вы сможете выставлять заказы\n\nЗа ошибки в номере телефона или банке при совершении оплаты мы ответственности не несем.\nПеревод строго по указанному номеру и на указанный банк!', reply_markup= markup1)
 
 def input_birtgday(message):
+    user_id = message.from_user.id
+    update_state(user_id, 'input_birtgday')
     bot.send_message(message.chat.id, dataOfBirthday, parse_mode='html')
     bot.register_next_step_handler(message, user_birthday_check)
 
@@ -419,6 +529,7 @@ def get_date(text):
 
 def user_birthday_check(message):
     global userbirthday    
+    user_id = message.from_user.id 
     try:
         if message.text is None:
             bot.send_message(message.from_user.id, textOnly)
@@ -426,6 +537,7 @@ def user_birthday_check(message):
         else:
             userbirthday = get_date(message.text.strip())
             if userbirthday:
+                insert_user_data(workersBaseName, 'birthday', userbirthday, user_id) 
                 citizenRU(message)
             else:
                 bot.send_message(message.chat.id, dateError)
@@ -436,6 +548,8 @@ def user_birthday_check(message):
 
 def citizenRU(message):
     global state
+    user_id = message.from_user.id
+    update_state(user_id, 'citizenRU')
     state = 'initial'
     markup = types.InlineKeyboardMarkup()
     btn2 = types.InlineKeyboardButton(citizenRuButtonYesText, callback_data=citizenRuButtonYesTextCallbackData, one_time_keyboard=True)
@@ -448,6 +562,8 @@ def citizenRU(message):
 def callback_message_citizen(callback):   
     global usercitizenRF 
     global registered
+    
+    user_id = callback.from_user.id
     if callback.data == citizenRuButtonYesTextCallbackData:
         usercitizenRF = citizenRuButtonYesText        
         bot.edit_message_text(userCitizenRuText, callback.message.chat.id, callback.message.message_id)
@@ -455,7 +571,9 @@ def callback_message_citizen(callback):
         usercitizenRF = citizenRuButtonNoText
         bot.edit_message_text(userCitizenRuText, callback.message.chat.id, callback.message.message_id)
     registered = True
+    insert_user_data(workersBaseName, 'citizenRF', usercitizenRF, user_id)
     bot.send_message(callback.message.chat.id, f'📞 Телефон: {phone}\n👤 ФИО: {lastname} {firstname} {middlename}\n📅 Дата рождения: {userbirthday}\n🇷🇺 Гражданство РФ: {usercitizenRF}\n🏙 Город(а): {locationcity}')
+     
     city_check_for_chat(callback.message)
 
 @bot.callback_query_handler(func=lambda callback: callback.data == 'Заказчик')
@@ -506,6 +624,42 @@ def callback_message_citizen(callback):
         bot.send_message(callback.message.chat.id, 'Я вас понял: Арзамас')
         input_login_order(callback.message)
 
+# Основная функция для проверки состояния и вызова соответствующего метода
+def handle_state(user_id, message):
+    state = get_state(user_id)
+
+    if state == 'numberPhoneInput':
+        numberPhoneInput(message)
+    elif state == 'geolocation':
+        geolocation(message)
+    elif state == 'input_lastname':
+        input_lastname(message)
+    elif state == 'input_firstname':
+        input_firstname(message)
+    elif state == 'input_middlename':
+        input_middlename(message)
+    elif state == 'numberPhoneInput_order':
+        numberPhoneInput_order(message)
+    elif state == 'input_lastname_order':
+        input_lastname_order(message)
+    elif state == 'input_firstname_order':
+        input_firstname_order(message)
+    elif state == 'input_middlename_order':
+        input_middlename_order(message)
+    elif state == 'input_login_order':
+        input_login_order(message)
+    elif state == 'input_password_order':
+        input_password_order(message)
+    elif state == 'input_birtgday':
+        input_birtgday(message)
+    elif state == 'citizenRU':
+        citizenRU(message)
+
+@bot.message_handler(content_types=['text'])
+def check_state(message):
+    user_id = message.from_user.id
+    handle_state(user_id, message)
+
 @bot.message_handler(content_types=['text'])
 def check_callback_message_citizen(message):          
         global state      
@@ -530,17 +684,18 @@ def city_check_for_chat(message):
         import_into_database(message)
     elif locationcity == 'Москва':
         chatcity = mosCity
+        import_into_database(message)
     else: 
         bot.send_message(message.chat.id, 'К сожалению, мы не работаем по вашему городу')
 
 def import_into_database(message):
-    global state  
-    conn = sqlite3.connect('peoplebase.sql')
-    cur = conn.cursor()
-    cur.execute(insertIntoBase % (phone, locationcity, lastname, firstname, middlename, userbirthday, usercitizenRF, user_id, samozanatost, agreeaccaunt, passport, chatcity, cityTrue, actualOrder, orderTake, orderDone, orderMiss, 'None', raiting)) 
-    conn.commit()
-    cur.close()
-    conn.close()
+    # global state  
+    # conn = sqlite3.connect('peoplebase.sql')
+    # cur = conn.cursor()
+    # cur.execute(insertIntoBase % (phone, locationcity, lastname, firstname, middlename, userbirthday, usercitizenRF, user_id, samozanatost, agreeaccaunt, passport, chatcity, cityTrue, actualOrder, orderTake, orderDone, orderMiss, 'None', raiting)) 
+    # conn.commit()
+    # cur.close()
+    # conn.close()
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton(f'{buttonResultName} {locationcity}', callback_data=nameOfBase, url=f'https://t.me/{chatcity}'))
     bot.send_message(message.chat.id, alreadyRegistered, reply_markup=markup)

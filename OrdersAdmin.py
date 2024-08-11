@@ -359,4 +359,4 @@ def show_database_userOrder(message):
         input_admin(message)
 
 print('Bot started')
-bot13.polling(non_stop=True)
+bot13.polling(non_stop=True, interval=0, timeout=60, long_polling_timeout=30)
