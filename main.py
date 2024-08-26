@@ -16,7 +16,7 @@ processes = []
 
 # Запускаем каждый скрипт в отдельном процессе
 for script_path in script_paths:
-    process = subprocess.Popen(['python', script_path])
+    process = subprocess.Popen(['python3', script_path])
     processes.append(process)
 
 # Дожидаемся завершения всех процессов

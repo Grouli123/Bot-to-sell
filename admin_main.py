@@ -19,7 +19,6 @@ EkaBot = API_key_Test.botAPIEka
 
 bot_to_send = None
 bot1 = telebot.TeleBot(botApiKey)
-# bot2 = telebot.TeleBot(arzamasBot)
 bot2 = None
 
 base1 = sqlBase_one.createDatabase
@@ -86,7 +85,6 @@ cityname = None
 countPeople = None
 salary = None
 workTime = None
-state = 'initial'
 
 humanCount = None
 needText = None
@@ -110,7 +108,6 @@ user_message_ids = {}
 
 user_id_two = None
 
-
 users_who_clicked = []
 
 user_name = None
@@ -119,7 +116,68 @@ take_user_id_id = None
 
 test123 = None
 
+current_user_id = None
+
+# Состояния для каждого метода
+STATE_START = 'start'
+STATE_ADMIN_CHECK = 'admin_check'
+STATE_INPUT_PASSWORD = 'input_password'
+STATE_CITY_OF_OBJ = 'city_of_obj'
+STATE_PEOPLE_NEED_COUNT = 'people_need_count'
+STATE_INPUT_ADRESS = 'input_adress'
+STATE_INPUT_WHATTODO = 'input_whattodo'
+STATE_INPUT_STARTWORK = 'input_startwork'
+STATE_INPUT_SALARY = 'input_salary'
+STATE_INPUT_WORK_TIME = 'input_work_time'
+STATE_CREATED_ORDER = 'created_order'
+
+# Создаем соединение с базой данных для хранения состояний пользователей
+def init_db():
+    conn = sqlite3.connect('states.sql')
+    cursor = conn.cursor()
+    cursor.execute('''CREATE TABLE IF NOT EXISTS user_states (
+                      user_id INTEGER PRIMARY KEY,
+                      state TEXT)''')
+    conn.commit()
+    conn.close()
+
+# Функция для обновления состояния пользователя
+def update_state(user_id, state):
+    conn = sqlite3.connect('states.sql')
+    cursor = conn.cursor()
+    cursor.execute('REPLACE INTO user_states (user_id, state) VALUES (?, ?)', (user_id, state))
+    conn.commit()
+    conn.close()
+
+# Функция для получения текущего состояния пользователя
+def get_state(user_id):
+    conn = sqlite3.connect('states.sql')
+    cursor = conn.cursor()
+    cursor.execute('SELECT state FROM user_states WHERE user_id = ?', (user_id,))
+    result = cursor.fetchone()
+    conn.close()
+    return result[0] if result else None
+
+def insert_user_data(database_name, column, data, user_id):
+    conn = sqlite3.connect(database_name)
+    cursor = conn.cursor()
+    
+    # Проверяем, существует ли уже пользователь с данным user_id
+    cursor.execute("SELECT 1 FROM users WHERE user_id = ?", (user_id,))
+    exists = cursor.fetchone()
+    
+    if exists:
+        # Если пользователь существует, обновляем данные
+        cursor.execute(f"UPDATE users SET {column} = ? WHERE user_id = ?", (data, user_id))
+    else:
+        # Если пользователя нет, вставляем новую строку с user_id и указанной колонкой
+        cursor.execute(f"INSERT INTO users (user_id, {column}) VALUES (?, ?)", (user_id, data))
+    
+    conn.commit()
+    conn.close()
+
 def start(message):    
+    update_state(message.from_user.id, STATE_START)
     markup = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
     btn1 = types.KeyboardButton(makeOrderButton)
     btn2 = types.KeyboardButton(openBaseOrders)
@@ -131,10 +189,16 @@ def start(message):
 
 @bot1.message_handler(commands=['start'])
 def input_admin(message):      
+    global current_user_id
+    current_user_id = message.from_user.id
+    init_db()
+    current_state = get_state(current_user_id)
+
     global adminChatId
     adminChatId = message.chat.id  
     print(loginin)
     if loginin == False:
+        update_state(message.from_user.id, STATE_ADMIN_CHECK)
         bot1.send_message(message.chat.id, 'Введите логин', parse_mode='html')
         bot1.register_next_step_handler(message, admin_check)   
     else:
@@ -165,6 +229,7 @@ def admin_check(message):
             login = user_login
             password = user_password
             if login == message.text.strip():
+                update_state(message.from_user.id, STATE_INPUT_PASSWORD)
                 input_password(message, subscription_status)  
             else:
                 bot1.send_message(message.chat.id, 'Логин не найден')
@@ -172,7 +237,7 @@ def admin_check(message):
 
 def input_password(message, subscription_status):
     bot1.send_message(message.chat.id, 'Введите пароль', parse_mode='html')
-    bot1.register_next_step_handler(message, password_check, subscription_status)  
+    bot1.register_next_step_handler(message, password_check, subscription_status)
 
 def password_check(message, subscription_status):
     global loginin
@@ -205,6 +270,7 @@ def check_subscription_status(user_id):
     return result[0] if result else None
 
 def city_of_obj(message):
+    update_state(message.from_user.id, STATE_CITY_OF_OBJ)
     if loginin:
         if message.text is None:
             bot1.send_message(message.from_user.id, textOnly)
@@ -244,6 +310,7 @@ def city_of_obj_check(message):
             city_of_obj(message)
 
 def people_need_count(message):
+    update_state(message.from_user.id, STATE_PEOPLE_NEED_COUNT)
     conn = sqlite3.connect('applicationbase.sql')
     cur = conn.cursor()
     cur.execute(base1)
@@ -251,7 +318,7 @@ def people_need_count(message):
     cur.close()
     conn.close()
     bot1.send_message(message.chat.id, inputCountOfNeedPeople, parse_mode='html')
-    bot1.register_next_step_handler(message, people_need_count_check)   
+    bot1.register_next_step_handler(message, people_need_count_check)
 
 def people_need_count_check(message):
     global countPeople
@@ -271,10 +338,11 @@ def people_need_count_check(message):
             except ValueError:
                 bot1.send_message(message.from_user.id, inputNumber)
                 people_need_count(message)
-            
+
 def input_adress(message):
+    update_state(message.from_user.id, STATE_INPUT_ADRESS)
     bot1.send_message(message.chat.id, adressText, parse_mode='html')
-    bot1.register_next_step_handler(message, adress_check)   
+    bot1.register_next_step_handler(message, adress_check)
 
 def adress_check(message):
     global adress
@@ -292,6 +360,7 @@ def adress_check(message):
             input_whattodo(message)
 
 def input_whattodo(message):
+    update_state(message.from_user.id, STATE_INPUT_WHATTODO)
     bot1.send_message(message.chat.id, whatToDoText, parse_mode='html')
     bot1.register_next_step_handler(message, whattodo_check)
 
@@ -309,8 +378,9 @@ def whattodo_check(message):
             whattodo = message.text.strip()    
             print(whattodo_check)
             input_startwork(message)
-        
+
 def input_startwork(message):
+    update_state(message.from_user.id, STATE_INPUT_STARTWORK)
     bot1.send_message(message.chat.id, startWorkText, parse_mode='html')
     bot1.register_next_step_handler(message, startwork_check)
 
@@ -330,6 +400,7 @@ def startwork_check(message):
             input_salary(message)
 
 def input_salary(message):
+    update_state(message.from_user.id, STATE_INPUT_SALARY)
     bot1.send_message(message.chat.id, inputSumInHour, parse_mode='html')
     bot1.register_next_step_handler(message, salary_check)
 
@@ -354,6 +425,7 @@ def salary_check(message):
                 input_salary(message)
 
 def input_wokr_time(message):
+    update_state(message.from_user.id, STATE_INPUT_WORK_TIME)
     bot1.send_message(message.chat.id, "Введите сколько времени потребуется на выполнение работы", parse_mode='html')
     bot1.register_next_step_handler(message, wokr_time_check)
 
@@ -376,8 +448,9 @@ def wokr_time_check(message):
             except ValueError:
                 bot1.send_message(message.from_user.id, inputNumbers)
                 input_wokr_time(message)
-   
+
 def created_order(message):
+    update_state(message.from_user.id, STATE_CREATED_ORDER)
     global countPeople
     global humanCount
     global needText
@@ -391,8 +464,8 @@ def created_order(message):
     else:
         needText = 'Нужен'
     markup = types.InlineKeyboardMarkup()
-    btn2 = types.InlineKeyboardButton(orderSendText, callback_data=orderSendTextCallbackData, one_time_keyboard=True)
-    btn3 = types.InlineKeyboardButton(orderDeleteText, callback_data=orderDeleteCallbackData, one_time_keyboard=True)
+    btn2 = types.InlineKeyboardButton(orderSendText, callback_data=orderSendTextCallbackData)
+    btn3 = types.InlineKeyboardButton(orderDeleteText, callback_data=orderDeleteCallbackData)
     markup.row(btn2, btn3)    
     sent_message = bot1.send_message(message.chat.id, f'✅\n<b>·{cityname}: </b>{needText} {countPeople} {humanCount}\n<b>·Адрес:</b>👉 {adress}\n<b>·Что делать:</b> {whattodo}\n<b>·Начало работ:</b> в {timetostart}:00\n<b>·Рабочее время:</b> {workTime}:00\n<b>·Вам на руки:</b> <u>{salary}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>', parse_mode='html', reply_markup=markup)  
     sent_message_id = sent_message.message_id
@@ -407,10 +480,9 @@ def callback_message_created_order(callback):
         feedback = orderSendText
         application = f'✅\n<b>·{cityname}: </b>{needText} {countPeople} {humanCount}\n<b>·Адрес:</b>👉 {adress}\n<b>·Что делать:</b> {whattodo}\n<b>·Начало работ:</b> в {timetostart}:00\n<b>·Рабочее время:</b> {workTime}:00\n<b>·Вам на руки:</b> <u>{salary}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>'
         markup1 = types.InlineKeyboardMarkup()
-        btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='❌ Закрыть заявку', one_time_keyboard=True)
+        btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='close_order', one_time_keyboard=True)
         markup1.row(btn01)
         bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, reply_markup=markup1, parse_mode='html')
-        print(sent_message_id)
 
         # Выбор бота в зависимости от города
         if cityname == 'Арзамас':
@@ -440,9 +512,9 @@ def callback_message_created_order(callback):
         bot1.delete_message(callback.message.chat.id, callback.message.message_id)
     import_into_database(callback.message)
 
-@bot1.callback_query_handler(func=lambda callback: callback.data == '❌ Закрыть заявку')
+@bot1.callback_query_handler(func=lambda callback: callback.data == 'close_order')
 def callback_message_created_order(callback):
-    if callback.data == '❌ Закрыть заявку':
+    if callback.data == 'close_order':
         conn = sqlite3.connect('applicationbase.sql')
         cursor = conn.cursor()
         message_id = callback.message.message_id
@@ -454,7 +526,7 @@ def callback_message_created_order(callback):
         conn.close()
         application = f'❌ Заявка закрыта\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</b> в {test2[4]}\n<b>Рабочее время:</b> {test2[6]}\n<b>·Вам на руки:</b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>'
         markup = types.InlineKeyboardMarkup()
-        btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='ОтправленоАдмину1', one_time_keyboard=True)
+        btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='view_record', one_time_keyboard=True)
         markup.row(btn02)
         bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
         print("все произошло")
@@ -462,7 +534,7 @@ def callback_message_created_order(callback):
         cur = conn.cursor()
         cur.execute("SELECT cityOfobj, countpeople, adress, whattodo, timetostart, salary, orderMessageId, orderChatId, workTime FROM orders WHERE adminMessageId = ?", (message_id,))
         users = cur.fetchone()
-        order_info_close = f'❌ Заявка закрыта\n<b>•{users[0]}: </b>{needText} {users[1]} {humanCount}\n<b>•Адрес:</b>👉 {users[2]}\n<b>•Что делать:</b> {users[3]}\n<b>•Начало работ:</b> в {users[4]}\n<b>Рабочее время:</b>{users[8]}\n<b>•Вам на руки:</b> <u>{users[5]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
+        order_info_close = f'❌ Заявка закрыта\n<b>•{users[0]}: </b>{needText} {users[1]} {humanCount}\n<b>•Адрес:</b>👉 {users[2]}\n<b>•Что делать:</b> {users[3]}\n<b>•Начало работ:</:b> в {users[4]}\n<b>Рабочее время:</b>{users[8]}\n<b>•Вам на руки:</:b> <u>{users[5]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
         user_message_ids = users[6]
         chat_id_list = users[7].split(',') if users[7] else []
         message_id_list = user_message_ids.split(',') if user_message_ids else []
@@ -489,10 +561,10 @@ def update_message_with_users_list_test(test):
                 if user_name is not None:
                     btn = types.InlineKeyboardButton(str(user_name), callback_data=f'user_{take_user_id}')
                     markup.row(btn) 
-            btn02 = types.InlineKeyboardButton('Свернуть', callback_data='Свернуть1', one_time_keyboard=True)
+            btn02 = types.InlineKeyboardButton('Свернуть', callback_data='collapse_1', one_time_keyboard=True)
             markup.row(btn02)
             bot1.edit_message_reply_markup(chat_id=admin_chat_id, message_id=admin_message_id, reply_markup=markup)
-       
+
 def update_message_with_users_list(test):
     conn3 = sqlite3.connect('applicationbase.sql')
     cur3 = conn3.cursor()
@@ -510,8 +582,8 @@ def update_message_with_users_list(test):
                     btn = types.InlineKeyboardButton(str(user_name), callback_data=f'user_{take_user_id}')
                     markup.row(btn)
 
-            btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='❌ Закрыть заявку', one_time_keyboard=True)
-            btn02 = types.InlineKeyboardButton('Свернуть', callback_data='Свернуть', one_time_keyboard=True)
+            btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='close_order', one_time_keyboard=True)
+            btn02 = types.InlineKeyboardButton('Свернуть', callback_data='collapse', one_time_keyboard=True)
             markup.row(btn01)
             markup.row(btn02)
             bot1.edit_message_reply_markup(chat_id=admin_chat_id, message_id=admin_message_id, reply_markup=markup)
@@ -532,32 +604,32 @@ def get_user_name_from_database(user_id):
     else:
         print('база данных: ', user_name)
 
-@bot1.callback_query_handler(func=lambda callback: callback.data == 'Свернуть1')
+@bot1.callback_query_handler(func=lambda callback: callback.data == 'collapse_1')
 def testmess_close_one(callback):
     markup = types.InlineKeyboardMarkup()
-    btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='ОтправленоАдмину1', one_time_keyboard=True)
+    btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='view_record_1', one_time_keyboard=True)
     markup.row(btn02)
     bot1.edit_message_reply_markup(chat_id=callback.message.chat.id, message_id=callback.message.message_id, reply_markup=markup)
 
-@bot1.callback_query_handler(func=lambda callback: callback.data == 'Свернуть')
+@bot1.callback_query_handler(func=lambda callback: callback.data == 'collapse')
 def testmess_close(callback):
     markup = types.InlineKeyboardMarkup()
-    btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='❌ Закрыть заявку', one_time_keyboard=True)
-    btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='ОтправленоАдмину', one_time_keyboard=True)
+    btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='close_order', one_time_keyboard=True)
+    btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='view_record', one_time_keyboard=True)
     markup.row(btn02)
     markup.row(btn01)
     bot1.edit_message_reply_markup(chat_id=callback.message.chat.id, message_id=callback.message.message_id, reply_markup=markup)
 
-@bot1.callback_query_handler(func=lambda callback: callback.data == 'ОтправленоАдмину1')
+@bot1.callback_query_handler(func=lambda callback: callback.data == 'view_record_1')
 def testmess_sendAdOne(callback):
     test = callback.message.message_id
     update_message_with_users_list_test(test)
 
-@bot1.callback_query_handler(func=lambda callback: callback.data == 'ОтправленоАдмину')
+@bot1.callback_query_handler(func=lambda callback: callback.data == 'view_record')
 def testmess_sendAd(callback):
     test = callback.message.message_id
     update_message_with_users_list(test)
- 
+
 @bot1.callback_query_handler(func=lambda callback: callback.data.startswith('user_'))
 def testmess(callback):
     take_user_id = callback.data.split('_')[1]
@@ -577,11 +649,11 @@ def testmess(callback):
         conn.close()
         application = f'📞 Телефон: +{takeParam2[2]}\n👤 ФИО: {takeParam2[4]} {takeParam2[5]} {takeParam2[6]}\n📅 Дата рождения: {takeParam2[7]}\n🇷🇺 Гражданство РФ: {takeParam2[8]}\n🤝 Самозанятый: {takeParam2[10]} \n🏙 Город(а): {takeParam2[3]}'
         markup = types.InlineKeyboardMarkup()
-        btn01 = types.InlineKeyboardButton('📊 Статистика заказов', callback_data='📊 Статистика заказов', one_time_keyboard=True)
-        btn02 = types.InlineKeyboardButton('Назад', callback_data='Назад', one_time_keyboard=True)
-        btn03 = types.InlineKeyboardButton('Отменить заказ', callback_data='Отменить заказ', one_time_keyboard=True)
-        btn04 = types.InlineKeyboardButton('Подтвердить выполнение заказа', callback_data='Подтвердить заказ', one_time_keyboard=True)
-        btn05 = types.InlineKeyboardButton('Заказ выполнен с браком', callback_data='Заказ с браком', one_time_keyboard=True)
+        btn01 = types.InlineKeyboardButton('📊 Статистика заказов', callback_data='stats_orders', one_time_keyboard=True)
+        btn02 = types.InlineKeyboardButton('Назад', callback_data='back', one_time_keyboard=True)
+        btn03 = types.InlineKeyboardButton('Отменить заказ', callback_data='cancel_order', one_time_keyboard=True)
+        btn04 = types.InlineKeyboardButton('Подтвердить выполнение заказа', callback_data='confirm_order', one_time_keyboard=True)
+        btn05 = types.InlineKeyboardButton('Заказ выполнен с браком', callback_data='order_with_defect', one_time_keyboard=True)
         markup.row(btn01)
         if takeParam2[15] != '':
             markup.row(btn04)
@@ -591,7 +663,7 @@ def testmess(callback):
         bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
         print("все произошло")
 
-@bot1.callback_query_handler(func=lambda callback: callback.data == 'Назад')
+@bot1.callback_query_handler(func=lambda callback: callback.data == 'back')
 def testmess_test(callback):
     message_id = callback.message.message_id
     conn = sqlite3.connect('applicationbase.sql')
@@ -600,21 +672,21 @@ def testmess_test(callback):
     test2 = cursor.fetchone()
     if test2[6] == 'True':
         conn.close()
-        application = f'✅\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</b> в {test2[4]}\n<b>·Рабочее время:</b>{test2[7]}\n<b>·Вам на руки:</b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
+        application = f'✅\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</:b> в {test2[4]}\n<b>·Рабочее время:</:b>{test2[7]}\n<b>·Вам на руки:</:b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
         markup = types.InlineKeyboardMarkup()
-        btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='ОтправленоАдмину', one_time_keyboard=True)
-        btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='❌ Закрыть заявку', one_time_keyboard=True)
+        btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='view_record', one_time_keyboard=True)
+        btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='close_order', one_time_keyboard=True)
         markup.row(btn02)
         markup.row(btn01)
         bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
     else:
-        application = f'❌ Заявка закрыта\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</b> в {test2[4]}\n<b>·Рабочее время:</b>{test2[7]}\n<b>·Вам на руки:</b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
+        application = f'❌ Заявка закрыта\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</:b> в {test2[4]}\n<b>·Рабочее время:</:b>{test2[7]}\n<b>·Вам на руки:</:b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
         markup = types.InlineKeyboardMarkup()
-        btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='ОтправленоАдмину1', one_time_keyboard=True)
+        btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='view_record_1', one_time_keyboard=True)
         markup.row(btn02)
         bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
 
-@bot1.callback_query_handler(func=lambda callback: callback.data == 'Назад1')
+@bot1.callback_query_handler(func=lambda callback: callback.data == 'back_1')
 def testmess_test_test(callback):
     conn = sqlite3.connect('peoplebase.sql')
     cursor = conn.cursor()
@@ -629,11 +701,11 @@ def testmess_test_test(callback):
         print('в админке работает все ', user_name)      
         application = f'📞 Телефон: +{takeParam2[2]}\n👤 ФИО: {takeParam2[4]} {takeParam2[5]} {takeParam2[6]}\n📅 Дата рождения: {takeParam2[7]}\n🇷🇺 Гражданство РФ: {takeParam2[8]}\n🤝 Самозанятый: {takeParam2[10]} \n🏙 Город(а): {takeParam2[3]}' 
         markup = types.InlineKeyboardMarkup()
-        btn01 = types.InlineKeyboardButton('📊 Статистика заказов', callback_data='📊 Статистика заказов', one_time_keyboard=True)
-        btn02 = types.InlineKeyboardButton('Назад', callback_data='Назад', one_time_keyboard=True)
-        btn03 = types.InlineKeyboardButton('Отменить заказ', callback_data='Отменить заказ', one_time_keyboard=True)
-        btn04 = types.InlineKeyboardButton('Подтвердить выполнение заказа', callback_data='Подтвердить заказ', one_time_keyboard=True)
-        btn05 = types.InlineKeyboardButton('Заказ выполнен с браком', callback_data='Заказ с браком', one_time_keyboard=True)
+        btn01 = types.InlineKeyboardButton('📊 Статистика заказов', callback_data='stats_orders', one_time_keyboard=True)
+        btn02 = types.InlineKeyboardButton('Назад', callback_data='back', one_time_keyboard=True)
+        btn03 = types.InlineKeyboardButton('Отменить заказ', callback_data='cancel_order', one_time_keyboard=True)
+        btn04 = types.InlineKeyboardButton('Подтвердить выполнение заказа', callback_data='confirm_order', one_time_keyboard=True)
+        btn05 = types.InlineKeyboardButton('Заказ выполнен с браком', callback_data='order_with_defect', one_time_keyboard=True)
         markup.row(btn01)
         if takeParam2[15] != '':
             markup.row(btn04)
@@ -645,7 +717,7 @@ def testmess_test_test(callback):
     cursor.close()
     conn.close()
 
-@bot1.callback_query_handler(func=lambda callback: callback.data == 'Подтвердить заказ') 
+@bot1.callback_query_handler(func=lambda callback: callback.data == 'confirm_order') 
 def callback_data_of_data_confirm(callback): 
     conn2 = sqlite3.connect('peoplebase.sql')
     cursor2 = conn2.cursor()
@@ -667,26 +739,26 @@ def callback_data_of_data_confirm(callback):
         conn.close()
         application = f'✅\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</b> в {test2[4]}\n<b>·Рабочее время:</b>{test2[6]}\n<b>·Вам на руки:</b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
         markup = types.InlineKeyboardMarkup()
-        btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='ОтправленоАдмину', one_time_keyboard=True)
-        btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='❌ Закрыть заявку', one_time_keyboard=True)
+        btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='view_record', one_time_keyboard=True)
+        btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='close_order', one_time_keyboard=True)
         markup.row(btn02)
         markup.row(btn01)
         bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
     else:
-        application = f'❌ Заявка закрыта\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</b> в {test2[4]}\n·Рабочее время:</b>{test2[6]}\n<b>·Вам на руки:</b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
+        application = f'❌ Заявка закрыта\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</:b>👉 {test2[2]}\n<b>·Что делать:</:b> {test2[3]}\n<b>·Начало работ:</:b> в {test2[4]}\n<b>·Рабочее время:</:b>{test2[6]}\n<b>·Вам на руки:</:b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
         markup = types.InlineKeyboardMarkup()
-        btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='ОтправленоАдмину1', one_time_keyboard=True)
+        btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='view_record_1', one_time_keyboard=True)
         markup.row(btn02)
         bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
-    
-@bot1.callback_query_handler(func=lambda callback: callback.data == 'Заказ с браком') 
+
+@bot1.callback_query_handler(func=lambda callback: callback.data == 'order_with_defect') 
 def callback_data_of_data_miss(callback): 
     conn2 = sqlite3.connect('peoplebase.sql')
     cursor2 = conn2.cursor()
     cursor2.execute("SELECT actualOrder, orderMiss FROM users WHERE id = ('%s')" % (take_user_id))
     takeOrderTake = cursor2.fetchone()
     test_test = takeOrderTake[0]
-    current_orderId = takeOrderTake[1] if takeOrderTake[1] else ""
+    current_orderId = takeOrderTake[1] if current_orderId else ""
     new_orderId = current_orderId + "," + test_test if current_orderId else test_test
     print(new_orderId, 'ТУТ АЛЕ')
     cursor2.execute("UPDATE users SET actualOrder = '%s', orderMiss = '%s' WHERE id = '%s'" % ("",  new_orderId, take_user_id))
@@ -699,21 +771,21 @@ def callback_data_of_data_miss(callback):
     bot1.answer_callback_query(callback.id, "Заказ был выполнен с браком")
     if test2[6] == 'True':
         conn.close()
-        application = f'✅\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</b> в {test2[4]}\n·Рабочее время:</b>{test2[7]}\n<b>·Вам на руки:</b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
+        application = f'✅\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</:b>👉 {test2[2]}\n<b>·Что делать:</:b> {test2[3]}\n<b>·Начало работ:</:b> в {test2[4]}\n<b>·Рабочее время:</:b>{test2[7]}\n<b>·Вам на руки:</:b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
         markup = types.InlineKeyboardMarkup()
-        btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='ОтправленоАдмину', one_time_keyboard=True)
-        btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='❌ Закрыть заявку', one_time_keyboard=True)
+        btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='view_record', one_time_keyboard=True)
+        btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='close_order', one_time_keyboard=True)
         markup.row(btn02)
         markup.row(btn01)
         bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
     else:
-        application = f'❌ Заявка закрыта\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</b> в {test2[4]}\n·Рабочее время:</b>{test2[7]}\n<b>·Вам на руки:</b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
+        application = f'❌ Заявка закрыта\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</:b>👉 {test2[2]}\n<b>·Что делать:</:b> {test2[3]}\n<b>·Начало работ:</:b> в {test2[4]}\n<b>·Рабочее время:</:b>{test2[7]}\n<b>·Вам на руки:</:b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
         markup = types.InlineKeyboardMarkup()
-        btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='ОтправленоАдмину1', one_time_keyboard=True)
+        btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='view_record_1', one_time_keyboard=True)
         markup.row(btn02)
         bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
 
-@bot1.callback_query_handler(func=lambda callback: callback.data == 'Отменить заказ') 
+@bot1.callback_query_handler(func=lambda callback: callback.data == 'cancel_order') 
 def callback_data_of_data_close(callback): 
     message_id = callback.message.message_id
     conn_applicationbase = sqlite3.connect('applicationbase.sql')
@@ -737,21 +809,21 @@ def callback_data_of_data_close(callback):
     bot1.answer_callback_query(callback.id, "Заказ отменен")
     if test2[6] == 'True':
         conn.close()
-        application = f'✅\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</b> в {test2[4]}\n·Рабочее время:</b>{test2[7]}\n<b>·Вам на руки:</b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
+        application = f'✅\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</:b> в {test2[4]}\n<b>·Рабочее время:</:b>{test2[7]}\n<b>·Вам на руки:</:b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
         markup = types.InlineKeyboardMarkup()
-        btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='ОтправленоАдмину', one_time_keyboard=True)
-        btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='❌ Закрыть заявку', one_time_keyboard=True)
+        btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='view_record', one_time_keyboard=True)
+        btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='close_order', one_time_keyboard=True)
         markup.row(btn02)
         markup.row(btn01)
         bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
     else:
-        application = f'❌ Заявка закрыта\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</b> в {test2[4]}\n·Рабочее время:</b>{test2[7]}\n<b>·Вам на руки:</b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
+        application = f'❌ Заявка закрыта\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</:b> в {test2[4]}\n<b>·Рабочее время:</:b>{test2[7]}\n<b>·Вам на руки:</:b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
         markup = types.InlineKeyboardMarkup()
-        btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='ОтправленоАдмину1', one_time_keyboard=True)
+        btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='view_record_1', one_time_keyboard=True)
         markup.row(btn02)
-        
         bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
-@bot1.callback_query_handler(func=lambda callback: callback.data == '📊 Статистика заказов') 
+
+@bot1.callback_query_handler(func=lambda callback: callback.data == 'stats_orders') 
 def callback_data_of_data(callback): 
     global cityTrue
     global isOpenEdit
@@ -759,7 +831,7 @@ def callback_data_of_data(callback):
     global samozanYorN
     global percent_completed
     global percent_failed
-    if callback.data == '📊 Статистика заказов':  
+    if callback.data == 'stats_orders':  
         data_called = False         
         conn = sqlite3.connect('peoplebase.sql')
         c = conn.cursor()
@@ -786,7 +858,7 @@ def callback_data_of_data(callback):
             percent_failed = 0
             print('на ноль делить нельзя')
         markup = types.InlineKeyboardMarkup()
-        btn02 = types.InlineKeyboardButton('Назад', callback_data='Назад1', one_time_keyboard=True)
+        btn02 = types.InlineKeyboardButton('Назад', callback_data='back_1', one_time_keyboard=True)
         markup.row(btn02)
         bot1.edit_message_text(f'📊 Статистика заказов:\n• Взял: {orderCountTake}\n• Выполнил: {orderCountDone} ({percent_completed}%)\n• Брак: {orderCountMiss} ({percent_failed}%)', callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
 
@@ -817,6 +889,5 @@ def import_into_database(message):
     start(message)
 
 print('Bot started')
-
 
 bot1.polling(non_stop=True, interval=0, timeout=60, long_polling_timeout=30)
