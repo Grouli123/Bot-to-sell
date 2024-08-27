@@ -170,7 +170,6 @@ def insert_user_data(database_name, column, data, user_id):
     conn.close()
 
 # Функция старта
-# Функция старта
 def start(message):
     markup = types.InlineKeyboardMarkup(row_width=2)
     btn2 = types.InlineKeyboardButton(config_message_one.open_base_orders, callback_data='open_orders')
@@ -427,6 +426,33 @@ def show_database_userOrder(message):
 def check_state(message):
     user_id = message.from_user.id
     handle_state(user_id, message)
+
+# Обработчик состояний пользователя
+def handle_state(user_id, message):
+    state = get_state(user_id)
+
+    if state == STATE_AWAITING_LOGIN:
+        input_admin(message)
+    elif state == STATE_AWAITING_PASSWORD:
+        input_password(message)
+    elif state == STATE_LOGGED_IN:
+        start(message)
+    elif state == STATE_OPENED_ORDERS:
+        handle_open_base_orders(message)
+    elif state == STATE_OPENED_PEOPLE:
+        handle_open_base_people(message)
+    elif state == STATE_OPENED_ADMIN_DB:
+        handle_open_admin_db(message)
+    elif state == STATE_DISPLAYED_ADMINS:
+        display_admins(message)
+    elif state == STATE_INPUTTING_MESSAGE:
+        input_message(message)
+    elif state == STATE_MESSAGE_READY_TO_SEND:
+        send_message(message)
+    elif state == STATE_SENDING_MESSAGE:
+        get_message(message)
+    elif state == STATE_CANCEL_MESSAGE:
+        cancel_message(message)
 
 print('Bot started')
 bot13.polling(non_stop=True, interval=0, timeout=60, long_polling_timeout=30)
