@@ -11,8 +11,6 @@ from SendMessIntoAdmin import SendMessageintoHere
 from get_orders_mainArzamas import sendNotyfiMessage
 
 botApiKey13 = '6433261921:AAEmTi8RVvhuSdYSlxB2uq0x3tP0X4wMRBE'
-bot_to_send = None
-
 bot13 = telebot.TeleBot(botApiKey13)
 
 base1 = sqlBase_one.createDatabase
@@ -111,41 +109,111 @@ offset = 0
 
 test123 = None
 
+# Переменные для отслеживания состояния
+STATE_AWAITING_LOGIN = 'awaiting_login'
+STATE_AWAITING_PASSWORD = 'awaiting_password'
+STATE_LOGGED_IN = 'logged_in'
+STATE_OPENED_ORDERS = 'opened_orders'
+STATE_OPENED_PEOPLE = 'opened_people'
+STATE_OPENED_ADMIN_DB = 'opened_admin_db'
+STATE_DISPLAYED_ADMINS = 'displayed_admins'
+STATE_INPUTTING_MESSAGE = 'inputting_message'
+STATE_MESSAGE_READY_TO_SEND = 'message_ready_to_send'
+STATE_SENDING_MESSAGE = 'sending_message'
+STATE_CANCEL_MESSAGE = 'cancel_message'
+
+# Создаем соединение с базой данных для хранения состояний пользователей
+def init_db():
+    conn = sqlite3.connect('states.sql')
+    cursor = conn.cursor()
+    cursor.execute('''CREATE TABLE IF NOT EXISTS user_states (
+                      user_id INTEGER PRIMARY KEY,
+                      state TEXT)''')
+    conn.commit()
+    conn.close()
+
+init_db()  # Инициализация базы данных при запуске
+
+# Функция для обновления состояния пользователя
+def update_state(user_id, state):
+    conn = sqlite3.connect('states.sql')
+    cursor = conn.cursor()
+    cursor.execute('REPLACE INTO user_states (user_id, state) VALUES (?, ?)', (user_id, state))
+    conn.commit()
+    conn.close()
+
+# Функция для получения текущего состояния пользователя
+def get_state(user_id):
+    conn = sqlite3.connect('states.sql')
+    cursor = conn.cursor()
+    cursor.execute('SELECT state FROM user_states WHERE user_id = ?', (user_id,))
+    result = cursor.fetchone()
+    conn.close()
+    return result[0] if result else None
+
+def insert_user_data(database_name, column, data, user_id):
+    conn = sqlite3.connect(database_name)
+    cursor = conn.cursor()
+    
+    # Проверяем, существует ли уже пользователь с данным user_id
+    cursor.execute("SELECT 1 FROM users WHERE user_id = ?", (user_id,))
+    exists = cursor.fetchone()
+    
+    if exists:
+        # Если пользователь существует, обновляем данные
+        cursor.execute(f"UPDATE users SET {column} = ? WHERE user_id = ?", (data, user_id))
+    else:
+        # Если пользователя нет, вставляем новую строку с user_id и указанной колонкой
+        cursor.execute(f"INSERT INTO users (user_id, {column}) VALUES (?, ?)", (user_id, data))
+    
+    conn.commit()
+    conn.close()
+
+# Функция старта
+# Функция старта
 def start(message):
     markup = types.InlineKeyboardMarkup(row_width=2)
-    btn2 = types.InlineKeyboardButton(openBaseOrders, callback_data='open_orders')
-    btn3 = types.InlineKeyboardButton(openBasePeople, callback_data='open_people')
+    btn2 = types.InlineKeyboardButton(config_message_one.open_base_orders, callback_data='open_orders')
+    btn3 = types.InlineKeyboardButton(config_message_one.open_base_people, callback_data='open_people')
     btn4 = types.InlineKeyboardButton('Открыть базу данных админов', callback_data='open_admin_db')
     btn5 = types.InlineKeyboardButton('Отображение админов', callback_data='display_admins')    
     btn6 = types.InlineKeyboardButton('Ввести сообщение', callback_data='input_message')      
     markup.add(btn2, btn3)
     markup.add(btn4, btn5)
     markup.add(btn6)
-    bot13.send_message(message.chat.id, startBotMessage, reply_markup=markup)
+    bot13.send_message(message.chat.id, config_message_one.start_bot_message, reply_markup=markup)
 
 @bot13.message_handler(commands=['start'])
 def input_admin(message):      
     global adminChatId
     adminChatId = message.chat.id  
-    print(loginin)
-    if loginin == False:
-        bot13.send_message(message.chat.id, 'Введите логин', parse_mode='html')
-        bot13.register_next_step_handler(message, admin_check)   
+    user_state = get_state(message.chat.id)
+    if user_state:
+        if user_state == STATE_LOGGED_IN:
+            start(message)
+        elif user_state == STATE_AWAITING_LOGIN:
+            bot13.send_message(message.chat.id, 'Введите логин', parse_mode='html')
+            bot13.register_next_step_handler(message, admin_check)
+        elif user_state == STATE_AWAITING_PASSWORD:
+            bot13.send_message(message.chat.id, 'Введите пароль', parse_mode='html')
+            bot13.register_next_step_handler(message, password_check)
     else:
-        start(message)
+        bot13.send_message(message.chat.id, 'Введите логин', parse_mode='html')
+        update_state(message.chat.id, STATE_AWAITING_LOGIN)
+        bot13.register_next_step_handler(message, admin_check)
 
 def admin_check(message):
     if message.text is None:
-        bot13.send_message(message.from_user.id, textOnly)
+        bot13.send_message(message.from_user.id, config_message_one.message_should_be_text_type)
         input_admin(message) 
     else:
-        if len(message.text.strip()) > maxSymbol1:
-            bot13.send_message(message.chat.id, adressError)
-            message.text.strip(None)
+        if len(message.text.strip()) > config_message_one.max_symbol_for_message:
+            bot13.send_message(message.chat.id, config_message_one.adress_error)
             input_admin(message) 
         else:
-            if login == message.text.strip():
+            if 'admin' == message.text.strip():  # Пример логина
                 input_password(message)
+                update_state(message.chat.id, STATE_AWAITING_PASSWORD)
             else:
                 bot13.send_message(message.from_user.id, 'Логин не найден')
                 input_admin(message)
@@ -157,16 +225,16 @@ def input_password(message):
 def password_check(message):
     global loginin
     if message.text is None:
-        bot13.send_message(message.from_user.id, textOnly)
+        bot13.send_message(message.from_user.id, config_message_one.message_should_be_text_type)
         input_password(message) 
     else:
-        if len(message.text.strip()) > maxSymbol1:
-            bot13.send_message(message.chat.id, adressError)
-            message.text.strip(None)
+        if len(message.text.strip()) > config_message_one.max_symbol_for_message:
+            bot13.send_message(message.chat.id, config_message_one.adress_error)
             input_password(message) 
         else:
-            if password == message.text.strip():
+            if 'admin123' == message.text.strip():  # Пример пароля
                 loginin = True
+                update_state(message.chat.id, STATE_LOGGED_IN)
                 start(message)
             else:
                 bot13.send_message(message.from_user.id, 'Пароль не подходит')
@@ -174,30 +242,34 @@ def password_check(message):
 
 @bot13.callback_query_handler(func=lambda call: call.data == 'open_orders')
 def handle_open_base_orders(call):
-    bot13.send_message(call.message.chat.id, openBseOrdersMessage)
+    update_state(call.message.chat.id, STATE_OPENED_ORDERS)
+    bot13.send_message(call.message.chat.id, config_message_one.open_base_orders_message)
     show_database_orders(call.message)
     bot13.answer_callback_query(call.id)
 
 @bot13.callback_query_handler(func=lambda call: call.data == 'open_people')
 def handle_open_base_people(call):
-    bot13.send_message(call.message.chat.id, openBasePeopleMessage)
+    update_state(call.message.chat.id, STATE_OPENED_PEOPLE)
+    bot13.send_message(call.message.chat.id, config_message_one.open_base_people_message)
     show_database_users(call.message)
     bot13.answer_callback_query(call.id)
 
 @bot13.callback_query_handler(func=lambda call: call.data == 'open_admin_db')
 def handle_open_admin_db(call):
+    update_state(call.message.chat.id, STATE_OPENED_ADMIN_DB)
     bot13.send_message(call.message.chat.id, 'Открыть базу данных админов')
     show_database_userOrder(call.message)
     bot13.answer_callback_query(call.id)
 
-        
 @bot13.callback_query_handler(func=lambda call: call.data == 'display_admins')
 def display_admins(call):
+    update_state(call.message.chat.id, STATE_DISPLAYED_ADMINS)
     send_customers_keyboard(call.message)
     bot13.answer_callback_query(call.id)
 
 @bot13.callback_query_handler(func=lambda call: call.data == 'input_message')
 def input_message(call):
+    update_state(call.message.chat.id, STATE_INPUTTING_MESSAGE)
     bot13.send_message(call.message.chat.id, 'Введите сообщение:', parse_mode='html')
     bot13.register_next_step_handler(call.message, get_message)
 
@@ -208,6 +280,7 @@ def get_message(message):
     btn_cancel = types.InlineKeyboardButton('Отменить', callback_data='cancel_message')
     markup.add(btn_send, btn_cancel)
     bot13.send_message(message.chat.id, f'Ваше сообщение: {message.text}', reply_markup=markup)
+    update_state(message.chat.id, STATE_MESSAGE_READY_TO_SEND)
 
 @bot13.callback_query_handler(func=lambda call: call.data == 'send_message')
 def send_message(call):
@@ -221,7 +294,7 @@ def send_message(call):
             order_id = cur.fetchone()[0]
             cur.execute("UPDATE orders SET notifyMessageWorkers = ? WHERE id = ?", (user_message, order_id))
             conn.commit()
-            sendNotyfiMessage();
+            sendNotyfiMessage()
             bot13.send_message(call.message.chat.id, 'Сообщение отправлено')
         except sqlite3.Error as e:
             print(f"Ошибка записи в базу данных: {e}")
@@ -276,8 +349,8 @@ def toggle_subscription(call):
     conn.commit()
     conn.close()
     full_name = ' '.join(customer[:3])
-    subscription_status = "Подписка активна" if customer[3] == 'true' else "Подписка не активна"
-    toggle_button_text = "Дезактивировать" if customer[3] == 'true' else "Активировать"
+    subscription_status = "Подписка активна" if new_status == 'true' else "Подписка не активна"
+    toggle_button_text = "Дезактивировать" if new_status == 'true' else "Активировать"
     keyboard = types.InlineKeyboardMarkup()
     keyboard.add(types.InlineKeyboardButton(toggle_button_text, callback_data=f"customer_{customer_id}_{toggle_button_text.lower()}"))
     bot13.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f"{full_name}\nСтатус: {subscription_status}", reply_markup=keyboard)
@@ -294,8 +367,7 @@ def back_to_list(call):
     send_customers_keyboard(call.message)
 
 def show_database_orders(message):
-    print(loginin)
-    if loginin == True:
+    if loginin:
         if not os.path.exists('applicationbase.sql'):
             bot13.send_message(message.chat.id, "База данных пустая")
         else:
@@ -309,20 +381,17 @@ def show_database_orders(message):
             cur.close()
             conn.close()
             bot13.send_message(message.chat.id, info)
-            print(info)
     else:
         bot13.send_message(message.chat.id, 'Введите логин и пароль прежде чем продолжить работу')
         input_admin(message)
 
 def show_database_users(message):
-    print(loginin)
-    if loginin == True:
+    if loginin:
         if not os.path.exists('peoplebase.sql'):
             bot13.send_message(message.chat.id, "База данных пустая")
         else:
             conn = sqlite3.connect('peoplebase.sql')
             cur = conn.cursor()
-
             cur.execute('SELECT * FROM users')
             users = cur.fetchall()
             info = ''
@@ -331,14 +400,12 @@ def show_database_users(message):
             cur.close()
             conn.close()
             bot13.send_message(message.chat.id, info)
-            print(info)
     else:
         bot13.send_message(message.chat.id, 'Введите логин и пароль прежде чем продолжить работу')
         input_admin(message)
 
 def show_database_userOrder(message):
-    print(loginin)
-    if loginin == True:
+    if loginin:
         if not os.path.exists('custumers.sql'):
             bot13.send_message(message.chat.id, "База данных пустая")
         else:
@@ -351,12 +418,15 @@ def show_database_userOrder(message):
                 info += f'3:{el[2]} 4:{el[3]} 5:{el[4]} 6:{el[5]} 7:{el[6]} 8:{el[7]} 9:{el[8]} 10:{el[9]}\n\n11:{el[10]}'
             cur.close()
             conn.close()
-            print("Info:", repr(info))  # Добавьте этот отладочный вывод
             bot13.send_message(message.chat.id, info)
-            print(info)
     else:
         bot13.send_message(message.chat.id, 'Введите логин и пароль прежде чем продолжить работу')
         input_admin(message)
+
+@bot13.message_handler(content_types=['text'])
+def check_state(message):
+    user_id = message.from_user.id
+    handle_state(user_id, message)
 
 print('Bot started')
 bot13.polling(non_stop=True, interval=0, timeout=60, long_polling_timeout=30)
