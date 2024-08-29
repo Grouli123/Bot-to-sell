@@ -282,7 +282,7 @@ def registration(message):
 def handle_text_message(message):
     user_id = message.from_user.id
     handle_state(user_id, message)  # Добавляем вызов handle_state
-    
+
 def testMethod():
     global check_mess_already_send
     global check_user_id
@@ -1438,16 +1438,15 @@ def third_friend_number_check(message):
 
 @bot.message_handler(commands=['data'])
 def data(message):
+    global user_id, city, cityTrue, nuberPhone, lastname, firstname, middlename, dataOfBirth       
+    global citizenRF, id_nubmer_list, check_user_id, data_called, nalogacc, passport
+    global samozanYorN, orderTake, orderDone, orderMiss, percent_completed, percent_failed    
     user_id = message.from_user.id
     handle_state(user_id, message)  # Добавляем вызов handle_state
     # Устанавливаем состояние для обработки команды /data
     update_state(message.from_user.id, STATE_DATA)
     
-    global user_id, city, cityTrue, nuberPhone, lastname, firstname, middlename, dataOfBirth       
-    global citizenRF, id_nubmer_list, check_user_id, data_called, nalogacc, passport
-    global samozanYorN, orderTake, orderDone, orderMiss, percent_completed, percent_failed    
 
-    user_id = message.from_user.id
 
     if not data_called:
         try:
