@@ -689,13 +689,13 @@ def city_check_for_chat(message):
         bot.send_message(message.chat.id, 'К сожалению, мы не работаем по вашему городу')
 
 def import_into_database(message):
-    # global state  
-    # conn = sqlite3.connect('peoplebase.sql')
-    # cur = conn.cursor()
-    # cur.execute(insertIntoBase % (phone, locationcity, lastname, firstname, middlename, userbirthday, usercitizenRF, user_id, samozanatost, agreeaccaunt, passport, chatcity, cityTrue, actualOrder, orderTake, orderDone, orderMiss, 'None', raiting)) 
-    # conn.commit()
-    # cur.close()
-    # conn.close()
+    global state  
+    conn = sqlite3.connect('peoplebase.sql')
+    cur = conn.cursor()
+    cur.execute(insertIntoBase % (phone, locationcity, lastname, firstname, middlename, userbirthday, usercitizenRF, user_id, samozanatost, agreeaccaunt, passport, chatcity, cityTrue, actualOrder, orderTake, orderDone, orderMiss, 'None', raiting)) 
+    conn.commit()
+    cur.close()
+    conn.close()
     markup = types.InlineKeyboardMarkup()
     markup.add(types.InlineKeyboardButton(f'{buttonResultName} {locationcity}', callback_data=nameOfBase, url=f'https://t.me/{chatcity}'))
     bot.send_message(message.chat.id, alreadyRegistered, reply_markup=markup)

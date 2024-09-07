@@ -172,6 +172,11 @@ STATE_CALLBACK_DELETE_CITY = 'callback_delete_city'
 STATE_CALLBACK_ADD_CITY = 'callback_add_city'
 STATE_LOCATION_CITY_CITIZEN = 'location_city_citizen'
 STATE_PASSPORT_CHECK = 'pasport_check'
+STATE_CALLBACK_CONTINUE2_CITIZEN = 'contunie_two'
+STATE_ORDER_CONFIRMATION = 'starOrderArzamas'
+STATE_LASTNAME_CHECK = 'LastNamePassword'
+STATE_FIRSTNAME_CHECK = 'FirsttNamePassword'
+STATE_MIDDLENAME_CHECK  = 'MiddleNamePassword'
 
 current_user_id = None
 
@@ -202,7 +207,10 @@ def get_state(user_id):
     cursor.execute('SELECT state FROM user_states WHERE user_id = ?', (user_id,))
     result = cursor.fetchone()
     conn.close()
-    return result[0] if result else None
+    state = result[0] if result else None
+    print(f"[DEBUG] get_state for user_id {user_id}: {state}")  # Добавьте это сообщение для отладки
+    return state
+
 
 def insert_user_data(database_name, column, data, user_id):
     conn = sqlite3.connect(database_name)
@@ -227,14 +235,19 @@ def insert_user_data(database_name, column, data, user_id):
 def registration(message):
     user_id = message.from_user.id
 
-    handle_state(user_id, message)  # Добавляем вызов handle_state
-    update_state(user_id, STATE_REGISTRATION)
+    # Проверьте, есть ли пользователь уже в базе данных
+    if get_state(user_id) is None:
+        update_state(user_id, STATE_REGISTRATION)
+    else:
+        print(f"[DEBUG] User {user_id} already has a state in the database")
 
     try:
         conn = sqlite3.connect('peoplebase.sql')
         cursor = conn.cursor()
     except sqlite3.Error as e:
         bot.send_message(message.chat.id, 'Пользователь не найден')
+
+        handle_state(user_id, message)  # Добавляем вызов handle_state
         return
 
     try:
@@ -248,22 +261,24 @@ def registration(message):
         cursor.execute("UPDATE users SET botChatId = ? WHERE user_id = ?", (message.chat.id, user_id))
         conn.commit()
     except sqlite3.Error as e:
+
+        handle_state(user_id, message)  # Добавляем вызов handle_state
         bot.send_message(message.chat.id, 'Ошибка работы с базой данных.')
         check_user_id = None
     finally:
         cursor.close()
         conn.close()
 
-    if check_user_id:
-        bot.send_message(message.chat.id, 'Поздравляем с успешной регистрацией✅\nОжидай появления новых заявок!')
-        update_state(user_id, STATE_ORDER_CONFIRMATION)
-    else:
-        markup = types.InlineKeyboardMarkup()
-        btn2 = types.InlineKeyboardButton('👉 Перейти к боту регистрации', url='https://t.me/GraeYeBot', one_time_keyboard=True)
-        markup.row(btn2)          
-        bot.send_message(message.chat.id, 'Вы не зарегистрированы, пройдите регистрацию, перейдя к боту по кнопке!', parse_mode='html', reply_markup=markup)
+    # if check_user_id:
+    #     update_state(user_id, STATE_ORDER_CONFIRMATION)
+    # else:
+    #     markup = types.InlineKeyboardMarkup()
+    #     btn2 = types.InlineKeyboardButton('👉 Перейти к боту регистрации', url='https://t.me/GraeYeBot', one_time_keyboard=True)
+    #     markup.row(btn2)          
+    #     bot.send_message(message.chat.id, 'Вы не зарегистрированы, пройдите регистрацию, перейдя к боту по кнопке!', parse_mode='html', reply_markup=markup)
 
     if check_user_id:
+        update_state(user_id, STATE_ORDER_CONFIRMATION)
         bot.send_message(message.chat.id, 'Поздравляем с успешной регистрацией✅\nОжидай появления новых заявок!\nПринять заявку можно, нажав на активные кнопки под заявкой.\n\nℹ️Если хочешь видеть все заявки и иметь преимущество в назначении на заявку - подтверди свой аккаунт (это можно сделать в любой момент). Для этого нажми на кнопку "👤Мои данные" на клавиатуре внизу, затем нажми "✅Подтвердить аккаунт"👇👇👇', parse_mode='html')
         userCitizenRuText = '👉Пока можешь почитать отзывы о нашей организации'
         markup = types.InlineKeyboardMarkup()
@@ -278,10 +293,10 @@ def registration(message):
         markup.row(btn2)
         bot.send_message(message.chat.id, 'Вы не зарегистрированы, пройдите регистрацию, перейдя к боту по кнопке!\n\n👇👇👇👇👇', parse_mode='html', reply_markup=markup)
 
-@bot.message_handler(content_types=['text'])
-def handle_text_message(message):
-    user_id = message.from_user.id
-    handle_state(user_id, message)  # Добавляем вызов handle_state
+# @bot.message_handler(content_types=['text'])
+# def handle_text_message(message):
+#     user_id = message.from_user.id
+#     handle_state(user_id, message)  # Добавляем вызов handle_state
 
 def testMethod():
     global check_mess_already_send
@@ -1442,10 +1457,8 @@ def data(message):
     global citizenRF, id_nubmer_list, check_user_id, data_called, nalogacc, passport
     global samozanYorN, orderTake, orderDone, orderMiss, percent_completed, percent_failed    
     user_id = message.from_user.id
-    handle_state(user_id, message)  # Добавляем вызов handle_state
-    # Устанавливаем состояние для обработки команды /data
-    update_state(message.from_user.id, STATE_DATA)
-    
+    update_state(user_id, STATE_DATA)  # Установите состояние пользователя
+    # handle_state(user_id, message)       
 
 
     if not data_called:
@@ -1478,19 +1491,23 @@ def data(message):
             orderTake = takeParam[15]
             orderDone = takeParam[16]
             orderMiss = takeParam[17]
+
+            print(f'nalogacc {nalogacc}')
         else:
             bot.send_message(message.chat.id, "Пользователь не найден в базе данных.")
             return
 
-        if nalogacc == 'Нет':
+        if nalogacc == 'Нет' or nalogacc is None:
             samozanYorN = 'Нет'
-        elif passport != 'Нет':
+        elif passport != 'Нет' or passport is None:
             samozanYorN = f'Да\n💰 Р/С: {nalogacc}\n🪪 Паспорт: {passport}'
         else:
             samozanYorN = f'Да\n💰 Р/С: {nalogacc}'
 
         if check_user_id is not None or user_id is not None:
-            if cityTrue == 'False':
+            if cityTrue == 'False' or cityTrue is None:
+                print(f'cityTrue {cityTrue}')
+
                 markup = types.InlineKeyboardMarkup()
                 btn2 = types.InlineKeyboardButton('🖌Редактировать город', callback_data='🖌Редактировать город', one_time_keyboard=True)
                 btn3 = types.InlineKeyboardButton('✅Подтвердить', callback_data='✅Подтвердить', one_time_keyboard=True)
@@ -1498,18 +1515,20 @@ def data(message):
                 markup.row(btn3)  
                 bot.send_message(message.chat.id, f'📞 Телефон: +{nuberPhone}\n👤 ФИО: {lastname} {firstname} {middlename}\n📅 Дата рождения: {dataOfBirth}\n🇷🇺 Гражданство РФ: {citizenRF}\n🤝 Самозанятый: {samozanYorN} \n🏙 Город(а): {city}\n\nℹ️ Чтобы выйти из этого меню нажмите ✅Подтвердить', reply_markup=markup)
             else:
+                print(f'cityTrue {cityTrue}')
+
                 markup = types.InlineKeyboardMarkup()
                 btn1 = types.InlineKeyboardButton('📝Редактировать данные', callback_data='📝Редактировать данные', one_time_keyboard=True)
                 btn2 = types.InlineKeyboardButton('📊 Статистика заказов', callback_data='📊 Статистика заказов', one_time_keyboard=True)
                 markup.row(btn1)  
                 markup.row(btn2)  
-                if passport == 'Нет':
+                if passport == 'Нет' or passport is None:
                     messageInformation = f'📞 Телефон: +{nuberPhone}\n👤 ФИО: {lastname} {firstname} {middlename}\n📅 Дата рождения: {dataOfBirth}\n🇷🇺 Гражданство РФ: {citizenRF}\n🤝 Самозанятый: {samozanYorN}\n🏙 Город(а): {city}\n\nℹ️ Чтобы выйти из этого меню нажмите ✅Подтвердить'
                     btn3 = types.InlineKeyboardButton('✅Подтвердить аккаунт', callback_data='✅Подтвердить аккаунт', one_time_keyboard=True)
                     markup.row(btn3)  
                 else:
                     messageInformation = f'📞 Телефон: +{nuberPhone}\n👤 ФИО: {lastname} {firstname} {middlename}\n📅 Дата рождения: {dataOfBirth}\n🇷🇺 Гражданство РФ: {citizenRF}\n🤝 Самозанятый: {samozanYorN}\n🏙 Город(а): {city}'
-                if nalogacc == 'Нет':
+                if nalogacc == 'Нет' or nalogacc is None:
                     btn4 = types.InlineKeyboardButton('✅Самозанятость', callback_data='✅Самозанятость', one_time_keyboard=True)
                     markup.row(btn4)  
                 bot.send_message(message.chat.id, messageInformation, reply_markup=markup)
@@ -1526,14 +1545,11 @@ def data(message):
 @bot.message_handler(commands=['orders'])
 def orders(message):
     user_id = message.from_user.id
-    handle_state(user_id, message)  # Добавляем вызов handle_state
-    # Устанавливаем состояние для обработки команды /orders
-    update_state(message.from_user.id, STATE_ORDERS)
-    
+    update_state(user_id, STATE_ORDERS)  # Установите состояние пользователя
+    # handle_state(user_id, message)           
     global check_user_id
     global data_called
     data_called = False    
-    user_id = message.from_user.id
 
     try:
         conn = sqlite3.connect('peoplebase.sql')
@@ -2277,80 +2293,90 @@ def callback_message_citizen(callback):
 def handle_state(user_id, message):
     state = get_state(user_id)
 
-    if state == STATE_INPUT_PHONE_NUMBER:
-        numberPhoneInput(message)
-    elif state == STATE_LOCATION:
-        location(message)
-    elif state == STATE_INPUT_LASTNAME:
-        input_lastname(message)
-    elif state == STATE_INPUT_FIRSTNAME: 
-        input_firstname(message)
-    elif state == STATE_INPUT_MIDDLENAME:
-        input_middlename(message)
-    elif state == STATE_INPUT_BIRTHDAY:
-        input_birtgday(message)
-    elif state == STATE_INPUT_BIRTHDAY2:
-        input_birtgday2(message)
-    elif state == STATE_USER_BIRTHDAY_CHECK:
-        user_birthday_check(message)
-    elif state == STATE_USER_BIRTHDAY_CHECK2:
-        user_birthday_check2(message)
-    elif state == STATE_INPUT_PASSPORT:
-        input_passport(message)
-    elif state == STATE_PASSPORT_CHECK:
-        passport_check(message)
-    elif state == STATE_READY_PASSPORT_INFO:
-        readyPassportInfo(message)
-    elif state == STATE_LOCATION_CITY_CITIZEN:
-        locationCityCitizen(message)
-    elif state == STATE_DATA:
-        data(message)
-    elif state == STATE_ORDERS:
-        orders(message)
-    elif state == STATE_CALLBACK_DATA_OF_DATA:
-        callback_data_of_data(message)
-    elif state == STATE_CALLBACK_INDIVIDUAL:
-        callback_individual(message)
-    elif state == STATE_INPUT_MY_NALOG_ACCOUNT:
-        input_my_nalog_accaunt(message)
-    elif state == STATE_MY_NALOG_ACCOUNT_CHECK:
-        my_nalog_accaunt_check(message)
-    elif state == STATE_CALLBACK_BANK:
-        callback_bank(message)
-    elif state == STATE_CALLBACK_BANK_CHOICE:
-        callback_bank(message)
-    elif state == STATE_CALLBACK_CONTINUE2_CITIZEN:
-        callback_message_citizen
-    elif state == STATE_CALLBACK_CONTINUE:
-        callback_edit_data_person(message)
-    elif state == STATE_CALLBACK_EDIT_PERSON_DATA:
-        callback_edit_person_data_alone(message)
-    elif state == STATE_INPUT_LASTNAME2:
-        input_lastname2(message)
-    elif state == STATE_LASTNAME_CHECK2:
-        lastneme_check2(message)
-    elif state == STATE_INPUT_FIRSTNAME2:
-        input_firstname2(message)
-    elif state == STATE_FIRSTNAME_CHECK2:
-        firstname_check2(message)
-    elif state == STATE_INPUT_MIDDLENAME2:
-        input_middlename2(message)
-    elif state == STATE_MIDDLENAME_CHECK2:
-        middlename_check2(message)
-    elif state == STATE_CALLBACK_EDU1:
-        callback_data_of_data(message)
-    elif state == STATE_CANCEL_CONFIRMATION:
-        callback_delete_previos_message(message)
-    elif state == STATE_CALLBACK_RENAME_CITY:
-        callback_rename_city(message)
+    # Начинаем проверку условий с конца
+    if state == STATE_CALLBACK_ADD_CITY:
+        callback_add_city(message)
     elif state == STATE_CALLBACK_DELETE_CITY:
         callback_delete_city(message)
-    elif state == STATE_CALLBACK_ADD_CITY:
-        callback_add_city(message)
+    elif state == STATE_CALLBACK_RENAME_CITY:
+        callback_rename_city(message)
+    elif state == STATE_CANCEL_CONFIRMATION:
+        callback_delete_previos_message(message)
+    elif state == STATE_CALLBACK_EDU1:
+        callback_data_of_data(message)
+    elif state == STATE_MIDDLENAME_CHECK2:
+        middlename_check2(message)
+    elif state == STATE_INPUT_MIDDLENAME2:
+        input_middlename2(message)
+    elif state == STATE_FIRSTNAME_CHECK2:
+        firstname_check2(message)
+    elif state == STATE_INPUT_FIRSTNAME2:
+        input_firstname2(message)
+    elif state == STATE_LASTNAME_CHECK2:
+        lastneme_check2(message)
+    elif state == STATE_INPUT_LASTNAME2:
+        input_lastname2(message)
+    elif state == STATE_CALLBACK_EDIT_PERSON_DATA:
+        callback_edit_person_data_alone(message)
+    elif state == STATE_CALLBACK_CONTINUE:
+        callback_edit_data_person(message)
+    elif state == STATE_CALLBACK_CONTINUE2_CITIZEN:
+        callback_message_citizen(message)
+    elif state == STATE_CALLBACK_BANK_CHOICE:
+        callback_bank(message)
+    elif state == STATE_CALLBACK_BANK:
+        callback_bank(message)
+    elif state == STATE_MY_NALOG_ACCOUNT_CHECK:
+        my_nalog_accaunt_check(message)
+    elif state == STATE_INPUT_MY_NALOG_ACCOUNT:
+        input_my_nalog_accaunt(message)
+    elif state == STATE_CALLBACK_INDIVIDUAL:
+        callback_individual(message)
+    elif state == STATE_CALLBACK_DATA_OF_DATA:
+        callback_data_of_data(message)
+    elif state == STATE_LOCATION_CITY_CITIZEN:
+        locationCityCitizen(message)
+    elif state == STATE_READY_PASSPORT_INFO:
+        readyPassportInfo(message)
+    elif state == STATE_PASSPORT_CHECK:
+        passport_check(message)
+    elif state == STATE_INPUT_PASSPORT:
+        input_passport(message)
+    elif state == STATE_USER_BIRTHDAY_CHECK2:
+        user_birthday_check2(message)
+    elif state == STATE_USER_BIRTHDAY_CHECK:
+        user_birthday_check(message)
+    elif state == STATE_INPUT_BIRTHDAY2:
+        input_birtgday2(message)
+    elif state == STATE_INPUT_BIRTHDAY:
+        input_birtgday(message)
+    elif state == STATE_INPUT_MIDDLENAME:
+        input_middlename(message)
+    elif state == STATE_INPUT_FIRSTNAME:
+        input_firstname(message)
+    elif state == STATE_INPUT_LASTNAME:
+        input_lastname(message)
+    elif state == STATE_LOCATION:
+        location(message)
+    elif state == STATE_INPUT_PHONE_NUMBER:
+        numberPhoneInput(message)
+    elif state == STATE_ORDERS:
+        orders(message)
+    elif state == STATE_DATA:
+        data(message)
+    elif state == STATE_ORDER_CONFIRMATION:
+        registration(message)
+    elif state == STATE_LASTNAME_CHECK:
+        lastneme_check(message)
+    elif state == STATE_FIRSTNAME_CHECK:
+        firstname_check(message)
+    elif state == STATE_MIDDLENAME_CHECK:
+        middlename_check(message)
+
     else:
         bot.send_message(message.chat.id, "Неизвестное состояние. Попробуйте снова.")
 
-        
+
 if __name__ == '__main__':
     print('Bot started')
     bot.polling(non_stop=True, interval=0, timeout=60, long_polling_timeout=30)
