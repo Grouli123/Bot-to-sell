@@ -1475,8 +1475,8 @@ def data(message):
         except sqlite3.Error as e:
             bot.send_message(message.chat.id, "Вы еще не взяли ни одного заказа")
             return
-
-        if takeParam:
+        print(f'check_user_id {check_user_id}')
+        if check_user_id:
             id_nubmer_list = takeParam[0]
             nuberPhone = takeParam[2]
             city = takeParam[3]
@@ -1694,7 +1694,7 @@ def callback_data_of_data(callback):
         cur.close()
         conn.close()
         print('сити тру ', cityTrue)
-        data(callback.message)
+        # data(callback.message)
     elif callback.data == '📊 Статистика заказов':
         data_called = False
         conn = sqlite3.connect('peoplebase.sql')
@@ -1704,12 +1704,29 @@ def callback_data_of_data(callback):
         orderDataTake = test2[16]
         orderDataDone = test2[17]
         orderDataMiss = test2[18]
-        recordsTake = orderDataTake.split(',')
-        orderCountTake = len(recordsTake)
-        recordsDone = orderDataDone.split(',')
-        orderCountDone = len(recordsDone) - 1
-        recordsMiss = orderDataMiss.split(',')
-        orderCountMiss = len(recordsMiss) - 1
+        if orderDataTake:
+            recordsTake = orderDataTake.split(',')
+            orderDataTake = len(recordsTake) - 1
+        else:
+            orderCountTake = 0
+        # recordsTake = orderDataTake.split(',')            
+
+        if orderDataDone:
+            recordsDone = orderDataDone.split(',')
+            orderDataDone = len(recordsDone) - 1
+            # orderCountDone = len(recordsDone) - 1
+        else:
+            orderCountDone = 0
+
+        # recordsDone = orderDataDone.split(',')
+        if orderDataMiss:
+            recordsMiss = orderDataMiss.split(',')
+            orderCountMiss = len(recordsMiss) - 1
+            # orderCountMiss = len(recordsMiss) - 1
+        else:
+            orderCountMiss = 0
+        # recordsMiss = orderDataMiss.split(',')
+
         print(f"Количество записей: {orderCountTake}")
         print(f"Количество записей: {orderCountDone}")
         print(f"Количество записей: {orderCountMiss}")
