@@ -1452,12 +1452,109 @@ def third_friend_number_check(message):
                 input_third_friend_number(message)
 
 @bot.message_handler(commands=['data'])
+def testirovanie(message):
+    global user_id
+    # global user_id, city, cityTrue, nuberPhone, lastname, firstname, middlename, dataOfBirth       
+    # global citizenRF, id_nubmer_list, check_user_id, data_called, nalogacc, passport
+    # global samozanYorN, orderTake, orderDone, orderMiss, percent_completed, percent_failed
+    # user_id = message.from_user.id
+
+
+
+    user_id = message.from_user.id
+    data(message)
+    update_state(user_id, STATE_DATA)  # Установите состояние пользователя
+
+    # if not data_called:
+    #     try:
+    #         conn = sqlite3.connect('peoplebase.sql')
+    #         cursor = conn.cursor()
+    #         cursor.execute("SELECT * FROM users WHERE user_id = ?", (user_id,))
+    #         takeParam = cursor.fetchone() 
+    #         if takeParam:
+    #             check_user_id = takeParam[9]
+    #         else:
+    #             check_user_id = None
+    #         conn.close()
+    #     except sqlite3.Error as e:
+    #         bot.send_message(message.chat.id, "Вы еще не взяли ни одного заказа")
+    #         return
+    #     print(f'check_user_id {check_user_id}')
+    #     if check_user_id:
+    #         id_nubmer_list = takeParam[0]
+    #         nuberPhone = takeParam[2]
+    #         city = takeParam[3]
+    #         lastname = takeParam[4]
+    #         firstname = takeParam[5]
+    #         middlename = takeParam[6]
+    #         dataOfBirth = takeParam[7]        
+    #         citizenRF = takeParam[8]   
+    #         cityTrue = takeParam[14]  
+    #         nalogacc = takeParam[10]  
+    #         passport = takeParam[12]
+    #         orderTake = takeParam[15]
+    #         orderDone = takeParam[16]
+    #         orderMiss = takeParam[17]
+
+    #         print(f'nalogacc {nalogacc}')
+    #     else:
+    #         bot.send_message(message.chat.id, "Пользователь не найден в базе данных.")
+    #         return
+
+    #     if nalogacc == 'Нет' or nalogacc is None:
+    #         samozanYorN = 'Нет'
+    #     elif passport != 'Нет' or passport is None:
+    #         samozanYorN = f'Да\n💰 Р/С: {nalogacc}\n🪪 Паспорт: {passport}'
+    #     else:
+    #         samozanYorN = f'Да\n💰 Р/С: {nalogacc}'
+
+    #     if check_user_id is not None or user_id is not None:
+    #         if cityTrue == 'False' or cityTrue is None:
+    #             print(f'cityTrue {cityTrue}')
+
+    #             markup = types.InlineKeyboardMarkup()
+    #             btn2 = types.InlineKeyboardButton('🖌Редактировать город', callback_data='🖌Редактировать город', one_time_keyboard=True)
+    #             btn3 = types.InlineKeyboardButton('✅Подтвердить', callback_data='✅Подтвердить', one_time_keyboard=True)
+    #             markup.row(btn2)  
+    #             markup.row(btn3)  
+    #             bot.send_message(message.chat.id, f'📞 Телефон: +{nuberPhone}\n👤 ФИО: {lastname} {firstname} {middlename}\n📅 Дата рождения: {dataOfBirth}\n🇷🇺 Гражданство РФ: {citizenRF}\n🤝 Самозанятый: {samozanYorN} \n🏙 Город(а): {city}\n\nℹ️ Чтобы выйти из этого меню нажмите ✅Подтвердить', reply_markup=markup)
+    #         else:
+    #             print(f'cityTrue {cityTrue}')
+
+    #             markup = types.InlineKeyboardMarkup()
+    #             btn1 = types.InlineKeyboardButton('📝Редактировать данные', callback_data='📝Редактировать данные', one_time_keyboard=True)
+    #             btn2 = types.InlineKeyboardButton('📊 Статистика заказов', callback_data='📊 Статистика заказов', one_time_keyboard=True)
+    #             markup.row(btn1)  
+    #             markup.row(btn2)  
+    #             if passport == 'Нет' or passport is None:
+    #                 messageInformation = f'📞 Телефон: +{nuberPhone}\n👤 ФИО: {lastname} {firstname} {middlename}\n📅 Дата рождения: {dataOfBirth}\n🇷🇺 Гражданство РФ: {citizenRF}\n🤝 Самозанятый: {samozanYorN}\n🏙 Город(а): {city}\n\nℹ️ Чтобы выйти из этого меню нажмите ✅Подтвердить'
+    #                 btn3 = types.InlineKeyboardButton('✅Подтвердить аккаунт', callback_data='✅Подтвердить аккаунт', one_time_keyboard=True)
+    #                 markup.row(btn3)  
+    #             else:
+    #                 messageInformation = f'📞 Телефон: +{nuberPhone}\n👤 ФИО: {lastname} {firstname} {middlename}\n📅 Дата рождения: {dataOfBirth}\n🇷🇺 Гражданство РФ: {citizenRF}\n🤝 Самозанятый: {samozanYorN}\n🏙 Город(а): {city}'
+    #             if nalogacc == 'Нет' or nalogacc is None:
+    #                 btn4 = types.InlineKeyboardButton('✅Самозанятость', callback_data='✅Самозанятость', one_time_keyboard=True)
+    #                 markup.row(btn4)  
+    #             bot.send_message(message.chat.id, messageInformation, reply_markup=markup)
+    #     else:
+    #         markup = types.InlineKeyboardMarkup()
+    #         btn2 = types.InlineKeyboardButton('👉 Перейти к боту регистрации', url='https://t.me/GraeYeBot', one_time_keyboard=True)
+    #         markup.row(btn2)          
+    #         bot.send_message(message.chat.id, f'Для регистрации перейдите к боту по кнопке!\n\n👇👇👇👇👇', parse_mode='html', reply_markup=markup)
+
+    #     data_called = True  
+    # else:
+    #     bot.send_message(message.chat.id, 'Функция data уже была вызвана. Повторный вызов невозможен.')
+
+# @bot.message_handler(commands=['data'])
 def data(message):
     global user_id, city, cityTrue, nuberPhone, lastname, firstname, middlename, dataOfBirth       
     global citizenRF, id_nubmer_list, check_user_id, data_called, nalogacc, passport
     global samozanYorN, orderTake, orderDone, orderMiss, percent_completed, percent_failed    
-    user_id = message.from_user.id
-    update_state(user_id, STATE_DATA)  # Установите состояние пользователя
+    # testirovanie(message)
+
+    # user_id = message.from_user.id
+    # update_state(user_id, STATE_DATA)  # Установите состояние пользователя
     # handle_state(user_id, message)       
 
 
@@ -1694,7 +1791,7 @@ def callback_data_of_data(callback):
         cur.close()
         conn.close()
         print('сити тру ', cityTrue)
-        # data(callback.message)
+        data(callback.message)
     elif callback.data == '📊 Статистика заказов':
         data_called = False
         conn = sqlite3.connect('peoplebase.sql')
