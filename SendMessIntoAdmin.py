@@ -8,21 +8,46 @@ bot13 = telebot.TeleBot(botApiKey13)
 
 def SendMessageintoHere(chatcity, user_id):
     print('itWork')
-    conn = sqlite3.connect('custumers.sql')
+    
+    # Initialize database connection
+    conn = sqlite3.connect('custumers.sql', check_same_thread=False)
     cur = conn.cursor()
+    
     try:
+        # Create table if it doesn't exist
+        cur.execute('''CREATE TABLE IF NOT EXISTS custumers
+                       (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                        user_id INTEGER,
+                        phone TEXT,
+                        lastname TEXT,
+                        firstname TEXT,
+                        middlename TEXT)''')
+        
+        # Query the database
         cur.execute("SELECT * FROM custumers WHERE user_id = ?", (user_id,))
-        users = cur.fetchone() 
+        users = cur.fetchone()
 
         if users:
             user_id_mess = users[0]
-            print(user_id_mess)
-        if chatcity != 'None':
-            print("Заполненное значение botChatId:", chatcity)
-            bot13.send_message(chatcity, f"✅\nПользователь {users[4]} {users[5]} {users[6]}  с номером телефона {users[2]} зарегистрировался, в качестве заказчика", parse_mode='html')
-        cur.close()
+            print(f"User ID found: {user_id_mess}")
+            print(f"Phone: {users[2]}")
+            print(f"Lastname: {users[3]}")
+            print(f"Firstname: {users[4]}")
+            print(f"Middlename: {users[5]}")
+
+            if chatcity != 'None':
+                bot13.send_message(chatcity, f"✅\nПользователь {users[3]} {users[4]} {users[5]} с номером телефона {users[2]} зарегистрировался, в качестве заказчика", parse_mode='html')
+        else:
+            print('User not found in the database')
+
+        conn.commit()
         conn.close()
         time.sleep(3)
     except sqlite3.Error as e:
-        print('Заказов пока нет, но скоро будут')
+        print(f"An error occurred: {e}")
+        print(f"Database connection details: {conn}")
+        print(f"Cursor details: {cur}")
         conn.close()
+    finally:
+        if conn:
+            conn.close()

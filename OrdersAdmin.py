@@ -138,7 +138,7 @@ init_db()  # Инициализация базы данных при запус�
 def update_state(user_id, state):
     conn = sqlite3.connect('states.sql')
     cursor = conn.cursor()
-    cursor.execute('REPLACE INTO user_states (user_id, state) VALUES (?, ?)', (user_id, state))
+    cursor.execute('INSERT OR REPLACE INTO user_states (user_id, state) VALUES (?, ?)', (user_id, state))
     conn.commit()
     conn.close()
 

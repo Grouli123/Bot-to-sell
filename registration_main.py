@@ -128,7 +128,7 @@ def init_db():
 def update_state(user_id, state):
     conn = sqlite3.connect('states.sql')
     cursor = conn.cursor()
-    cursor.execute('REPLACE INTO user_states (user_id, state) VALUES (?, ?)', (user_id, state))
+    cursor.execute('INSERT OR REPLACE INTO user_states (user_id, state) VALUES (?, ?)', (user_id, state))
     conn.commit()
     conn.close()
 
@@ -350,7 +350,7 @@ def middlename_check(message):
             input_birtgday(message)
 
 def numberPhoneInput_order(message):
-    user_id = message.from_user.id
+    update_state(user_id, 'numberPhoneInput_order')
     conn = sqlite3.connect('custumers.sql')
     cur = conn.cursor()
     cur.execute(baseCustomer)
@@ -361,7 +361,6 @@ def numberPhoneInput_order(message):
         # Если пользователь не найден, добавляем его в базу данных
         cur.execute("INSERT INTO custumers (user_id) VALUES (?)", (user_id,))
         conn.commit()
-        update_state(user_id, 'numberPhoneInput_order')
         keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
         button_phone = types.KeyboardButton(text=phoneButtonText, request_contact=True)
         keyboard.add(button_phone)
@@ -703,6 +702,7 @@ def import_into_database(message):
 
 def import_into_database_order_admin(message):
     global state  
+    # global user_id
     conn = sqlite3.connect('custumers.sql')
     cur = conn.cursor()
     cur.execute(insertIntoAdminOrderBase % (phoneOrder, cityOrder, lastnameOrder, firstnameOrder, middlenameOrder, user_id, loginOrder, passwordOrder, False, chatcity)) 
