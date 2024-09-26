@@ -15,13 +15,13 @@ def SendMessageintoHere(chatcity, user_id):
     
     try:
         # Create table if it doesn't exist
-        cur.execute('''CREATE TABLE IF NOT EXISTS custumers
-                       (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                        user_id INTEGER,
-                        phone TEXT,
-                        lastname TEXT,
-                        firstname TEXT,
-                        middlename TEXT)''')
+        # cur.execute('''CREATE TABLE IF NOT EXISTS custumers
+        #                (id INTEGER PRIMARY KEY AUTOINCREMENT,
+        #                 user_id INTEGER,
+        #                 phone TEXT,
+        #                 lastname TEXT,
+        #                 firstname TEXT,
+        #                 middlename TEXT)''')
         
         # Query the database
         cur.execute("SELECT * FROM custumers WHERE user_id = ?", (user_id,))

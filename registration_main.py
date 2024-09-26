@@ -9,6 +9,7 @@ import registration_people_config.registration_config_message as config_message
 import registration_people_config.custumers_sqlBase as sqlBaseCustomer
 import citys.city_list as citys
 from SendMessIntoAdmin import SendMessageintoHere
+from threading import Lock
 
 botApiKey = API_key.botAPI
 bot = telebot.TeleBot(botApiKey)
@@ -350,32 +351,33 @@ def middlename_check(message):
             input_birtgday(message)
 
 def numberPhoneInput_order(message):
+    # conn = sqlite3.connect('custumers.sql')
+    # cur = conn.cursor()
+    # cur.execute(baseCustomer)
+    # conn.commit()
+    # cur.execute("SELECT * FROM custumers WHERE user_id = ?", (user_id,))
+    # existing_user = cur.fetchone()
+    
     update_state(user_id, 'numberPhoneInput_order')
-    conn = sqlite3.connect('custumers.sql')
-    cur = conn.cursor()
-    cur.execute(baseCustomer)
-    conn.commit()
-    cur.execute("SELECT * FROM custumers WHERE user_id = ?", (user_id,))
-    existing_user = cur.fetchone()
-    if existing_user is None:
+    # if existing_user is None:
         # Если пользователь не найден, добавляем его в базу данных
-        cur.execute("INSERT INTO custumers (user_id) VALUES (?)", (user_id,))
-        conn.commit()
-        keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
-        button_phone = types.KeyboardButton(text=phoneButtonText, request_contact=True)
-        keyboard.add(button_phone)
-        bot.send_message(message.chat.id, phoneMessageText, reply_markup=keyboard, parse_mode='html')
-        bot.register_next_step_handler(message, number_check)
-    else:
-        cur.execute("SELECT botchatname, city FROM custumers WHERE user_id = ?", (user_id,))
-        result = cur.fetchone()
-        chatcity = result[0]
-        locationcity = result[1]
-        markup = types.InlineKeyboardMarkup()
-        markup.add(types.InlineKeyboardButton(f'{buttonResultName} {locationcity}', callback_data=nameOfBaseCustomer, url=f'https://t.me/{chatcity}'))
-        bot.send_message(message.chat.id, alreadyRegistered, reply_markup=markup)
-    cur.close()
-    conn.close()
+        # cur.execute("INSERT INTO custumers (user_id) VALUES (?)", (user_id,))
+        # conn.commit()
+    keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+    button_phone = types.KeyboardButton(text=phoneButtonText, request_contact=True)
+    keyboard.add(button_phone)
+    bot.send_message(message.chat.id, phoneMessageText, reply_markup=keyboard, parse_mode='html')
+    bot.register_next_step_handler(message, number_check)
+    # else:
+    #     cur.execute("SELECT botchatname, city FROM custumers WHERE user_id = ?", (user_id,))
+    #     result = cur.fetchone()
+    #     chatcity = result[0]
+    #     locationcity = result[1]
+    #     markup = types.InlineKeyboardMarkup()
+    #     markup.add(types.InlineKeyboardButton(f'{buttonResultName} {locationcity}', callback_data=nameOfBaseCustomer, url=f'https://t.me/{chatcity}'))
+    #     bot.send_message(message.chat.id, alreadyRegistered, reply_markup=markup)
+    # cur.close()
+    # conn.close()
 
 def number_check(message):    
     global phoneOrder 
@@ -502,12 +504,15 @@ def password_check_order(message):
             message.text.strip(None)
             input_password_order(message)        
         else:                  
+            user_id = message.from_user.id
+
             passwordOrder = message.text.strip()   
             print(passwordOrder, ' pawwword')
-            sendMoney(message)
+            sendMoney(message, user_id)
 
-def sendMoney(message):
-    import_into_database_order_admin(message)
+def sendMoney(message, user_id):
+    print(user_id)
+    import_into_database_order_admin(message, user_id)
     markup1 = types.InlineKeyboardMarkup()
     btn01 = types.InlineKeyboardButton('💵 Оплатить', url='https://t.me/Grouli123', one_time_keyboard=True)
     markup1.row(btn01)
@@ -573,7 +578,7 @@ def callback_message_citizen(callback):
     insert_user_data(workersBaseName, 'citizenRF', usercitizenRF, user_id)
     bot.send_message(callback.message.chat.id, f'📞 Телефон: {phone}\n👤 ФИО: {lastname} {firstname} {middlename}\n📅 Дата рождения: {userbirthday}\n🇷🇺 Гражданство РФ: {usercitizenRF}\n🏙 Город(а): {locationcity}')
      
-    city_check_for_chat(callback.message)
+    city_check_for_chat(callback.message, user_id)
 
 @bot.callback_query_handler(func=lambda callback: callback.data == 'Заказчик')
 @bot.callback_query_handler(func=lambda callback: callback.data == 'Рабочий') 
@@ -662,32 +667,33 @@ def check_state(message):
 @bot.message_handler(content_types=['text'])
 def check_callback_message_citizen(message):          
         global state      
+        user_id = message.from_user.id
         if state == 'initial':         
             bot.edit_message_text(userCitizenRuText, message.chat.id, message.message_id-1)
             bot.send_message(message.chat.id, userCitizenRuError, parse_mode='html')
             citizenRU(message)         
         elif state == 'citizenRU':
             bot.send_message(message.chat.id, registrationSucsess, parse_mode='html')
-            city_check_for_chat(message)
+            city_check_for_chat(message, user_id)
 
-def city_check_for_chat(message):
+def city_check_for_chat(message, user_id):
     global chatcity
     if locationcity == 'Арзамас':
         chatcity = arzCity        
-        import_into_database(message)
+        import_into_database(message, user_id)
     elif locationcity == 'Екатеринбург':
         chatcity = ekaCity
-        import_into_database(message)
+        import_into_database(message, user_id)
     elif locationcity == 'Санкт-Петербург':
         chatcity = sanCity
-        import_into_database(message)
+        import_into_database(message, user_id)
     elif locationcity == 'Москва':
         chatcity = mosCity
-        import_into_database(message)
+        import_into_database(message, user_id)
     else: 
         bot.send_message(message.chat.id, 'К сожалению, мы не работаем по вашему городу')
 
-def import_into_database(message):
+def import_into_database(message, user_id):
     global state  
     conn = sqlite3.connect('peoplebase.sql')
     cur = conn.cursor()
@@ -700,20 +706,77 @@ def import_into_database(message):
     bot.send_message(message.chat.id, alreadyRegistered, reply_markup=markup)
     state = 'citizenRU'
 
-def import_into_database_order_admin(message):
-    global state  
-    # global user_id
-    conn = sqlite3.connect('custumers.sql')
-    cur = conn.cursor()
-    cur.execute(insertIntoAdminOrderBase % (phoneOrder, cityOrder, lastnameOrder, firstnameOrder, middlenameOrder, user_id, loginOrder, passwordOrder, False, chatcity)) 
-    conn.commit()
-    cur.close()
-    conn.close()
-    markup = types.InlineKeyboardMarkup()
-    markup.add(types.InlineKeyboardButton(f'{buttonResultName} для создания заказов', callback_data=nameOfBase, url=f'https://t.me/{adminchatcity}'))       
-    bot.send_message(message.chat.id, alreadyRegistered, reply_markup=markup)    
-    state = 'citizenRU'    
-    SendMessageintoHere(6171671445, user_id)
+def import_into_database_order_admin(message, user_id):
+    global state
+    
+    try:
+        # First, let's create the database
+        conn = sqlite3.connect('custumers.sql')
+        cur = conn.cursor()
+        
+        # Execute the CREATE TABLE statement
+        cur.execute(sqlBaseCustomer.createDatabase)
+        
+        # Commit the changes
+        conn.commit()
+        
+        # Check if the table was created successfully
+        cur.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='custumers'")
+        if cur.fetchone():
+            print("Database and table created successfully.")
+            
+            # Now, let's insert the data
+            cur.execute(insertIntoAdminOrderBase % (
+                phoneOrder, cityOrder, lastnameOrder, firstnameOrder, 
+                middlenameOrder, user_id, loginOrder, passwordOrder, 
+                False, chatcity
+            ))
+            
+            # Commit the changes
+            conn.commit()
+            
+            # Close the connection
+            cur.close()
+            conn.close()
+            
+            # Send message with inline keyboard
+            markup = types.InlineKeyboardMarkup()
+            markup.add(types.InlineKeyboardButton(f'{buttonResultName} для создания заказов', callback_data=nameOfBase, url=f'https://t.me/{adminchatcity}'))
+            bot.send_message(message.chat.id, alreadyRegistered, reply_markup=markup)
+            
+            state = 'citizenRU'
+            print(user_id)
+            SendMessageintoHere(6171671445, user_id)
+        else:
+            print("Failed to create database or table.")
+            # Handle the error case (e.g., send an error message to the user)
+    
+    except sqlite3.Error as e:
+        print(f"An error occurred: {e}")
+        # Handle the error case (e.g., send an error message to the user)
+    
+    finally:
+        # Ensure the connection is closed
+        if conn:
+            # cur.close()
+            conn.close()
+
+# def import_into_database_order_admin(message, user_id):
+#     global state  
+#     # global user_id
+#     conn = sqlite3.connect('custumers.sql')
+#     cur = conn.cursor()
+#     sqlBaseCustomer.createDatabase
+#     cur.execute(insertIntoAdminOrderBase % (phoneOrder, cityOrder, lastnameOrder, firstnameOrder, middlenameOrder, user_id, loginOrder, passwordOrder, False, chatcity)) 
+#     conn.commit()
+#     cur.close()
+#     conn.close()
+#     markup = types.InlineKeyboardMarkup()
+#     markup.add(types.InlineKeyboardButton(f'{buttonResultName} для создания заказов', callback_data=nameOfBase, url=f'https://t.me/{adminchatcity}'))       
+#     bot.send_message(message.chat.id, alreadyRegistered, reply_markup=markup)    
+#     state = 'citizenRU'    
+#     print(user_id)
+#     SendMessageintoHere(6171671445, user_id)
 
 print('Bot started')
 

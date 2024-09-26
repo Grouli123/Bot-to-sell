@@ -313,29 +313,63 @@ def cancel_message(call):
     bot13.answer_callback_query(call.id)
 
 def send_customers_keyboard(message, page=0):
-    conn = sqlite3.connect('custumers.sql')
-    cursor = conn.cursor()
-    cursor.execute('SELECT last_name, firts_name, middle_name, id, podpiska FROM custumers') 
-    customers = cursor.fetchall()
-    conn.close()
-    per_page = 10
-    start = page * per_page
-    end = start + per_page
-    paginated_customers = customers[start:end]
-    keyboard = types.InlineKeyboardMarkup()
-    for customer in paginated_customers:
-        full_name = ' '.join(customer[:3])
-        subscription_status = "Дезактивировать" if customer[4] == 'true' else "Активировать"
-        callback_data = f"customer_{customer[3]}_{subscription_status.lower()}"
-        keyboard.add(types.InlineKeyboardButton(full_name, callback_data=callback_data))
-    if len(customers) > end:
-        keyboard.add(types.InlineKeyboardButton("Вперед", callback_data=f"page_{page+1}"))
-    if page > 0:
-        keyboard.add(types.InlineKeyboardButton("Назад", callback_data=f"page_{page-1}"))
-    bot13.send_message(message.chat.id, "Выберите пользователя:", reply_markup=keyboard)
+    if not os.path.exists('custumers.sql'):
+        bot13.send_message(message.chat.id, "База данных пустая")
+    else:
+        conn = sqlite3.connect('custumers.sql')
+        cursor = conn.cursor()
+        cursor.execute('SELECT last_name, firts_name, middle_name, id, podpiska FROM custumers') 
+        customers = cursor.fetchall()
+        conn.close()
+
+        per_page = 10
+        start = page * per_page
+        end = start + per_page
+        paginated_customers = customers[start:end]
+        keyboard = types.InlineKeyboardMarkup()
+        for customer in paginated_customers:
+            full_name = ' '.join(customer[:3])
+            # if customer[4] == 'true':
+            #     subscription_status = "Дезактивировать" 
+            #     print(subscription_status) 
+            # else:
+            #     subscription_status = "Активировать"
+            #     print(subscription_status)
+            callback_data = f"customer_{customer[3]}_{customer[4]}"
+            keyboard.add(types.InlineKeyboardButton(full_name, callback_data=callback_data))
+        if len(customers) > end:
+            keyboard.add(types.InlineKeyboardButton("Вперед", callback_data=f"page_{page+1}"))
+        if page > 0:
+            keyboard.add(types.InlineKeyboardButton("Назад", callback_data=f"page_{page-1}"))
+        bot13.send_message(message.chat.id, "Выберите пользователя:", reply_markup=keyboard)
+
+def send_customers_keyboard(message, page=0):
+    if not os.path.exists('custumers.sql'):
+        bot13.send_message(message.chat.id, "База данных пустая")
+    else:
+        conn = sqlite3.connect('custumers.sql')
+        cursor = conn.cursor()
+        cursor.execute('SELECT last_name, firts_name, middle_name, id, podpiska FROM custumers') 
+        customers = cursor.fetchall()
+        conn.close()
+
+        per_page = 10
+        start = page * per_page
+        end = start + per_page
+        paginated_customers = customers[start:end]
+        keyboard = types.InlineKeyboardMarkup()
+        for customer in paginated_customers:
+            full_name = ' '.join(customer[:3])
+            callback_data = f"customer_{customer[3]}_{customer[4]}"
+            keyboard.add(types.InlineKeyboardButton(full_name, callback_data=callback_data))
+        if len(customers) > end:
+            keyboard.add(types.InlineKeyboardButton("Вперед", callback_data=f"page_{page+1}"))
+        if page > 0:
+            keyboard.add(types.InlineKeyboardButton("Назад", callback_data=f"page_{page-1}"))
+        bot13.send_message(message.chat.id, "Выберите пользователя:", reply_markup=keyboard)
 
 @bot13.callback_query_handler(func=lambda call: call.data.startswith('customer_'))
-def toggle_subscription(call):
+def handle_customer_selection(call):
     parts = call.data.split('_')
     customer_id = parts[1]
     action = parts[2]  
@@ -343,17 +377,70 @@ def toggle_subscription(call):
     cur = conn.cursor()
     cur.execute('SELECT last_name, firts_name, middle_name, podpiska FROM custumers WHERE id = ?', (customer_id,))
     customer = cur.fetchone()
-    new_status = 'true' if action == "активировать" else 'false'
-    cur.execute('UPDATE custumers SET podpiska = ? WHERE id = ?', (new_status, customer_id))
+    conn.close()
+
+    full_name = ' '.join(customer[:3])
+    
+    if action == "true":
+        activate_subscription(call, customer_id, full_name)
+    else:
+        deactivate_subscription(call, customer_id, full_name)
+
+def activate_subscription(call, customer_id, full_name):
+    conn = sqlite3.connect('custumers.sql')
+    cur = conn.cursor()
+    cur.execute('UPDATE custumers SET podpiska = ? WHERE id = ?', ('true', customer_id))
     conn.commit()
     conn.close()
-    full_name = ' '.join(customer[:3])
-    subscription_status = "Подписка активна" if new_status == 'true' else "Подписка не активна"
-    toggle_button_text = "Дезактивировать" if new_status == 'true' else "Активировать"
+    
+    subscription_status = "Подписка активна"
+    toggle_button_text = "Дезактивировать"
+    
     keyboard = types.InlineKeyboardMarkup()
-    keyboard.add(types.InlineKeyboardButton(toggle_button_text, callback_data=f"customer_{customer_id}_{toggle_button_text.lower()}"))
-    bot13.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f"{full_name}\nСтатус: {subscription_status}", reply_markup=keyboard)
+    keyboard.add(types.InlineKeyboardButton(toggle_button_text, callback_data=f"customer_{customer_id}_false"))
+    
+    bot13.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, 
+                             text=f"{full_name}\nСтатус: {subscription_status}", reply_markup=keyboard)
     bot13.answer_callback_query(call.id)
+
+def deactivate_subscription(call, customer_id, full_name):
+    conn = sqlite3.connect('custumers.sql')
+    cur = conn.cursor()
+    cur.execute('UPDATE custumers SET podpiska = ? WHERE id = ?', ('false', customer_id))
+    conn.commit()
+    conn.close()
+    
+    subscription_status = "Подписка не активна"
+    toggle_button_text = "Активировать"
+    
+    keyboard = types.InlineKeyboardMarkup()
+    keyboard.add(types.InlineKeyboardButton(toggle_button_text, callback_data=f"customer_{customer_id}_true"))
+    
+    bot13.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, 
+                             text=f"{full_name}\nСтатус: {subscription_status}", reply_markup=keyboard)
+    bot13.answer_callback_query(call.id)
+
+# @bot13.callback_query_handler(func=lambda call: call.data.startswith('customer_'))
+# def toggle_subscription(call):
+#     parts = call.data.split('_')
+#     customer_id = parts[1]
+#     action = parts[2]  
+#     print(parts)
+#     conn = sqlite3.connect('custumers.sql')
+#     cur = conn.cursor()
+#     cur.execute('SELECT last_name, firts_name, middle_name, podpiska FROM custumers WHERE id = ?', (customer_id,))
+#     customer = cur.fetchone()
+#     new_status = 'true' if customer[3] == "True" else 'false'
+#     cur.execute('UPDATE custumers SET podpiska = ? WHERE id = ?', (new_status, customer_id))
+#     conn.commit()
+#     conn.close()
+#     full_name = ' '.join(customer[:3])
+#     subscription_status = "Подписка активна" if action == "True"  else "Подписка не активна"
+#     toggle_button_text = "Дезактивировать" if action == "True"  else "Активировать"
+#     keyboard = types.InlineKeyboardMarkup()
+#     keyboard.add(types.InlineKeyboardButton(toggle_button_text, callback_data=f"customer_{customer_id}_{toggle_button_text.lower()}"))
+#     bot13.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f"{full_name}\nСтатус: {subscription_status}", reply_markup=keyboard)
+#     bot13.answer_callback_query(call.id)
 
 @bot13.callback_query_handler(func=lambda call: call.data.startswith('page_'))
 def page_callback(call):
@@ -376,7 +463,7 @@ def show_database_orders(message):
             users = cur.fetchall()
             info = ''
             for el in users:
-                info += f'тут:{el[14]} Чат id: {el[9]}\nЗаявка номер: {el[0]}, Дата создания: {el[1]}, Город: {el[2]}, Количество людей: {el[3]}, Адрес: {el[4]}, Что делать: {el[5]}, Начало работ: {el[6]}, Вам на руки: {el[8]}, Сообщение админки: {el[10]}, Сообщение ордера: {el[11]}, Id чатов: {el[13]}, записался id: {el[14]}, номера телефонов друзей: {el[15]}, ФИО друзей: {el[16]}\n\n'
+                info += f' id:{el[0]}\n Дата регистрации:{el[1]}\n Город заказа: {el[2]}\n Сколько требуется сотрудников: {el[3]}\n Адрес объекта: {el[4]}\n Что нужно делать: {el[5]}\n Время начала: {el[6]}\n Время выполнения: {el[7]}\n Зарплата в час: {el[8]}\n Чат бота админа: {el[9]}\n id сообщения бота админа: {el[10]}\n id сообщения бота заказов {el[11]}\n Актуальный заказ: {el[12]}\n Чат бота заказов: {el[13]}\n id кто взял заказ: {el[14]}\n Номер телефона друзей: {el[15]}\n ФИО друзей: {el[16]}\n Время выполнения работы: {el[17]}\n Сообщение-уведомление: {el[18]}\n\n'
             cur.close()
             conn.close()
             bot13.send_message(message.chat.id, info)
@@ -395,11 +482,11 @@ def show_database_users(message):
             users = cur.fetchall()
             info = ''
             for el in users:
-                info += f'Актуальный ордер:{el[15]} и {el[16]} и {el[17]} и {el[18]} \nюзер айди {el[9]}\nПользователь номер: {el[0]}, Дата регистрации: {el[1]}, Номер телефона: +{el[2]}, Город: {el[3]}, Фамилия: {el[4]}, Имя: {el[5]}, Отчество: {el[6]}, Дата рождения: {el[7]}, Гражданство РФ: {el[8]}, Cамозанятость: {el[10]}, Аккаунт подтвержден: {el[11]}, Паспорт: {el[12]}, взял заказ номер: {el[15]} tot {el[17]} \n\n'
+                info += f' id: {el[0]}\n Дата регистрации: {el[1]}\n Номер телефона: {el[2]}\n Город: {el[3]}\n ФИО: {el[4]} {el[5]} {el[6]}\n Дата рождения: {el[7]}\n Резидент РФ: {el[8]}\n id пользователя: {el[9]}\n Самозанятость: {el[10]}\n Подтвержденный аккаунт: {el[11]}\n Паспорт: {el[12]}\n Название чата бота: {el[13]}\n Подтвержденный город: {el[14]}\n Актуальный заказ: {el[15]}\n Взятые заказы: {el[16]}\n Завершенные заказы: {el[17]} \n Отмененные заказы: {el[18]}\n Id чата бота: {el[19]} \n Рейтинг: {el[20]}\n\n'
             cur.close()
             conn.close()
             bot13.send_message(message.chat.id, info)
-    else:
+    else: 
         bot13.send_message(message.chat.id, 'Введите логин и пароль прежде чем продолжить работу')
         input_admin(message)
 
@@ -414,7 +501,7 @@ def show_database_userOrder(message):
             users = cur.fetchall()
             info = ''
             for el in users:
-                info += f'3:{el[2]} 4:{el[3]} 5:{el[4]} 6:{el[5]} 7:{el[6]} 8:{el[7]} 9:{el[8]} 10:{el[9]}\n\n11:{el[10]}'
+                info += f' id: {el[0]}\n Дата регистрации: {el[1]}\n Номер телефона: {el[2]}\n Город: {el[3]}\n ФИО: {el[4]} {el[5]} {el[6]}\n id пользователя: {el[7]}\n Логин: {el[8]}\n Пароль: {el[9]}\n Пропачена подписка: {el[10]}\n Чат бота: {el[11]}\n\n'
             cur.close()
             conn.close()
             bot13.send_message(message.chat.id, info)
