@@ -8,7 +8,8 @@ import admin_config.admin_config_message as config_message_one
 import get_orders_config.get_orders_config_message as config_message_bot_order
 import citys.city_list as citys
 from SendMessIntoAdmin import SendMessageintoHere
-from get_orders_mainArzamas import sendNotyfiMessage
+# from get_orders_mainArzamas import sendNotyfiMessage
+import sendMessageAll
 
 botApiKey13 = '6433261921:AAEmTi8RVvhuSdYSlxB2uq0x3tP0X4wMRBE'
 bot13 = telebot.TeleBot(botApiKey13)
@@ -293,7 +294,7 @@ def send_message(call):
             order_id = cur.fetchone()[0]
             cur.execute("UPDATE orders SET notifyMessageWorkers = ? WHERE id = ?", (user_message, order_id))
             conn.commit()
-            sendNotyfiMessage()
+            sendMessageAll.sendNotyfiMessage('6672528914:AAFlubj31aZHfVfQGpouapIIsb35Vikfpq4')
             bot13.send_message(call.message.chat.id, 'Сообщение отправлено')
         except sqlite3.Error as e:
             print(f"Ошибка записи в базу данных: {e}")
