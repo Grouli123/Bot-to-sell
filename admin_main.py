@@ -9,6 +9,7 @@ import get_orders_config.get_orders_API_key as API_key_Test
 import get_orders_config.get_orders_config_message as config_message_bot_order
 import citys.city_list as citys
 from get_orders_mainArzamas import testMethod
+import sendMessageWorker
 
 botApiKey = API_key_one.botAPI
 
@@ -16,6 +17,8 @@ arzamasBot = API_key_Test.botAPIArz
 MoskowBot = API_key_Test.botAPIMos
 SPBBot = API_key_Test.botAPISan
 EkaBot = API_key_Test.botAPIEka
+
+mainApi = None
 
 bot_to_send = None
 bot1 = telebot.TeleBot(botApiKey)
@@ -877,6 +880,8 @@ def check_callback_message_ready_order(message):
 
 def import_into_database(message):
     global state  
+    global cityname
+    global mainApi
     conn = sqlite3.connect('applicationbase.sql')
     cur = conn.cursor()
     cur.execute(insertIntoBase1 % (cityname, countPeople, adress, whattodo, timetostart, orderTime, salary, adminChatId, sent_message_id, '', 'True', '', '', '', '', workTime, '')) 
@@ -885,7 +890,42 @@ def import_into_database(message):
     conn.close()    
     bot1.send_message(message.chat.id, 'Заявка отправлена')
     state = 'citizenRU'
-    testMethod()
+
+    if cityname == 'Арзамас':
+        chatcity = arzCity
+        # mainApi = arzamasBot
+
+        sendMessageWorker.testMethod('6672528914:AAFlubj31aZHfVfQGpouapIIsb35Vikfpq4')
+
+        bot2 = telebot.TeleBot(arzamasBot)
+    elif cityname == 'Екатеринбург':
+        chatcity = ekaCity
+        # mainApi = EkaBot
+        
+        sendMessageWorker.testMethod(EkaBot)
+
+        bot2 = telebot.TeleBot(EkaBot)
+    elif cityname == 'Санкт-Петербург':
+        chatcity = sanCity
+        # mainApi = SPBBot
+
+        sendMessageWorker.testMethod(SPBBot)
+
+
+        bot2 = telebot.TeleBot(SPBBot)
+    elif cityname == 'Москва и область':
+        chatcity = mosCity
+        # mainApi = MoskowBot
+
+        sendMessageWorker.testMethod(MoskowBot)
+
+
+        bot2 = telebot.TeleBot(MoskowBot)
+    
+    print(f"cityname: {cityname}")
+    print(f"chatcity: {chatcity}")
+
+    # sendMessageWorker.testMethod(mainApi)
     start(message)
 
 print('Bot started')

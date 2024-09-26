@@ -336,7 +336,6 @@ def testMethod():
             # Обновляем состояние пользователя
             for result in results:
                 user_id = result[0]
-                update_state(user_id, STATE_RECEIVED_ORDER)
 
             # Создаем кнопки в зависимости от количества требуемых людей
             markup2 = types.InlineKeyboardMarkup()
