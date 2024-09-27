@@ -234,7 +234,7 @@ def insert_user_data(database_name, column, data, user_id):
 @bot.message_handler(commands=['start'])
 def registration(message):
     user_id = message.from_user.id
-
+    print('test')
     # Проверьте, есть ли пользователь уже в базе данных
     if get_state(user_id) is None:
         update_state(user_id, STATE_REGISTRATION)
