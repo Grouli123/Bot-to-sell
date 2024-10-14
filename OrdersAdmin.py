@@ -111,46 +111,46 @@ offset = 0
 test123 = None
 
 # Переменные для отслеживания состояния
-STATE_AWAITING_LOGIN = 'awaiting_login'
-STATE_AWAITING_PASSWORD = 'awaiting_password'
-STATE_LOGGED_IN = 'logged_in'
-STATE_OPENED_ORDERS = 'opened_orders'
-STATE_OPENED_PEOPLE = 'opened_people'
-STATE_OPENED_ADMIN_DB = 'opened_admin_db'
-STATE_DISPLAYED_ADMINS = 'displayed_admins'
-STATE_INPUTTING_MESSAGE = 'inputting_message'
-STATE_MESSAGE_READY_TO_SEND = 'message_ready_to_send'
-STATE_SENDING_MESSAGE = 'sending_message'
-STATE_CANCEL_MESSAGE = 'cancel_message'
+# STATE_AWAITING_LOGIN = 'awaiting_login'
+# STATE_AWAITING_PASSWORD = 'awaiting_password'
+# STATE_LOGGED_IN = 'logged_in'
+# STATE_OPENED_ORDERS = 'opened_orders'
+# STATE_OPENED_PEOPLE = 'opened_people'
+# STATE_OPENED_ADMIN_DB = 'opened_admin_db'
+# STATE_DISPLAYED_ADMINS = 'displayed_admins'
+# STATE_INPUTTING_MESSAGE = 'inputting_message'
+# STATE_MESSAGE_READY_TO_SEND = 'message_ready_to_send'
+# STATE_SENDING_MESSAGE = 'sending_message'
+# STATE_CANCEL_MESSAGE = 'cancel_message'
 
 # Создаем соединение с базой данных для хранения состояний пользователей
-def init_db():
-    conn = sqlite3.connect('states.sql')
-    cursor = conn.cursor()
-    cursor.execute('''CREATE TABLE IF NOT EXISTS user_states (
-                      user_id INTEGER PRIMARY KEY,
-                      state TEXT)''')
-    conn.commit()
-    conn.close()
+# def init_db():
+#     conn = sqlite3.connect('states.sql')
+#     cursor = conn.cursor()
+#     cursor.execute('''CREATE TABLE IF NOT EXISTS user_states (
+#                       user_id INTEGER PRIMARY KEY,
+#                       state TEXT)''')
+#     conn.commit()
+#     conn.close()
 
-init_db()  # Инициализация базы данных при запуске
+# init_db()  # Инициализация базы данных при запуске
 
-# Функция для обновления состояния пользователя
-def update_state(user_id, state):
-    conn = sqlite3.connect('states.sql')
-    cursor = conn.cursor()
-    cursor.execute('INSERT OR REPLACE INTO user_states (user_id, state) VALUES (?, ?)', (user_id, state))
-    conn.commit()
-    conn.close()
+# # Функция для обновления состояния пользователя
+# def update_state(user_id, state):
+#     conn = sqlite3.connect('states.sql')
+#     cursor = conn.cursor()
+#     cursor.execute('INSERT OR REPLACE INTO user_states (user_id, state) VALUES (?, ?)', (user_id, state))
+#     conn.commit()
+#     conn.close()
 
-# Функция для получения текущего состояния пользователя
-def get_state(user_id):
-    conn = sqlite3.connect('states.sql')
-    cursor = conn.cursor()
-    cursor.execute('SELECT state FROM user_states WHERE user_id = ?', (user_id,))
-    result = cursor.fetchone()
-    conn.close()
-    return result[0] if result else None
+# # Функция для получения текущего состояния пользователя
+# def get_state(user_id):
+#     conn = sqlite3.connect('states.sql')
+#     cursor = conn.cursor()
+#     cursor.execute('SELECT state FROM user_states WHERE user_id = ?', (user_id,))
+#     result = cursor.fetchone()
+#     conn.close()
+#     return result[0] if result else None
 
 def insert_user_data(database_name, column, data, user_id):
     conn = sqlite3.connect(database_name)
@@ -187,20 +187,20 @@ def start(message):
 def input_admin(message):      
     global adminChatId
     adminChatId = message.chat.id  
-    user_state = get_state(message.chat.id)
-    if user_state:
-        if user_state == STATE_LOGGED_IN:
-            start(message)
-        elif user_state == STATE_AWAITING_LOGIN:
-            bot13.send_message(message.chat.id, 'Введите логин', parse_mode='html')
-            bot13.register_next_step_handler(message, admin_check)
-        elif user_state == STATE_AWAITING_PASSWORD:
-            bot13.send_message(message.chat.id, 'Введите пароль', parse_mode='html')
-            bot13.register_next_step_handler(message, password_check)
-    else:
-        bot13.send_message(message.chat.id, 'Введите логин', parse_mode='html')
-        update_state(message.chat.id, STATE_AWAITING_LOGIN)
-        bot13.register_next_step_handler(message, admin_check)
+    # user_state = get_state(message.chat.id)
+    # if user_state:
+    #     if user_state == STATE_LOGGED_IN:
+    #         start(message)
+    #     elif user_state == STATE_AWAITING_LOGIN:
+            # bot13.send_message(message.chat.id, 'Введите логин', parse_mode='html')
+            # bot13.register_next_step_handler(message, admin_check)
+        # elif user_state == STATE_AWAITING_PASSWORD:
+        #     bot13.send_message(message.chat.id, 'Введите пароль', parse_mode='html')
+        #     bot13.register_next_step_handler(message, password_check)
+    # else:
+    bot13.send_message(message.chat.id, 'Введите логин', parse_mode='html')
+    # update_state(message.chat.id, STATE_AWAITING_LOGIN)
+    bot13.register_next_step_handler(message, admin_check)
 
 def admin_check(message):
     if message.text is None:
@@ -213,7 +213,7 @@ def admin_check(message):
         else:
             if 'admin' == message.text.strip():  # Пример логина
                 input_password(message)
-                update_state(message.chat.id, STATE_AWAITING_PASSWORD)
+                # update_state(message.chat.id, STATE_AWAITING_PASSWORD)
             else:
                 bot13.send_message(message.from_user.id, 'Логин не найден')
                 input_admin(message)
@@ -234,7 +234,7 @@ def password_check(message):
         else:
             if 'admin123' == message.text.strip():  # Пример пароля
                 loginin = True
-                update_state(message.chat.id, STATE_LOGGED_IN)
+                # update_state(message.chat.id, STATE_LOGGED_IN)
                 start(message)
             else:
                 bot13.send_message(message.from_user.id, 'Пароль не подходит')
@@ -242,34 +242,34 @@ def password_check(message):
 
 @bot13.callback_query_handler(func=lambda call: call.data == 'open_orders')
 def handle_open_base_orders(call):
-    update_state(call.message.chat.id, STATE_OPENED_ORDERS)
+    # update_state(call.message.chat.id, STATE_OPENED_ORDERS)
     bot13.send_message(call.message.chat.id, config_message_one.open_base_orders_message)
     show_database_orders(call.message)
     bot13.answer_callback_query(call.id)
 
 @bot13.callback_query_handler(func=lambda call: call.data == 'open_people')
 def handle_open_base_people(call):
-    update_state(call.message.chat.id, STATE_OPENED_PEOPLE)
+    # update_state(call.message.chat.id, STATE_OPENED_PEOPLE)
     bot13.send_message(call.message.chat.id, config_message_one.open_base_people_message)
     show_database_users(call.message)
     bot13.answer_callback_query(call.id)
 
 @bot13.callback_query_handler(func=lambda call: call.data == 'open_admin_db')
 def handle_open_admin_db(call):
-    update_state(call.message.chat.id, STATE_OPENED_ADMIN_DB)
+    # update_state(call.message.chat.id, STATE_OPENED_ADMIN_DB)
     bot13.send_message(call.message.chat.id, 'Открыть базу данных админов')
     show_database_userOrder(call.message)
     bot13.answer_callback_query(call.id)
 
 @bot13.callback_query_handler(func=lambda call: call.data == 'display_admins')
 def display_admins(call):
-    update_state(call.message.chat.id, STATE_DISPLAYED_ADMINS)
+    # update_state(call.message.chat.id, STATE_DISPLAYED_ADMINS)
     send_customers_keyboard(call.message)
     bot13.answer_callback_query(call.id)
 
 @bot13.callback_query_handler(func=lambda call: call.data == 'input_message')
 def input_message(call):
-    update_state(call.message.chat.id, STATE_INPUTTING_MESSAGE)
+    # update_state(call.message.chat.id, STATE_INPUTTING_MESSAGE)
     bot13.send_message(call.message.chat.id, 'Введите сообщение:', parse_mode='html')
     bot13.register_next_step_handler(call.message, get_message)
 
@@ -280,7 +280,7 @@ def get_message(message):
     btn_cancel = types.InlineKeyboardButton('Отменить', callback_data='cancel_message')
     markup.add(btn_send, btn_cancel)
     bot13.send_message(message.chat.id, f'Ваше сообщение: {message.text}', reply_markup=markup)
-    update_state(message.chat.id, STATE_MESSAGE_READY_TO_SEND)
+    # update_state(message.chat.id, STATE_MESSAGE_READY_TO_SEND)
 
 @bot13.callback_query_handler(func=lambda call: call.data == 'send_message')
 def send_message(call):
@@ -510,37 +510,37 @@ def show_database_userOrder(message):
         bot13.send_message(message.chat.id, 'Введите логин и пароль прежде чем продолжить работу')
         input_admin(message)
 
-@bot13.message_handler(content_types=['text'])
-def check_state(message):
-    user_id = message.from_user.id
-    handle_state(user_id, message)
+# @bot13.message_handler(content_types=['text'])
+# def check_state(message):
+#     user_id = message.from_user.id
+    # handle_state(user_id, message)
 
 # Обработчик состояний пользователя
-def handle_state(user_id, message):
-    state = get_state(user_id)
+# def handle_state(user_id, message):
+#     state = get_state(user_id)
 
-    if state == STATE_AWAITING_LOGIN:
-        input_admin(message)
-    elif state == STATE_AWAITING_PASSWORD:
-        input_password(message)
-    elif state == STATE_LOGGED_IN:
-        start(message)
-    elif state == STATE_OPENED_ORDERS:
-        handle_open_base_orders(message)
-    elif state == STATE_OPENED_PEOPLE:
-        handle_open_base_people(message)
-    elif state == STATE_OPENED_ADMIN_DB:
-        handle_open_admin_db(message)
-    elif state == STATE_DISPLAYED_ADMINS:
-        display_admins(message)
-    elif state == STATE_INPUTTING_MESSAGE:
-        input_message(message)
-    elif state == STATE_MESSAGE_READY_TO_SEND:
-        send_message(message)
-    elif state == STATE_SENDING_MESSAGE:
-        get_message(message)
-    elif state == STATE_CANCEL_MESSAGE:
-        cancel_message(message)
+#     if state == STATE_AWAITING_LOGIN:
+#         input_admin(message)
+#     elif state == STATE_AWAITING_PASSWORD:
+#         input_password(message)
+#     elif state == STATE_LOGGED_IN:
+#         start(message)
+#     elif state == STATE_OPENED_ORDERS:
+#         handle_open_base_orders(message)
+#     elif state == STATE_OPENED_PEOPLE:
+#         handle_open_base_people(message)
+#     elif state == STATE_OPENED_ADMIN_DB:
+#         handle_open_admin_db(message)
+#     elif state == STATE_DISPLAYED_ADMINS:
+#         display_admins(message)
+#     elif state == STATE_INPUTTING_MESSAGE:
+#         input_message(message)
+#     elif state == STATE_MESSAGE_READY_TO_SEND:
+#         send_message(message)
+#     elif state == STATE_SENDING_MESSAGE:
+#         get_message(message)
+#     elif state == STATE_CANCEL_MESSAGE:
+#         cancel_message(message)
 
 print('Bot started')
 bot13.polling(non_stop=True, interval=0, timeout=60, long_polling_timeout=30)

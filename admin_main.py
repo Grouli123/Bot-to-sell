@@ -895,7 +895,7 @@ def import_into_database(message):
         chatcity = arzCity
         # mainApi = arzamasBot
 
-        sendMessageWorker.testMethod('6672528914:AAFlubj31aZHfVfQGpouapIIsb35Vikfpq4')
+        sendMessageWorker.testMethod(arzamasBot)
 
         bot2 = telebot.TeleBot(arzamasBot)
     elif cityname == 'Екатеринбург':

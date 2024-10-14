@@ -1,6 +1,8 @@
 import telebot
 from telebot import types
 import sqlite3
+import time  # Не забудьте импортировать time
+from datetime import datetime, timedelta  # Если используются в другом коде
 
 check_mess_already_send = False
 check_user_id = None
@@ -14,6 +16,8 @@ user_message_ids = {}
 user_chat_ids = {}
 data_called = False  
 user_id_mess = None
+
+callbackGetData= None
 
 def testMethod(botId):
     global check_mess_already_send
@@ -52,34 +56,47 @@ def testMethod(botId):
             else:
                 needText = 'Нужен'
 
-            # Создаем кнопки в зависимости от количества требуемых людей
+            # Получаем идентификатор заказа
+            order_id = users[0]
+
+            # Создаем кнопки с включением order_id в callback_data
             markup2 = types.InlineKeyboardMarkup()
             if int(users[3]) == 1:
-                btn12 = types.InlineKeyboardButton('Еду 1', callback_data='Еду 1', one_time_keyboard=True)
+                callbackGetData = f'Еду 1|{order_id}'
+                btn12 = types.InlineKeyboardButton('Еду 1', callback_data=callbackGetData, one_time_keyboard=True)
                 btn52 = types.InlineKeyboardButton('❓ Задать вопрос', url='https://t.me/Grouli123', one_time_keyboard=True)
                 markup2.row(btn12)
                 markup2.row(btn52)
             elif int(users[3]) == 2:
-                btn12 = types.InlineKeyboardButton('Еду 1', callback_data='Еду 1', one_time_keyboard=True)
-                btn22 = types.InlineKeyboardButton('Едем в 2', callback_data='Едем в 2', one_time_keyboard=True)
+                callbackGetData1 = f'Еду 1|{order_id}'
+                callbackGetData2 = f'Едем в 2|{order_id}'
+                btn12 = types.InlineKeyboardButton('Еду 1', callback_data=callbackGetData1, one_time_keyboard=True)
+                btn22 = types.InlineKeyboardButton('Едем в 2', callback_data=callbackGetData2, one_time_keyboard=True)
                 btn52 = types.InlineKeyboardButton('❓ Задать вопрос', url='https://t.me/Grouli123', one_time_keyboard=True)
                 markup2.row(btn12)
                 markup2.row(btn22)
                 markup2.row(btn52)
             elif int(users[3]) == 3:
-                btn12 = types.InlineKeyboardButton('Еду 1', callback_data='Еду 1', one_time_keyboard=True)
-                btn22 = types.InlineKeyboardButton('Едем в 2', callback_data='Едем в 2', one_time_keyboard=True)
-                btn32 = types.InlineKeyboardButton('Едем в 3', callback_data='Едем в 3', one_time_keyboard=True)
+                callbackGetData1 = f'Еду 1|{order_id}'
+                callbackGetData2 = f'Едем в 2|{order_id}'
+                callbackGetData3 = f'Едем в 3|{order_id}'
+                btn12 = types.InlineKeyboardButton('Еду 1', callback_data=callbackGetData1, one_time_keyboard=True)
+                btn22 = types.InlineKeyboardButton('Едем в 2', callback_data=callbackGetData2, one_time_keyboard=True)
+                btn32 = types.InlineKeyboardButton('Едем в 3', callback_data=callbackGetData3, one_time_keyboard=True)
                 btn52 = types.InlineKeyboardButton('❓ Задать вопрос', url='https://t.me/Grouli123', one_time_keyboard=True)
                 markup2.row(btn12)
                 markup2.row(btn22)
                 markup2.row(btn32)
                 markup2.row(btn52)
             elif int(users[3]) >= 4:
-                btn12 = types.InlineKeyboardButton('Еду 1', callback_data='Еду 1', one_time_keyboard=True)
-                btn22 = types.InlineKeyboardButton('Едем в 2', callback_data='Едем в 2', one_time_keyboard=True)
-                btn32 = types.InlineKeyboardButton('Едем в 3', callback_data='Едем в 3', one_time_keyboard=True)
-                btn42 = types.InlineKeyboardButton('Едем в 4', callback_data='Едем в 4', one_time_keyboard=True)
+                callbackGetData1 = f'Еду 1|{order_id}'
+                callbackGetData2 = f'Едем в 2|{order_id}'
+                callbackGetData3 = f'Едем в 3|{order_id}'
+                callbackGetData4 = f'Едем в 4|{order_id}'
+                btn12 = types.InlineKeyboardButton('Еду 1', callback_data=callbackGetData1, one_time_keyboard=True)
+                btn22 = types.InlineKeyboardButton('Едем в 2', callback_data=callbackGetData2, one_time_keyboard=True)
+                btn32 = types.InlineKeyboardButton('Едем в 3', callback_data=callbackGetData3, one_time_keyboard=True)
+                btn42 = types.InlineKeyboardButton('Едем в 4', callback_data=callbackGetData4, one_time_keyboard=True)
                 btn52 = types.InlineKeyboardButton('❓ Задать вопрос', url='https://t.me/Grouli123', one_time_keyboard=True)
                 markup2.row(btn12)
                 markup2.row(btn22)
@@ -91,7 +108,7 @@ def testMethod(botId):
                           f'<b>•Адрес:</b>👉 {users[4]}\n'
                           f'<b>•Что делать:</b> {users[5]}\n'
                           f'<b>•Начало работ:</b> в {users[6]}:00\n'
-                          f'<b>·Рабочее время:</b> {users[17]}:00\n'
+                          f'<b>•Рабочее время:</b> {users[17]}:00\n'
                           f'<b>•Вам на руки:</b> <u>{users[8]}.00</u> р./час, минималка 2 часа\n'
                           f'<b>•Приоритет самозанятым</b>')
 
