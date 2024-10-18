@@ -140,20 +140,30 @@ def testMethod(botId):
 
                                 last_message_id_str = str(last_message_id)
                                 current_message_ids.append(last_message_id_str)
+                                updated_message_ids_str = ','.join(current_message_ids)
+
                         except telebot.apihelper.ApiException as e:
                             if "chat not found" in str(e):
                                 print(f"Чат {botChatIdw} не найден, пропускаем отправку.")
                             else:
                                 print(f"Ошибка при отправке сообщения в чат {botChatIdw}: {e}")
-                conn5.close()
+
+                # Теперь мы закрываем только после выполнения всех операций
                 cur5.close()
+                conn5.close()
 
                 # Обновляем данные для всех пользователей
                 for user_id_mess, message_id_list in user_message_ids.items():
                     updated_message_ids_str = ','.join(map(str, message_id_list))
+                    print(f'updated_message_ids_str {updated_message_ids_str}')
+                    print(f'user_chat_ids[user_id_mess] {user_chat_ids[user_id_mess]}')
                     sql_query = "UPDATE orders SET orderMessageId = ?, orderChatId = ? WHERE id = ?"
                     cur.execute(sql_query, (updated_message_ids_str, user_chat_ids[user_id_mess], user_id_mess))
+                
+                # Сохраняем изменения в базе данных после всех обновлений
                 conn.commit()
+
+                # Обновляем состояние сообщений
                 last_sent_message = order_info
                 check_mess_already_send = False
             else:
@@ -169,3 +179,4 @@ def testMethod(botId):
             print(f"Ошибка базы данных: {e}")
             error_reported = True
         conn.close()
+

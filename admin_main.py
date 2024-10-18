@@ -537,9 +537,13 @@ def callback_message_created_order(callback):
         cur = conn.cursor()
         cur.execute("SELECT cityOfobj, countpeople, adress, whattodo, timetostart, salary, orderMessageId, orderChatId, workTime FROM orders WHERE adminMessageId = ?", (message_id,))
         users = cur.fetchone()
-        order_info_close = f'❌ Заявка закрыта\n<b>•{users[0]}: </b>{needText} {users[1]} {humanCount}\n<b>•Адрес:</b>👉 {users[2]}\n<b>•Что делать:</b> {users[3]}\n<b>•Начало работ:</:b> в {users[4]}\n<b>Рабочее время:</b>{users[8]}\n<b>•Вам на руки:</:b> <u>{users[5]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
+        # order_info_close = f'❌ Заявка закрыта\n<b>•{users[0]}: </b>{needText} {users[1]} {humanCount}\n<b>•Адрес:</b>👉 {users[2]}\n<b>•Что делать:</b> {users[3]}\n<b>•Начало работ:</:b> в {users[4]}\n<b>Рабочее время:</b>{users[8]}\n<b>•Вам на руки:</:b> <u>{users[5]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
+        order_info_close = f'❌ Заявка закрыта\n<b>•{users[0]}: </b>{needText} {users[1]} {humanCount}\n<b>•Адрес:</b>👉 {users[2]}\n<b>•Что делать:</b> {users[3]}\n<b>•Начало работ:</b> в {users[4]}\n<b>Рабочее время:</b>{users[8]}\n<b>•Вам на руки:</b> <u>{users[5]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
+
         user_message_ids = users[6]
         chat_id_list = users[7].split(',') if users[7] else []
+        print(f'user_message_ids {user_message_ids}')
+        print(f'users[7] {users[7]}')
         message_id_list = user_message_ids.split(',') if user_message_ids else []
         conn.close()
         for chat_id, message_id in zip(chat_id_list, message_id_list):
@@ -890,6 +894,7 @@ def import_into_database(message):
     conn.close()    
     bot1.send_message(message.chat.id, 'Заявка отправлена')
     state = 'citizenRU'
+    print(f'sent_message_id: {sent_message_id}')
 
     if cityname == 'Арзамас':
         chatcity = arzCity

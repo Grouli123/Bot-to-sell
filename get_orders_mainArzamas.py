@@ -243,6 +243,7 @@ def insert_user_data(database_name, column, data, user_id):
 @bot.message_handler(commands=['start'])
 def registration(message):
     user_id = message.from_user.id
+    chatId = message.chat.id
     print('test')
     # Проверьте, есть ли пользователь уже в базе данных
     if get_state(user_id) is None:
@@ -267,7 +268,7 @@ def registration(message):
         else:
             check_user_id = None
 
-        cursor.execute("UPDATE users SET botChatId = ? WHERE user_id = ?", (message.chat.id, user_id))
+        cursor.execute("UPDATE users SET botChatId = ? WHERE user_id = ?", (chatId, user_id))
         conn.commit()
     except sqlite3.Error as e:
 
