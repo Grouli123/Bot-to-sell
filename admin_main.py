@@ -438,9 +438,11 @@ def wokr_time_check(message):
         bot1.send_message(message.from_user.id, textOnly)
         input_wokr_time(message)
     else:
-        if len(message.text.strip()) > maxSymbol1:
+        if not message.text.strip().isdigit():
+            bot1.send_message(message.from_user.id, "Пожалуйста, введите только числовое значение.")
+            input_wokr_time(message)
+        elif len(message.text.strip()) > maxSymbol1:
             bot1.send_message(message.chat.id, startWorkError)
-            message.text.strip(None)
             input_wokr_time(message) 
         else:     
             try:
@@ -451,6 +453,7 @@ def wokr_time_check(message):
             except ValueError:
                 bot1.send_message(message.from_user.id, inputNumbers)
                 input_wokr_time(message)
+
 
 def created_order(message):
     update_state(message.from_user.id, STATE_CREATED_ORDER)
