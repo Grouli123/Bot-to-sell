@@ -20,5 +20,5 @@ for script_path in script_paths:
     processes.append(process)
 
 # Дожидаемся завершения всех процессов
-for process in processes:
+for process in processes: 
     process.wait()

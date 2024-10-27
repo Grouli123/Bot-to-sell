@@ -390,17 +390,27 @@ def input_startwork(message):
 def startwork_check(message):      
     global timetostart
     if message.text is None:
-        bot1.send_message(message.from_user.id, textOnly)
+        bot1.send_message(message.from_user.id, 'Пожалуйста, введите только числовое значение.')
         input_startwork(message)
+        return
     else:
         if len(message.text.strip()) > maxSymbol1:
-            bot1.send_message(message.chat.id, startWorkError)
+            bot1.send_message(message.chat.id, 'Пожалуйста, введите только числовое значение.')
             message.text.strip(None)
             input_startwork(message) 
+            return
         else:     
-            timetostart = message.text.strip()
-            print(startwork_check)
-            input_salary(message)
+            try:
+                timetostart = message.text.strip()
+                int(timetostart)
+                print(startwork_check)
+                input_salary(message)
+            except ValueError:
+                bot1.send_message(message.chat.id, 'Пожалуйста, введите только числовое значение.')           
+                input_startwork(message) 
+                return
+
+
 
 def input_salary(message):
     update_state(message.from_user.id, STATE_INPUT_SALARY)
@@ -437,13 +447,12 @@ def wokr_time_check(message):
     if message.text is None:
         bot1.send_message(message.from_user.id, textOnly)
         input_wokr_time(message)
+        return  # Добавляем return, чтобы остановить дальнейшее выполнение
     else:
-        if not message.text.strip().isdigit():
-            bot1.send_message(message.from_user.id, "Пожалуйста, введите только числовое значение.")
+        if len(message.text.strip()) > maxSymbol1:
+            bot1.send_message(message.chat.id, "Пожалуйста, введите только числовое значение.")
             input_wokr_time(message)
-        elif len(message.text.strip()) > maxSymbol1:
-            bot1.send_message(message.chat.id, startWorkError)
-            input_wokr_time(message) 
+            return  # Добавляем return здесь
         else:     
             try:
                 workTime = message.text.strip()                
@@ -453,6 +462,8 @@ def wokr_time_check(message):
             except ValueError:
                 bot1.send_message(message.from_user.id, inputNumbers)
                 input_wokr_time(message)
+                return  # И здесь тоже добавляем return
+
 
 
 def created_order(message):
@@ -540,7 +551,7 @@ def callback_message_created_order(callback):
         cur = conn.cursor()
         cur.execute("SELECT cityOfobj, countpeople, adress, whattodo, timetostart, salary, orderMessageId, orderChatId, workTime FROM orders WHERE adminMessageId = ?", (message_id,))
         users = cur.fetchone()
-        # order_info_close = f'❌ Заявка закрыта\n<b>•{users[0]}: </b>{needText} {users[1]} {humanCount}\n<b>•Адрес:</b>👉 {users[2]}\n<b>•Что делать:</b> {users[3]}\n<b>•Начало работ:</:b> в {users[4]}\n<b>Рабочее время:</b>{users[8]}\n<b>•Вам на руки:</:b> <u>{users[5]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
+        # order_info_close = f'❌ Заявка закрыта\n<b>•{users[0]}: </b>{needText} {users[1]} {humanCount}\n<b>•Адрес:</b>👉 {users[2]}\n<b>•Что делать:</b> {users[3]}\n<b>•Начало работ:</b> в {users[4]}\n<b>Рабочее время:</b>{users[8]}\n<b>•Вам на руки:</b> <u>{users[5]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
         order_info_close = f'❌ Заявка закрыта\n<b>•{users[0]}: </b>{needText} {users[1]} {humanCount}\n<b>•Адрес:</b>👉 {users[2]}\n<b>•Что делать:</b> {users[3]}\n<b>•Начало работ:</b> в {users[4]}\n<b>Рабочее время:</b>{users[8]}\n<b>•Вам на руки:</b> <u>{users[5]}.00</u> р./час, минималка 2 часа\n<b>•Приоритет самозанятым</b>'
 
         user_message_ids = users[6]
@@ -682,7 +693,7 @@ def testmess_test(callback):
     test2 = cursor.fetchone()
     if test2[6] == 'True':
         conn.close()
-        application = f'✅\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</:b> в {test2[4]}\n<b>·Рабочее время:</:b>{test2[7]}\n<b>·Вам на руки:</:b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
+        application = f'✅\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</b> в {test2[4]}\n<b>·Рабочее время:</b>{test2[7]}\n<b>·Вам на руки:</b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
         markup = types.InlineKeyboardMarkup()
         btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='view_record', one_time_keyboard=True)
         btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='close_order', one_time_keyboard=True)
@@ -690,7 +701,7 @@ def testmess_test(callback):
         markup.row(btn01)
         bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
     else:
-        application = f'❌ Заявка закрыта\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</:b> в {test2[4]}\n<b>·Рабочее время:</:b>{test2[7]}\n<b>·Вам на руки:</:b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
+        application = f'❌ Заявка закрыта\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</b> в {test2[4]}\n<b>·Рабочее время:</b>{test2[7]}\n<b>·Вам на руки:</b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
         markup = types.InlineKeyboardMarkup()
         btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='view_record_1', one_time_keyboard=True)
         markup.row(btn02)
@@ -755,7 +766,7 @@ def callback_data_of_data_confirm(callback):
         markup.row(btn01)
         bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
     else:
-        application = f'❌ Заявка закрыта\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</:b>👉 {test2[2]}\n<b>·Что делать:</:b> {test2[3]}\n<b>·Начало работ:</:b> в {test2[4]}\n<b>·Рабочее время:</:b>{test2[6]}\n<b>·Вам на руки:</:b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
+        application = f'❌ Заявка закрыта\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</b> в {test2[4]}\n<b>·Рабочее время:</b>{test2[6]}\n<b>·Вам на руки:</b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
         markup = types.InlineKeyboardMarkup()
         btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='view_record_1', one_time_keyboard=True)
         markup.row(btn02)
@@ -781,7 +792,7 @@ def callback_data_of_data_miss(callback):
     bot1.answer_callback_query(callback.id, "Заказ был выполнен с браком")
     if test2[6] == 'True':
         conn.close()
-        application = f'✅\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</:b>👉 {test2[2]}\n<b>·Что делать:</:b> {test2[3]}\n<b>·Начало работ:</:b> в {test2[4]}\n<b>·Рабочее время:</:b>{test2[7]}\n<b>·Вам на руки:</:b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
+        application = f'✅\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</b> в {test2[4]}\n<b>·Рабочее время:</b>{test2[7]}\n<b>·Вам на руки:</b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
         markup = types.InlineKeyboardMarkup()
         btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='view_record', one_time_keyboard=True)
         btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='close_order', one_time_keyboard=True)
@@ -789,7 +800,7 @@ def callback_data_of_data_miss(callback):
         markup.row(btn01)
         bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
     else:
-        application = f'❌ Заявка закрыта\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</:b>👉 {test2[2]}\n<b>·Что делать:</:b> {test2[3]}\n<b>·Начало работ:</:b> в {test2[4]}\n<b>·Рабочее время:</:b>{test2[7]}\n<b>·Вам на руки:</:b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
+        application = f'❌ Заявка закрыта\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</b> в {test2[4]}\n<b>·Рабочее время:</b>{test2[7]}\n<b>·Вам на руки:</b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
         markup = types.InlineKeyboardMarkup()
         btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='view_record_1', one_time_keyboard=True)
         markup.row(btn02)
@@ -819,7 +830,7 @@ def callback_data_of_data_close(callback):
     bot1.answer_callback_query(callback.id, "Заказ отменен")
     if test2[6] == 'True':
         conn.close()
-        application = f'✅\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</:b> в {test2[4]}\n<b>·Рабочее время:</:b>{test2[7]}\n<b>·Вам на руки:</:b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
+        application = f'✅\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</b> в {test2[4]}\n<b>·Рабочее время:</b>{test2[7]}\n<b>·Вам на руки:</b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
         markup = types.InlineKeyboardMarkup()
         btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='view_record', one_time_keyboard=True)
         btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='close_order', one_time_keyboard=True)
@@ -827,7 +838,7 @@ def callback_data_of_data_close(callback):
         markup.row(btn01)
         bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
     else:
-        application = f'❌ Заявка закрыта\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</:b> в {test2[4]}\n<b>·Рабочее время:</:b>{test2[7]}\n<b>·Вам на руки:</:b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
+        application = f'❌ Заявка закрыта\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</b> в {test2[4]}\n<b>·Рабочее время:</b>{test2[7]}\n<b>·Вам на руки:</b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
         markup = types.InlineKeyboardMarkup()
         btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='view_record_1', one_time_keyboard=True)
         markup.row(btn02)
