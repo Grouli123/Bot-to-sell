@@ -521,13 +521,14 @@ def callback_message_created_order(callback):
 
         try:
             bot2.send_message(chatcity, application, parse_mode='html', reply_markup=markup1)
+            import_into_database(callback.message)
         except Exception as e:
             print(f"Error sending message: {e}")
 
     else:
         feedback = orderDeleteText
         bot1.delete_message(callback.message.chat.id, callback.message.message_id)
-    import_into_database(callback.message)
+        start(message)
 
 @bot1.callback_query_handler(func=lambda callback: callback.data == 'close_order')
 def callback_message_created_order(callback):
