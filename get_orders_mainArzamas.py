@@ -701,14 +701,14 @@ def callback_data_of_data(callback):
                       f'<b>•Приоритет самозанятым</b>')
 
         # Создаем разметку кнопок (markup)
-        markup = types.InlineKeyboardMarkup()
-        btn = types.InlineKeyboardButton('Посмотреть запись', callback_data='ОтправленоАдмину')
-        btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='❌ Закрыть заявку', one_time_keyboard=True)
-        markup.row(btn)
-        markup.row(btn01)
+        # markup = types.InlineKeyboardMarkup()
+        # btn = types.InlineKeyboardButton('Посмотреть запись', callback_data='ОтправленоАдмину')
+        # btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='❌ Закрыть заявку', one_time_keyboard=True)
+        # markup.row(btn)
+        # markup.row(btn01)
 
         # Обновляем сообщение
-        bot.edit_message_text(order_info, callback.message.chat.id, callback.message.message_id, reply_markup=markup, parse_mode='html')
+        bot.edit_message_text(order_info, callback.message.chat.id, callback.message.message_id, parse_mode='html')
         print("Сообщение с информацией о заказе обновлено")
 
         bot.send_message(callback.message.chat.id, f'Принято, вы {action}, ваш заказ номер: {user_id_mess}')
