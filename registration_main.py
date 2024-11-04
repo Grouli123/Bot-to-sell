@@ -784,4 +784,4 @@ def import_into_database_order_admin(message, user_id):
 
 print('Bot started')
 
-bot.polling(non_stop=True)
+bot.polling(non_stop=True, interval=0, timeout=60, long_polling_timeout=30)

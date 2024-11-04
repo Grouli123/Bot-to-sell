@@ -348,8 +348,18 @@ def handle_reminder_response(call):
         # Отмена заказа
         conn = sqlite3.connect('peoplebase.sql')
         cursor = conn.cursor()
-        cursor.execute("UPDATE users SET actualOrder = '' WHERE user_id = ?", (call.from_user.id,))
+
+        cursor.execute("SELECT actualOrder, orderMiss FROM users WHERE id = ('%s')" % (user_id_mess))
+        takeOrderTake = cursor.fetchone()
+        test_test = takeOrderTake[0]
+        current_orderId = takeOrderTake[1] if takeOrderTake[1] else ""
+        new_orderId = current_orderId + "," + test_test if current_orderId else test_test
+        # print(new_orderId, 'ТУТ АЛЕ')
+        cursor.execute("UPDATE users SET actualOrder = '%s', orderMiss = '%s' WHERE user_id = '%s'" % ("", new_orderId, call.from_user.id))
         conn.commit()
+
+        # cursor.execute("UPDATE users SET actualOrder = '' WHERE user_id = ?", (call.from_user.id,))
+        # conn.commit()
         cursor.close()
         conn.close()
 
@@ -394,10 +404,26 @@ def handle_reminder_response_two(call):
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f'Вы в пути на заказ {user_id_mess}?')
         send_reminder_three(call.message.chat.id, user_id_mess)
     elif call.data.startswith('close_order2_'):
+        # conn = sqlite3.connect('peoplebase.sql')
+        # cursor = conn.cursor()
+        # cursor.execute("UPDATE users SET actualOrder = '' WHERE user_id = ?", (call.from_user.id,))
+        # conn.commit()
+        # cursor.close()
+        # conn.close()
         conn = sqlite3.connect('peoplebase.sql')
         cursor = conn.cursor()
-        cursor.execute("UPDATE users SET actualOrder = '' WHERE user_id = ?", (call.from_user.id,))
+
+        cursor.execute("SELECT actualOrder, orderMiss FROM users WHERE id = ('%s')" % (user_id_mess))
+        takeOrderTake = cursor.fetchone()
+        test_test = takeOrderTake[0]
+        current_orderId = takeOrderTake[1] if takeOrderTake[1] else ""
+        new_orderId = current_orderId + "," + test_test if current_orderId else test_test
+        # print(new_orderId, 'ТУТ АЛЕ')
+        cursor.execute("UPDATE users SET actualOrder = '%s', orderMiss = '%s' WHERE user_id = '%s'" % ("", new_orderId, call.from_user.id))
         conn.commit()
+
+        # cursor.execute("UPDATE users SET actualOrder = '' WHERE user_id = ?", (call.from_user.id,))
+        # conn.commit()
         cursor.close()
         conn.close()
 
@@ -441,10 +467,26 @@ def handle_reminder_response_three(call):
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f'Вы приехали на заказ {user_id_mess}?')
         send_reminder_four(call.message.chat.id, user_id_mess)
     elif call.data.startswith('close_order3_'):
+        # conn = sqlite3.connect('peoplebase.sql')
+        # cursor = conn.cursor()
+        # cursor.execute("UPDATE users SET actualOrder = '' WHERE user_id = ?", (call.from_user.id,))
+        # conn.commit()
+        # cursor.close()
+        # conn.close()
         conn = sqlite3.connect('peoplebase.sql')
         cursor = conn.cursor()
-        cursor.execute("UPDATE users SET actualOrder = '' WHERE user_id = ?", (call.from_user.id,))
+
+        cursor.execute("SELECT actualOrder, orderMiss FROM users WHERE id = ('%s')" % (user_id_mess))
+        takeOrderTake = cursor.fetchone()
+        test_test = takeOrderTake[0]
+        current_orderId = takeOrderTake[1] if takeOrderTake[1] else ""
+        new_orderId = current_orderId + "," + test_test if current_orderId else test_test
+        # print(new_orderId, 'ТУТ АЛЕ')
+        cursor.execute("UPDATE users SET actualOrder = '%s', orderMiss = '%s' WHERE user_id = '%s'" % ("", new_orderId, call.from_user.id))
         conn.commit()
+
+        # cursor.execute("UPDATE users SET actualOrder = '' WHERE user_id = ?", (call.from_user.id,))
+        # conn.commit()
         cursor.close()
         conn.close()
 
@@ -1734,6 +1776,9 @@ def callback_data_of_data(callback):
         orderDataTake = test2[16]
         orderDataDone = test2[17]
         orderDataMiss = test2[18]
+
+        orderDataDefect = test2[21]
+
         if orderDataTake:
             recordsTake = orderDataTake.split(',')
             orderDataTake = len(recordsTake) - 1
@@ -1757,13 +1802,21 @@ def callback_data_of_data(callback):
             orderCountMiss = 0
         # recordsMiss = orderDataMiss.split(',')
 
+        if orderDataDefect:
+            recordsDefect = orderDataDefect.split(',')
+            orderCounrDefect = len(recordsDefect) - 1
+        else:
+            orderCounrDefect = 0
+
         print(f"Количество записей: {orderCountTake}")
         print(f"Количество записей: {orderCountDone}")
         print(f"Количество записей: {orderCountMiss}")
+        print(f"Количество записей: {orderCounrDefect}")
         conn.close()
         try:
             percent_completed = (orderCountDone / orderCountTake) * 100
             percent_failed = (orderCountMiss / orderCountTake) * 100
+            percent_defect = (orderCounrDefect / orderCountTake) * 100
         except Exception:
             percent_completed = 0
             percent_failed = 0
@@ -1773,7 +1826,7 @@ def callback_data_of_data(callback):
         btn3 = types.InlineKeyboardButton(citizenRuButtonNoText, callback_data=citizenRuButtonNoTextCallbackData, one_time_keyboard=True)
         markup.row(btn2)
         markup.row(btn3)
-        bot.send_message(callback.message.chat.id, f'📊 Статистика заказов:\n• Взял: {orderCountTake}\n• Выполнил: {orderCountDone} ({percent_completed}%)\n• Брак: {orderCountMiss} ({percent_failed}%)', reply_markup=markup)
+        bot.send_message(callback.message.chat.id, f'📊 Статистика заказов:\n• Взял: {orderCountTake}\n• Выполнил: {orderCountDone} ({percent_completed}%)\n• Брак: {orderCounrDefect} ({percent_defect}%)\n• Отменил: {orderCountMiss} ({percent_failed}%)', reply_markup=markup)
     elif callback.data == '✅Подтвердить аккаунт':
         print(nuberPhone, lastname)
         data_called = False

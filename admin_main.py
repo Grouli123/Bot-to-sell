@@ -697,9 +697,9 @@ def testmess_test(callback):
         application = f'✅\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</b> в {test2[4]}\n<b>·Рабочее время:</b>{test2[7]}\n<b>·Вам на руки:</b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
         markup = types.InlineKeyboardMarkup()
         btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='view_record', one_time_keyboard=True)
-        btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='close_order', one_time_keyboard=True)
+        # btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='close_order', one_time_keyboard=True)
         markup.row(btn02)
-        markup.row(btn01)
+        # markup.row(btn01)
         bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
     else:
         application = f'❌ Заявка закрыта\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</b> в {test2[4]}\n<b>·Рабочее время:</b>{test2[7]}\n<b>·Вам на руки:</b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
@@ -764,9 +764,9 @@ def callback_data_of_data_confirm(callback):
         application = f'✅\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</b> в {test2[4]}\n<b>·Рабочее время:</b>{test2[6]}\n<b>·Вам на руки:</b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
         markup = types.InlineKeyboardMarkup()
         btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='view_record', one_time_keyboard=True)
-        btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='close_order', one_time_keyboard=True)
+        # btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='close_order', one_time_keyboard=True)
         markup.row(btn02)
-        markup.row(btn01)
+        # markup.row(btn01)
         bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
     else:
         application = f'❌ Заявка закрыта\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</b> в {test2[4]}\n<b>·Рабочее время:</b>{test2[6]}\n<b>·Вам на руки:</b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
@@ -799,9 +799,9 @@ def callback_data_of_data_miss(callback):
         application = f'✅\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</b> в {test2[4]}\n<b>·Рабочее время:</b>{test2[7]}\n<b>·Вам на руки:</b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
         markup = types.InlineKeyboardMarkup()
         btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='view_record', one_time_keyboard=True)
-        btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='close_order', one_time_keyboard=True)
+        # btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='close_order', one_time_keyboard=True)
         markup.row(btn02)
-        markup.row(btn01)
+        # markup.row(btn01)
         bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
     else:
         application = f'❌ Заявка закрыта\n<b>·{test2[0]}: </b>{needText} {test2[1]} {humanCount}\n<b>·Адрес:</b>👉 {test2[2]}\n<b>·Что делать:</b> {test2[3]}\n<b>·Начало работ:</b> в {test2[4]}\n<b>·Рабочее время:</b>{test2[7]}\n<b>·Вам на руки:</b> <u>{test2[5]}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>' 
@@ -888,27 +888,34 @@ def callback_data_of_data(callback):
     orderDataTake = test2[16]
     orderDataDone = test2[17]
     orderDataMiss = test2[18] 
+    orderDataDefect = test2[21]
     recordsTake = orderDataTake.split(',')
     orderCountTake = len(recordsTake)
     recordsDone = orderDataDone.split(',')
     orderCountDone = len(recordsDone) - 1
     recordsMiss = orderDataMiss.split(',')
     orderCountMiss = len(recordsMiss) - 1
+
+    recordsDefect = orderDataDefect.split(',')
+    orderCountDefect = len(recordsDefect) - 1
     print(f"Количество записей: {orderCountTake}")
     print(f"Количество записей: {orderCountDone}")
     print(f"Количество записей: {orderCountMiss}")
+    print(f"Количество записей: {orderCountDefect}")
     conn.close()
     try:
         percent_completed = (orderCountDone / (orderCountTake)) * 100
-        percent_failed = (orderCountMiss / (orderCountTake)) * 100
+        percent_failed = (orderCountDefect / (orderCountTake)) * 100
+        percent_canseled = (orderCountMiss/ (orderCountTake)) * 100
     except Exception:
         percent_completed = 0
         percent_failed = 0
+        percent_canseled = 0
         print('на ноль делить нельзя')
     markup = types.InlineKeyboardMarkup()
     btn02 = types.InlineKeyboardButton('Назад', callback_data=f'back_1_{take_user_id}', one_time_keyboard=True)
     markup.row(btn02)
-    bot1.edit_message_text(f'📊 Статистика заказов:\n• Взял: {orderCountTake}\n• Выполнил: {orderCountDone} ({percent_completed}%)\n• Брак: {orderCountMiss} ({percent_failed}%)', callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
+    bot1.edit_message_text(f'📊 Статистика заказов:\n• Взял: {orderCountTake}\n• Выполнил: {orderCountDone} ({percent_completed}%)\n• Брак: {orderCountDefect} ({percent_failed}%)\n• Отменил: {orderCountMiss} ({percent_canseled}%)', callback.message.chat.id, callback.message.message_id, parse_mode='html', reply_markup=markup)
 
 @bot1.message_handler(content_types=['text'])
 def check_callback_message_ready_order(message):          
