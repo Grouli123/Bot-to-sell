@@ -326,7 +326,7 @@ def update_message_with_users_list(chat_id, message_id, test, user_id, users_who
             markup.row(btn01)
 
             # Обновляем состояние пользователя
-            update_state(user_id, STATE_UPDATED_MESSAGE)
+            # update_state(user_id, STATE_UPDATED_MESSAGE) 
 
             bot.edit_message_reply_markup(chat_id=admin_chat_id, message_id=admin_message_id, reply_markup=markup)
         except Exception:
@@ -636,137 +636,137 @@ def send_money_message_admin(message):
     conn.close()
 
 
-@bot.callback_query_handler(func=lambda callback: True)
-def callback_data_of_data(callback):
-    global orderTakeTwo
-    global checkThirdFriend
-    global checkFourthFriend
-    global user_id_mess
-    global test
-    global user_id
-    global takeParam2
+# @bot.callback_query_handler(func=lambda callback: True)
+# def callback_data_of_data(callback):
+#     global orderTakeTwo
+#     global checkThirdFriend
+#     global checkFourthFriend
+#     global user_id_mess
+#     global test
+#     global user_id
+#     global takeParam2
 
-    # Разбиваем callback_data на действие и order_id
-    callback_data = callback.data
-    parts = callback_data.split('|')
-    if len(parts) == 2:
-        action, order_id = parts
-    else:
-        bot.send_message(callback.message.chat.id, "Ошибка: неправильный формат callback_data")
-        return
+#     # Разбиваем callback_data на действие и order_id
+#     callback_data = callback.data
+#     parts = callback_data.split('|')
+#     if len(parts) == 2:
+#         action, order_id = parts
+#     else:
+#         bot.send_message(callback.message.chat.id, "Ошибка: неправильный формат callback_data")
+#         return
 
-    test = callback.message.message_id
-    user_id = callback.from_user.id
-    print(f"1. Получен callback от пользователя {user_id} с message_id {test} для заказа {order_id}")
+#     test = callback.message.message_id
+#     user_id = callback.from_user.id
+#     print(f"1. Получен callback от пользователя {user_id} с message_id {test} для заказа {order_id}")
 
-    # Проверяем, есть ли у пользователя активный заказ
-    conn = sqlite3.connect('peoplebase.sql')
-    cursor = conn.cursor()
-    cursor.execute("SELECT actualOrder FROM users WHERE user_id = ?", (user_id,))
-    actual_order = cursor.fetchone()
-    print("2. Проверка наличия активного заказа у пользователя выполнена")
+#     # Проверяем, есть ли у пользователя активный заказ
+#     conn = sqlite3.connect('peoplebase.sql')
+#     cursor = conn.cursor()
+#     cursor.execute("SELECT actualOrder FROM users WHERE user_id = ?", (user_id,))
+#     actual_order = cursor.fetchone()
+#     print("2. Проверка наличия активного заказа у пользователя выполнена")
 
-    if actual_order and actual_order[0] not in [None, ""]:
-        bot.send_message(callback.message.chat.id, "Вы уже записаны на заказ")
-        conn.close()
-        print("3. Пользователь уже записан на заказ, выход из функции")
-        return
+#     if actual_order and actual_order[0] not in [None, ""]:
+#         bot.send_message(callback.message.chat.id, "Вы уже записаны на заказ")
+#         conn.close()
+#         print("3. Пользователь уже записан на заказ, выход из функции")
+#         return
 
-    # Получаем данные пользователя
-    cursor.execute("SELECT * FROM users WHERE user_id = ?", (user_id,))
-    takeParam2 = cursor.fetchone()
-    print(f"4. Параметры пользователя {user_id} загружены: {takeParam2}")
-    cursor.close()
-    conn.close()
+#     # Получаем данные пользователя
+#     cursor.execute("SELECT * FROM users WHERE user_id = ?", (user_id,))
+#     takeParam2 = cursor.fetchone()
+#     print(f"4. Параметры пользователя {user_id} загружены: {takeParam2}")
+#     cursor.close()
+#     conn.close()
 
-    if takeParam2:
-        orderTakeTwo = takeParam2[0]
+#     if takeParam2:
+#         orderTakeTwo = takeParam2[0]
 
-        # Получаем данные заказа по order_id
-        conn3 = sqlite3.connect('applicationbase.sql')
-        cur3 = conn3.cursor()
-        cur3.execute("SELECT * FROM orders WHERE id = ?", (order_id,))
-        users = cur3.fetchone()
-        user_id_mess = users[0]
-        cur3.close()
-        conn3.close()
+#         # Получаем данные заказа по order_id
+#         conn3 = sqlite3.connect('applicationbase.sql')
+#         cur3 = conn3.cursor()
+#         cur3.execute("SELECT * FROM orders WHERE id = ?", (order_id,))
+#         users = cur3.fetchone()
+#         user_id_mess = users[0]
+#         cur3.close()
+#         conn3.close()
 
-        print(f"5. Заказ обновлен для пользователя: {user_id_mess}")
+#         print(f"5. Заказ обновлен для пользователя: {user_id_mess}")
 
-        # Обновляем информацию о заказе у пользователя
-        conn6 = sqlite3.connect('peoplebase.sql')
-        cursor6 = conn6.cursor()
-        cursor6.execute("SELECT orderTake, actualOrder FROM users WHERE user_id = ?", (user_id,))
-        takeOrderTake = cursor6.fetchone()
-        current_orderId = takeOrderTake[0] if takeOrderTake[0] else ""
-        new_orderId = current_orderId + "," + str(user_id_mess) if current_orderId else user_id_mess
-        cursor6.execute("UPDATE users SET orderTake = ?, actualOrder = ? WHERE user_id = ?", (new_orderId, str(user_id_mess), user_id))
-        conn6.commit()
-        print(f"6. Пользователь {user_id} обновлен в базе данных")
-        cursor6.close()
-        conn6.close()
+#         # Обновляем информацию о заказе у пользователя
+#         conn6 = sqlite3.connect('peoplebase.sql')
+#         cursor6 = conn6.cursor()
+#         cursor6.execute("SELECT orderTake, actualOrder FROM users WHERE user_id = ?", (user_id,))
+#         takeOrderTake = cursor6.fetchone()
+#         current_orderId = takeOrderTake[0] if takeOrderTake[0] else ""
+#         new_orderId = current_orderId + "," + str(user_id_mess) if current_orderId else user_id_mess
+#         cursor6.execute("UPDATE users SET orderTake = ?, actualOrder = ? WHERE user_id = ?", (new_orderId, str(user_id_mess), user_id))
+#         conn6.commit()
+#         print(f"6. Пользователь {user_id} обновлен в базе данных")
+#         cursor6.close()
+#         conn6.close()
 
-        # Обновляем информацию о пользователе в заказе
-        conn2 = sqlite3.connect('applicationbase.sql')
-        cursor2 = conn2.cursor()
-        cursor2.execute("SELECT whoTakeId FROM orders WHERE id = ?", (order_id,))
-        current_values = cursor2.fetchone()
+#         # Обновляем информацию о пользователе в заказе
+#         conn2 = sqlite3.connect('applicationbase.sql')
+#         cursor2 = conn2.cursor()
+#         cursor2.execute("SELECT whoTakeId FROM orders WHERE id = ?", (order_id,))
+#         current_values = cursor2.fetchone()
 
-        if current_values is not None:
-            current_phone_numbers = current_values[0] if current_values[0] else ""
-            new_phone_numbers = current_phone_numbers + "," + str(orderTakeTwo) if current_phone_numbers else str(orderTakeTwo)
-            cursor2.execute("UPDATE orders SET whoTakeId = ? WHERE id = ?", (new_phone_numbers, order_id))
-            conn2.commit()
-            print(f"7. Заказ {order_id} обновлен с новыми пользователями")
-        cursor2.close()
-        conn2.close()
+#         if current_values is not None:
+#             current_phone_numbers = current_values[0] if current_values[0] else ""
+#             new_phone_numbers = current_phone_numbers + "," + str(orderTakeTwo) if current_phone_numbers else str(orderTakeTwo)
+#             cursor2.execute("UPDATE orders SET whoTakeId = ? WHERE id = ?", (new_phone_numbers, order_id))
+#             conn2.commit()
+#             print(f"7. Заказ {order_id} обновлен с новыми пользователями")
+#         cursor2.close()
+#         conn2.close()
 
-        # Формируем информацию о заказе для обновления сообщения
-        if users is not None:
-            if (int(users[3]) <= 1) or (int(users[3]) >= 5):
-                humanCount = 'человек'
-            else:
-                humanCount = 'человека'
-            if int(users[3]) > 1:
-                needText = 'Нужно'
-            else:
-                needText = 'Нужен'
+#         # Формируем информацию о заказе для обновления сообщения
+#         if users is not None:
+#             if (int(users[3]) <= 1) or (int(users[3]) >= 5):
+#                 humanCount = 'человек'
+#             else:
+#                 humanCount = 'человека'
+#             if int(users[3]) > 1:
+#                 needText = 'Нужно'
+#             else:
+#                 needText = 'Нужен'
 
-            print(f"8. Данные о заказе {order_id} получены: {users}")
+#             print(f"8. Данные о заказе {order_id} получены: {users}")
 
-        order_info = (f'✅\n<b>•{users[2]}: </b>{needText} {users[3]} {humanCount}\n'
-                      f'<b>•Адрес:</b>👉 {users[4]}\n'
-                      f'<b>•Что делать:</b> {users[5]}\n'
-                      f'<b>•Начало работ:</b> в {users[6]}:00\n'
-                      f'<b>•Рабочее время:</b> {users[17]}:00\n'
-                      f'<b>•Вам на руки:</b> <u>{users[8]}.00</u> р./час, минималка 2 часа\n'
-                      f'<b>•Приоритет самозанятым</b>')
+#         order_info = (f'✅\n<b>•{users[2]}: </b>{needText} {users[3]} {humanCount}\n'
+#                       f'<b>•Адрес:</b>👉 {users[4]}\n'
+#                       f'<b>•Что делать:</b> {users[5]}\n'
+#                       f'<b>•Начало работ:</b> в {users[6]}:00\n'
+#                       f'<b>•Рабочее время:</b> {users[17]}:00\n'
+#                       f'<b>•Вам на руки:</b> <u>{users[8]}.00</u> р./час, минималка 2 часа\n'
+#                       f'<b>•Приоритет самозанятым</b>')
 
-        # Создаем разметку кнопок (markup)
-        # markup = types.InlineKeyboardMarkup()
-        # btn = types.InlineKeyboardButton('Посмотреть запись', callback_data='ОтправленоАдмину')
-        # btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='❌ Закрыть заявку', one_time_keyboard=True)
-        # markup.row(btn)
-        # markup.row(btn01)
+#         # Создаем разметку кнопок (markup)
+#         # markup = types.InlineKeyboardMarkup()
+#         # btn = types.InlineKeyboardButton('Посмотреть запись', callback_data='ОтправленоАдмину')
+#         # btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='❌ Закрыть заявку', one_time_keyboard=True)
+#         # markup.row(btn)
+#         # markup.row(btn01)
 
-        # Обновляем сообщение
-        bot.edit_message_text(order_info, callback.message.chat.id, callback.message.message_id, parse_mode='html')
-        print("Сообщение с информацией о заказе обновлено")
+#         # Обновляем сообщение
+#         bot.edit_message_text(order_info, callback.message.chat.id, callback.message.message_id, parse_mode='html')
+#         print("Сообщение с информацией о заказе обновлено")
 
-        bot.send_message(callback.message.chat.id, f'Принято, вы {action}, ваш заказ номер: {user_id_mess}')
-        print("9. Сообщение с информацией о заказе отправлено и обновлено")
+#         bot.send_message(callback.message.chat.id, f'Принято, вы {action}, ваш заказ номер: {user_id_mess}')
+#         print("9. Сообщение с информацией о заказе отправлено и обновлено")
 
-        # Установка времени для напоминания в московском часовом поясе (20 минут до начала работы)
-        start_hour = int(users[6])  # Получаем час начала работы
-        job_time = datetime.now(msk_tz).replace(hour=start_hour, minute=0) - timedelta(minutes=10)
+#         # Установка времени для напоминания в московском часовом поясе (20 минут до начала работы)
+#         start_hour = int(users[6])  # Получаем час начала работы
+#         job_time = datetime.now(msk_tz).replace(hour=start_hour, minute=0) - timedelta(minutes=10)
 
-        # Проверяем, что время для напоминания еще не прошло
-        if job_time < datetime.now(msk_tz):
-            job_time += timedelta(days=1)  # Если время уже прошло, ставим напоминание на следующий день
+#         # Проверяем, что время для напоминания еще не прошло
+#         if job_time < datetime.now(msk_tz):
+#             job_time += timedelta(days=1)  # Если время уже прошло, ставим напоминание на следующий день
 
-        # Добавляем задание с напоминанием
-        scheduler.add_job(send_reminder, 'date', run_date=job_time, args=[callback.message.chat.id, user_id_mess])
-        print(f"10. Напоминание установлено на {job_time}")
+#         # Добавляем задание с напоминанием
+#         scheduler.add_job(send_reminder, 'date', run_date=job_time, args=[callback.message.chat.id, user_id_mess])
+#         print(f"10. Напоминание установлено на {job_time}")
 
 def send_reminder(chat_id, user_id_mess):
     markup = types.InlineKeyboardMarkup()
@@ -1781,22 +1781,22 @@ def callback_data_of_data(callback):
 
         if orderDataTake:
             recordsTake = orderDataTake.split(',')
-            orderDataTake = len(recordsTake) - 1
+            orderDataTake = len(recordsTake) 
         else:
-            orderCountTake = 0
+            orderDataTake = 0
         # recordsTake = orderDataTake.split(',')            
 
         if orderDataDone:
             recordsDone = orderDataDone.split(',')
-            orderDataDone = len(recordsDone) - 1
+            orderDataDone = len(recordsDone) 
             # orderCountDone = len(recordsDone) - 1
         else:
-            orderCountDone = 0
+            orderDataDone = 0
 
         # recordsDone = orderDataDone.split(',')
         if orderDataMiss:
             recordsMiss = orderDataMiss.split(',')
-            orderCountMiss = len(recordsMiss) - 1
+            orderCountMiss = len(recordsMiss)
             # orderCountMiss = len(recordsMiss) - 1
         else:
             orderCountMiss = 0
@@ -1804,29 +1804,30 @@ def callback_data_of_data(callback):
 
         if orderDataDefect:
             recordsDefect = orderDataDefect.split(',')
-            orderCounrDefect = len(recordsDefect) - 1
+            orderCounrDefect = len(recordsDefect) 
         else:
             orderCounrDefect = 0
 
-        print(f"Количество записей: {orderCountTake}")
-        print(f"Количество записей: {orderCountDone}")
+        print(f"Количество записей: {orderDataTake}")
+        print(f"Количество записей: {orderDataDone}")
         print(f"Количество записей: {orderCountMiss}")
         print(f"Количество записей: {orderCounrDefect}")
         conn.close()
         try:
-            percent_completed = (orderCountDone / orderCountTake) * 100
-            percent_failed = (orderCountMiss / orderCountTake) * 100
-            percent_defect = (orderCounrDefect / orderCountTake) * 100
+            percent_completed = (orderDataDone / orderDataTake) * 100
+            percent_failed = (orderCountMiss / orderDataTake) * 100
+            percent_defect = (orderCounrDefect / orderDataTake) * 100
         except Exception:
             percent_completed = 0
             percent_failed = 0
+            percent_defect = 0
             print('на ноль делить нельзя')
         markup = types.InlineKeyboardMarkup()
         btn2 = types.InlineKeyboardButton(citizenRuButtonYesText, callback_data=citizenRuButtonYesTextCallbackData, one_time_keyboard=True)
         btn3 = types.InlineKeyboardButton(citizenRuButtonNoText, callback_data=citizenRuButtonNoTextCallbackData, one_time_keyboard=True)
         markup.row(btn2)
         markup.row(btn3)
-        bot.send_message(callback.message.chat.id, f'📊 Статистика заказов:\n• Взял: {orderCountTake}\n• Выполнил: {orderCountDone} ({percent_completed}%)\n• Брак: {orderCounrDefect} ({percent_defect}%)\n• Отменил: {orderCountMiss} ({percent_failed}%)', reply_markup=markup)
+        bot.send_message(callback.message.chat.id, f'📊 Статистика заказов:\n• Взял: {orderDataTake}\n• Выполнил: {orderDataDone} ({percent_completed}%)\n• Брак: {orderCounrDefect} ({percent_defect}%)\n• Отменил: {orderCountMiss} ({percent_failed}%)', reply_markup=markup)
     elif callback.data == '✅Подтвердить аккаунт':
         print(nuberPhone, lastname)
         data_called = False
@@ -2458,8 +2459,8 @@ def handle_state(user_id, message):
         input_lastname(message)
     elif state == STATE_LOCATION:
         location(message)
-    elif state == STATE_INPUT_PHONE_NUMBER:
-        numberPhoneInput(message)
+    # elif state == STATE_INPUT_PHONE_NUMBER:
+    #     numberPhoneInput(message)
     elif state == STATE_ORDERS:
         orders(message)
     elif state == STATE_DATA:
@@ -2491,13 +2492,144 @@ def handle_state(user_id, message):
     else:
         bot.send_message(message.chat.id, "Неизвестное состояние. Попробуйте снова.")
 
+@bot.callback_query_handler(func=lambda callback: True)
+def callback_data_of_data(callback):
+    global orderTakeTwo
+    global checkThirdFriend
+    global checkFourthFriend
+    global user_id_mess
+    global test
+    global user_id
+    global takeParam2
+
+    # Разбиваем callback_data на действие и order_id
+    callback_data = callback.data
+    parts = callback_data.split('|')
+    if len(parts) == 2:
+        action, order_id = parts
+    else:
+        bot.send_message(callback.message.chat.id, "Ошибка: неправильный формат callback_data")
+        return
+
+    test = callback.message.message_id
+    user_id = callback.from_user.id
+    print(f"1. Получен callback от пользователя {user_id} с message_id {test} для заказа {order_id}")
+
+    # Проверяем, есть ли у пользователя активный заказ
+    conn = sqlite3.connect('peoplebase.sql')
+    cursor = conn.cursor()
+    cursor.execute("SELECT actualOrder FROM users WHERE user_id = ?", (user_id,))
+    actual_order = cursor.fetchone()
+    print("2. Проверка наличия активного заказа у пользователя выполнена")
+
+    if actual_order and actual_order[0] not in [None, ""]:
+        bot.send_message(callback.message.chat.id, "Вы уже записаны на заказ")
+        conn.close()
+        print("3. Пользователь уже записан на заказ, выход из функции")
+        return
+
+    # Получаем данные пользователя
+    cursor.execute("SELECT * FROM users WHERE user_id = ?", (user_id,))
+    takeParam2 = cursor.fetchone()
+    print(f"4. Параметры пользователя {user_id} загружены: {takeParam2}")
+    cursor.close()
+    conn.close()
+
+    if takeParam2:
+        orderTakeTwo = takeParam2[0]
+
+        # Получаем данные заказа по order_id
+        conn3 = sqlite3.connect('applicationbase.sql')
+        cur3 = conn3.cursor()
+        cur3.execute("SELECT * FROM orders WHERE id = ?", (order_id,))
+        users = cur3.fetchone()
+        user_id_mess = users[0]
+        cur3.close()
+        conn3.close()
+
+        print(f"5. Заказ обновлен для пользователя: {user_id_mess}")
+
+        # Обновляем информацию о заказе у пользователя
+        conn6 = sqlite3.connect('peoplebase.sql')
+        cursor6 = conn6.cursor()
+        cursor6.execute("SELECT orderTake, actualOrder FROM users WHERE user_id = ?", (user_id,))
+        takeOrderTake = cursor6.fetchone()
+        current_orderId = takeOrderTake[0] if takeOrderTake[0] else ""
+        new_orderId = current_orderId + "," + str(user_id_mess) if current_orderId else user_id_mess
+        cursor6.execute("UPDATE users SET orderTake = ?, actualOrder = ? WHERE user_id = ?", (new_orderId, str(user_id_mess), user_id))
+        conn6.commit()
+        print(f"6. Пользователь {user_id} обновлен в базе данных")
+        cursor6.close()
+        conn6.close()
+
+        # Обновляем информацию о пользователе в заказе
+        conn2 = sqlite3.connect('applicationbase.sql')
+        cursor2 = conn2.cursor()
+        cursor2.execute("SELECT whoTakeId FROM orders WHERE id = ?", (order_id,))
+        current_values = cursor2.fetchone()
+
+        if current_values is not None:
+            current_phone_numbers = current_values[0] if current_values[0] else ""
+            new_phone_numbers = current_phone_numbers + "," + str(orderTakeTwo) if current_phone_numbers else str(orderTakeTwo)
+            cursor2.execute("UPDATE orders SET whoTakeId = ? WHERE id = ?", (new_phone_numbers, order_id))
+            conn2.commit()
+            print(f"7. Заказ {order_id} обновлен с новыми пользователями")
+        cursor2.close()
+        conn2.close()
+
+        # Формируем информацию о заказе для обновления сообщения
+        if users is not None:
+            if (int(users[3]) <= 1) or (int(users[3]) >= 5):
+                humanCount = 'человек'
+            else:
+                humanCount = 'человека'
+            if int(users[3]) > 1:
+                needText = 'Нужно'
+            else:
+                needText = 'Нужен'
+
+            print(f"8. Данные о заказе {order_id} получены: {users}")
+
+        order_info = (f'✅\n<b>•{users[2]}: </b>{needText} {users[3]} {humanCount}\n'
+                      f'<b>•Адрес:</b>👉 {users[4]}\n'
+                      f'<b>•Что делать:</b> {users[5]}\n'
+                      f'<b>•Начало работ:</b> в {users[6]}:00\n'
+                      f'<b>•Рабочее время:</b> {users[17]}:00\n'
+                      f'<b>•Вам на руки:</b> <u>{users[8]}.00</u> р./час, минималка 2 часа\n'
+                      f'<b>•Приоритет самозанятым</b>')
+
+        # Создаем разметку кнопок (markup)
+        # markup = types.InlineKeyboardMarkup()
+        # btn = types.InlineKeyboardButton('Посмотреть запись', callback_data='ОтправленоАдмину')
+        # btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='❌ Закрыть заявку', one_time_keyboard=True)
+        # markup.row(btn)
+        # markup.row(btn01)
+
+        # Обновляем сообщение
+        bot.edit_message_text(order_info, callback.message.chat.id, callback.message.message_id, parse_mode='html')
+        print("Сообщение с информацией о заказе обновлено")
+
+        bot.send_message(callback.message.chat.id, f'Принято, вы {action}, ваш заказ номер: {user_id_mess}')
+        print("9. Сообщение с информацией о заказе отправлено и обновлено")
+
+        # Установка времени для напоминания в московском часовом поясе (20 минут до начала работы)
+        start_hour = int(users[6])  # Получаем час начала работы
+        job_time = datetime.now(msk_tz).replace(hour=start_hour, minute=0) - timedelta(minutes=10)
+
+        # Проверяем, что время для напоминания еще не прошло
+        if job_time < datetime.now(msk_tz):
+            job_time += timedelta(days=1)  # Если время уже прошло, ставим напоминание на следующий день
+
+        # Добавляем задание с напоминанием
+        scheduler.add_job(send_reminder, 'date', run_date=job_time, args=[callback.message.chat.id, user_id_mess])
+        print(f"10. Напоминание установлено на {job_time}")
 
 if __name__ == '__main__':
     print('Bot started')
     # bot.polling(non_stop=True, interval=0, timeout=60, long_polling_timeout=30)
-    while True:
-        try:
-            bot.polling(non_stop=True, interval=0, timeout=60, long_polling_timeout=30)
-        except requests.exceptions.ConnectionError:
-            print("Ошибка подключения. Повторяем попытку через 5 секунд.")
-            time.sleep(5)
+    # while True:
+    #     try:
+    bot.polling(non_stop=True, interval=0, timeout=60, long_polling_timeout=30)
+        # except requests.exceptions.ConnectionError:
+        #     print("Ошибка подключения. Повторяем попытку через 5 секунд.")
+        #     time.sleep(5)

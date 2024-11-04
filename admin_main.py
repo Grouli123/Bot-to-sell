@@ -497,8 +497,9 @@ def callback_message_created_order(callback):
         feedback = orderSendText
         application = f'✅\n<b>·{cityname}: </b>{needText} {countPeople} {humanCount}\n<b>·Адрес:</b>👉 {adress}\n<b>·Что делать:</b> {whattodo}\n<b>·Начало работ:</b> в {timetostart}:00\n<b>·Рабочее время:</b> {workTime}:00\n<b>·Вам на руки:</b> <u>{salary}.00</u> р./час, минималка 2 часа\n<b>·Приоритет самозанятым</b>'
         markup1 = types.InlineKeyboardMarkup()
-        btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='close_order', one_time_keyboard=True)
-        markup1.row(btn01)
+        # btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='close_order', one_time_keyboard=True)
+        btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='view_record', one_time_keyboard=True)
+        markup1.row(btn02)
         bot1.edit_message_text(application, callback.message.chat.id, callback.message.message_id, reply_markup=markup1, parse_mode='html')
 
         # Выбор бота в зависимости от города
@@ -528,7 +529,7 @@ def callback_message_created_order(callback):
     else:
         feedback = orderDeleteText
         bot1.delete_message(callback.message.chat.id, callback.message.message_id)
-        start(message)
+        start(callback.message)
 
 @bot1.callback_query_handler(func=lambda callback: callback.data == 'close_order')
 def callback_message_created_order(callback):
@@ -636,10 +637,10 @@ def testmess_close_one(callback):
 @bot1.callback_query_handler(func=lambda callback: callback.data == 'collapse')
 def testmess_close(callback):
     markup = types.InlineKeyboardMarkup()
-    btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='close_order', one_time_keyboard=True)
+    # btn01 = types.InlineKeyboardButton('❌ Закрыть заявку', callback_data='close_order', one_time_keyboard=True)
     btn02 = types.InlineKeyboardButton('Посмотреть запись', callback_data='view_record', one_time_keyboard=True)
     markup.row(btn02)
-    markup.row(btn01)
+    # markup.row(btn01)
     bot1.edit_message_reply_markup(chat_id=callback.message.chat.id, message_id=callback.message.message_id, reply_markup=markup)
 
 @bot1.callback_query_handler(func=lambda callback: callback.data == 'view_record_1')
@@ -892,12 +893,12 @@ def callback_data_of_data(callback):
     recordsTake = orderDataTake.split(',')
     orderCountTake = len(recordsTake)
     recordsDone = orderDataDone.split(',')
-    orderCountDone = len(recordsDone) - 1
+    orderCountDone = len(recordsDone) 
     recordsMiss = orderDataMiss.split(',')
-    orderCountMiss = len(recordsMiss) - 1
+    orderCountMiss = len(recordsMiss) 
 
     recordsDefect = orderDataDefect.split(',')
-    orderCountDefect = len(recordsDefect) - 1
+    orderCountDefect = len(recordsDefect) 
     print(f"Количество записей: {orderCountTake}")
     print(f"Количество записей: {orderCountDone}")
     print(f"Количество записей: {orderCountMiss}")
