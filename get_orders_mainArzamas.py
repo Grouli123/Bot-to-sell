@@ -2624,12 +2624,29 @@ def callback_data_of_data(callback):
         scheduler.add_job(send_reminder, 'date', run_date=job_time, args=[callback.message.chat.id, user_id_mess])
         print(f"10. Напоминание установлено на {job_time}")
 
+# if __name__ == '__main__':
+#     print('Bot started')
+#     # bot.polling(non_stop=True, interval=0, timeout=60, long_polling_timeout=30)
+#     # while True:
+#     #     try:
+#     # bot.polling(non_stop=True, interval=0, timeout=60, long_polling_timeout=30)
+#         # except requests.exceptions.ConnectionError:
+#         #     print("Ошибка подключения. Повторяем попытку через 5 секунд.")
+#         #     time.sleep(5)
+#     while True:
+#         try:
+#             bot.polling(non_stop=True, interval=0, timeout=20, long_polling_timeout=30)
+#         except Exception as e:
+#             print(f"Ошибка: {e}. Перезапуск через 5 секунд.")
+#             time.sleep(5)
 if __name__ == '__main__':
     print('Bot started')
-    # bot.polling(non_stop=True, interval=0, timeout=60, long_polling_timeout=30)
-    # while True:
-    #     try:
-    bot.polling(non_stop=True, interval=0, timeout=60, long_polling_timeout=30)
-        # except requests.exceptions.ConnectionError:
-        #     print("Ошибка подключения. Повторяем попытку через 5 секунд.")
-        #     time.sleep(5)
+    while True:
+        try:
+            bot.polling(non_stop=True, interval=0, timeout=20, long_polling_timeout=30)
+        except telebot.apihelper.ApiException as e:
+            print(f"Ошибка API: {e}. Перезапуск через 5 секунд.")
+            time.sleep(5)
+        except Exception as e:
+            print(f"Ошибка: {e}. Перезапуск через 5 секунд.")
+            time.sleep(5)

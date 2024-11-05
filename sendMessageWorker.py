@@ -46,7 +46,7 @@ def testMethod(botId):
     try:
         cur.execute("SELECT * FROM orders ORDER BY id DESC LIMIT 1")
         users = cur.fetchone()
-        if users is not None and "Арзамас" in users[2]:
+        if users is not None and users[2]:
             if (int(users[3]) <= 1) or (int(users[3]) >= 5):
                 humanCount = 'человек'
             else:
