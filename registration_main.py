@@ -782,6 +782,18 @@ def import_into_database_order_admin(message, user_id):
 #     print(user_id)
 #     SendMessageintoHere(6171671445, user_id)
 
-print('Bot started')
+# print('Bot started')
 
-bot.polling(non_stop=True, interval=0, timeout=60, long_polling_timeout=30)
+# bot.polling(non_stop=True, interval=0, timeout=60, long_polling_timeout=30)
+
+if __name__ == '__main__':
+    print('Bot started')
+    while True:
+        try:
+            bot.polling(non_stop=True, interval=0, timeout=20, long_polling_timeout=30)
+        except telebot.apihelper.ApiException as e:
+            print(f"Ошибка API в боте регистрации: {e}. Перезапуск через 5 секунд.")
+            time.sleep(5)
+        except Exception as e:
+            print(f"Ошибка в боте регистрации: {e}. Перезапуск через 5 секунд.")
+            time.sleep(5)

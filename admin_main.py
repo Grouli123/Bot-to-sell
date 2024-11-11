@@ -982,6 +982,18 @@ def import_into_database(message):
     # sendMessageWorker.testMethod(mainApi)
     start(message)
 
-print('Bot started')
+# print('Bot started')
 
-bot1.polling(non_stop=True, interval=0, timeout=60, long_polling_timeout=30)
+# bot1.polling(non_stop=True, interval=0, timeout=60, long_polling_timeout=30)
+
+if __name__ == '__main__':
+    print('Bot started')
+    while True:
+        try:
+            bot1.polling(non_stop=True, interval=0, timeout=20, long_polling_timeout=30)
+        except telebot.apihelper.ApiException as e:
+            print(f"Ошибка API в боте менеджера: {e}. Перезапуск через 5 секунд.")
+            time.sleep(5)
+        except Exception as e:
+            print(f"Ошибка в боте менеджера: {e}. Перезапуск через 5 секунд.")
+            time.sleep(5)

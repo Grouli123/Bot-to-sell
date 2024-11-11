@@ -2645,8 +2645,8 @@ if __name__ == '__main__':
         try:
             bot.polling(non_stop=True, interval=0, timeout=20, long_polling_timeout=30)
         except telebot.apihelper.ApiException as e:
-            print(f"Ошибка API: {e}. Перезапуск через 5 секунд.")
+            print(f"Ошибка API в боте Арзамаса: {e}. Перезапуск через 5 секунд.")
             time.sleep(5)
         except Exception as e:
-            print(f"Ошибка: {e}. Перезапуск через 5 секунд.")
+            print(f"Ошибка в боте Арзамаса: {e}. Перезапуск через 5 секунд.")
             time.sleep(5)

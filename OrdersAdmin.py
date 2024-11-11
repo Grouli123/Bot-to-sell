@@ -542,5 +542,16 @@ def show_database_userOrder(message):
 #     elif state == STATE_CANCEL_MESSAGE:
 #         cancel_message(message)
 
-print('Bot started')
-bot13.polling(non_stop=True, interval=0, timeout=60, long_polling_timeout=30)
+# print('Bot started')
+# bot13.polling(non_stop=True, interval=0, timeout=60, long_polling_timeout=30)
+if __name__ == '__main__':
+    print('Bot started')
+    while True:
+        try:
+            bot13.polling(non_stop=True, interval=0, timeout=20, long_polling_timeout=30)
+        except telebot.apihelper.ApiException as e:
+            print(f"Ошибка API в боте Админа: {e}. Перезапуск через 5 секунд.")
+            time.sleep(5)
+        except Exception as e:
+            print(f"Ошибка в боте Админа: {e}. Перезапуск через 5 секунд.")
+            time.sleep(5)
