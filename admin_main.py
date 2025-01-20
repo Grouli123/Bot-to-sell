@@ -10,6 +10,8 @@ import get_orders_config.get_orders_config_message as config_message_bot_order
 import citys.city_list as citys
 # from get_orders_mainArzamas import testMethod
 import sendMessageWorker
+import time
+
 
 botApiKey = API_key_one.botAPI
 

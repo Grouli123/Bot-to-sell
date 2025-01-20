@@ -1,6 +1,7 @@
 import telebot
 from telebot import types
 import sqlite3
+import time
 from geopy.geocoders import Nominatim
 from datetime import datetime
 import registration_people_config.registration_API_key as API_key
