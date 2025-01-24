@@ -8,7 +8,8 @@ script_paths = [
     'OrdersAdmin.py',
     'get_orders_mainSPB.py',
     'get_orders_mainMoskow.py',
-    'get_orders_mainEka.py'
+    'get_orders_mainEka.py',
+    'Site.py'
 ]
 
 # Список для хранения процессов
